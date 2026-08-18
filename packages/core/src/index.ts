@@ -7,30 +7,30 @@
  */
 
 // Domain
-export * from './domain/types.js';
+export * from './domain/types';
 
 // Engine
-export * from './engine/grading.js';
-export * from './engine/scheduler.js';
-export * from './engine/progression.js';
-export * from './engine/placement.js';
-export * from './engine/session.js';
+export * from './engine/grading';
+export * from './engine/scheduler';
+export * from './engine/progression';
+export * from './engine/placement';
+export * from './engine/session';
 
 // Content
-export * from './content/index.js';
-export { achievementProgress, ACHIEVEMENTS_BY_ID } from './content/achievements.js';
-export type { AchievementStats, AchievementProgress } from './content/achievements.js';
+export * from './content/index';
+export { achievementProgress, ACHIEVEMENTS_BY_ID } from './content/achievements';
+export type { AchievementStats, AchievementProgress } from './content/achievements';
 
 // Monetization
-export * from './monetization/plans.js';
-export * from './monetization/entitlements.js';
+export * from './monetization/plans';
+export * from './monetization/entitlements';
 
 // Store
-export * from './store/progress.js';
+export * from './store/progress';
 
 // Services
-export * from './services/tutor.js';
-export * from './services/analytics.js';
+export * from './services/tutor';
+export * from './services/analytics';
 
 // Utilities
-export * from './util/format.js';
+export * from './util/format';

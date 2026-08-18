@@ -20,8 +20,8 @@ import {
 } from '@synapse/core';
 import { Badge, Button, Card, EmptyState, ProgressBar, Screen, Text, useTheme } from '@synapse/ui';
 
-import { useProgress } from '../../src/store/useProgress.js';
-import { useSession } from '../../src/store/useSession.js';
+import { useProgress } from '../../src/store/useProgress';
+import { useSession } from '../../src/store/useSession';
 
 export default function PracticeScreen(): React.JSX.Element {
   const theme = useTheme();

@@ -10,11 +10,11 @@ import React from 'react';
 import { View } from 'react-native';
 import type { Level, Track } from '@synapse/core';
 
-import { useTheme } from '../theme/ThemeProvider.js';
-import { Badge } from './Badge.js';
-import { Card } from './Card.js';
-import { ProgressRing } from './ProgressRing.js';
-import { Text } from './Text.js';
+import { useTheme } from '../theme/ThemeProvider';
+import { Badge } from './Badge';
+import { Card } from './Card';
+import { ProgressRing } from './ProgressRing';
+import { Text } from './Text';
 
 export interface TrackCardProps {
   track: Track;

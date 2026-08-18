@@ -35,7 +35,7 @@ import {
   useThemePreference,
 } from '@synapse/ui';
 
-import { useProgress } from '../../src/store/useProgress.js';
+import { useProgress } from '../../src/store/useProgress';
 
 export default function ProfileScreen(): React.JSX.Element {
   const theme = useTheme();

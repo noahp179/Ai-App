@@ -35,7 +35,7 @@ import {
   useTheme,
 } from '@synapse/ui';
 
-import { useProgress } from '../../src/store/useProgress.js';
+import { useProgress } from '../../src/store/useProgress';
 
 export default function TodayScreen(): React.JSX.Element {
   const theme = useTheme();

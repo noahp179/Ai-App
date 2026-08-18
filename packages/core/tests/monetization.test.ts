@@ -5,7 +5,7 @@ import {
   PLANS,
   annualSavingsPercent,
   monthlyEquivalent,
-} from '../src/monetization/plans.js';
+} from '../src/monetization/plans';
 import {
   FREE_ENTITLEMENT,
   FREE_TRACK_IDS,
@@ -23,9 +23,9 @@ import {
   rollMeter,
   spendHeart,
   type Entitlement,
-} from '../src/monetization/entitlements.js';
-import { TRACKS_BY_ID } from '../src/content/index.js';
-import type { Lesson } from '../src/domain/types.js';
+} from '../src/monetization/entitlements';
+import { TRACKS_BY_ID } from '../src/content/index';
+import type { Lesson } from '../src/domain/types';
 
 const NOW = 1_700_000_000_000;
 const DAY = 86_400_000;

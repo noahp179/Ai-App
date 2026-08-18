@@ -11,7 +11,7 @@ import { Pressable, View } from 'react-native';
 import type { InteractiveWidget } from '@synapse/core';
 import { Badge, Card, Screen, Text, useTheme } from '@synapse/ui';
 
-import { Interactive } from '../../src/components/interactives/index.js';
+import { Interactive } from '../../src/components/interactives/index';
 
 interface LabEntry {
   widget: InteractiveWidget;

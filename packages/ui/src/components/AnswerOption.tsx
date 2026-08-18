@@ -10,8 +10,8 @@
 import React from 'react';
 import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { useTheme } from '../theme/ThemeProvider.js';
-import { Text } from './Text.js';
+import { useTheme } from '../theme/ThemeProvider';
+import { Text } from './Text';
 
 export type AnswerState = 'idle' | 'selected' | 'correct' | 'incorrect' | 'revealed';
 

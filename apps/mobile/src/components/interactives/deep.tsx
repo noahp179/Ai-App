@@ -11,7 +11,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { Badge, Text, useTheme } from '@synapse/ui';
 
-import { Slider } from '../Slider.js';
+import { Slider } from '../Slider';
 import {
   ActionRow,
   Dot,
@@ -24,7 +24,7 @@ import {
   gaussian,
   makeRandom,
   type UnitPoint,
-} from './shared.js';
+} from './shared';
 
 // ---------------------------------------------------------------------------
 // activation-explorer

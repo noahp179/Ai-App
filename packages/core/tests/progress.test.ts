@@ -10,11 +10,11 @@ import {
   trackCompletion,
   trackMastery,
   type ProgressState,
-} from '../src/store/progress.js';
-import { TRACKS_BY_ID } from '../src/content/index.js';
-import type { AttemptRecord } from '../src/domain/types.js';
-import { formatCompact, formatDuration, formatRelativeDue, hashString, plural, seededShuffle } from '../src/util/format.js';
-import { DAY_MS } from '../src/engine/scheduler.js';
+} from '../src/store/progress';
+import { TRACKS_BY_ID } from '../src/content/index';
+import type { AttemptRecord } from '../src/domain/types';
+import { formatCompact, formatDuration, formatRelativeDue, hashString, plural, seededShuffle } from '../src/util/format';
+import { DAY_MS } from '../src/engine/scheduler';
 
 const NOW = Date.UTC(2026, 2, 1, 12, 0, 0);
 

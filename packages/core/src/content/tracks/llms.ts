@@ -1,7 +1,7 @@
 /** Track 4 — Large Language Models. Intro → expert. */
 
-import type { Track } from '../../domain/types.js';
-import { concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const llmTrack: Track = {
   id: 'track-llms',

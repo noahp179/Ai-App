@@ -15,7 +15,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useTheme } from '@synapse/ui';
 
-import { useProgress } from '../src/store/useProgress.js';
+import { useProgress } from '../src/store/useProgress';
 
 export default function RootLayout(): React.JSX.Element {
   return (

@@ -1,7 +1,7 @@
 /** Track 5 — Prompt Engineering. Intro → expert. Practical, hands-on. */
 
-import type { Track } from '../../domain/types.js';
-import { concept, interactive, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { concept, interactive, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders';
 
 export const promptEngineeringTrack: Track = {
   id: 'track-prompt-engineering',

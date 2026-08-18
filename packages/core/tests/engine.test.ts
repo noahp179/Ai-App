@@ -4,7 +4,7 @@ import {
   grade,
   gradeShortAnswer,
   type Response,
-} from '../src/engine/grading.js';
+} from '../src/engine/grading';
 import {
   DAY_MS,
   aggregateMastery,
@@ -13,7 +13,7 @@ import {
   retention,
   review,
   toRecall,
-} from '../src/engine/scheduler.js';
+} from '../src/engine/scheduler';
 import {
   GOAL_PRESETS,
   addXpToGoal,
@@ -27,17 +27,17 @@ import {
   scoreSession,
   targetXpForMinutes,
   xpForLevel,
-} from '../src/engine/progression.js';
-import { SessionRunner, buildReviewSession } from '../src/engine/session.js';
+} from '../src/engine/progression';
+import { SessionRunner, buildReviewSession } from '../src/engine/session';
 import {
   PLACEMENT_LENGTH,
   nextQuestion,
   scorePlacement,
   startPlacement,
   submitPlacementAnswer,
-} from '../src/engine/placement.js';
-import { placementPool } from '../src/content/placement-pool.js';
-import type { AttemptRecord, Exercise, Step } from '../src/domain/types.js';
+} from '../src/engine/placement';
+import { placementPool } from '../src/content/placement-pool';
+import type { AttemptRecord, Exercise, Step } from '../src/domain/types';
 
 // ---------------------------------------------------------------------------
 // Grading

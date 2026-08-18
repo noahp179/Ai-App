@@ -8,8 +8,8 @@
 import React from 'react';
 import { Platform, Text as RNText, type TextProps as RNTextProps, type TextStyle } from 'react-native';
 
-import { useTheme } from '../theme/ThemeProvider.js';
-import { monoFontFamily, type TypographyKey } from '../theme/tokens.js';
+import { useTheme } from '../theme/ThemeProvider';
+import { monoFontFamily, type TypographyKey } from '../theme/tokens';
 
 export type TextTone =
   | 'default'

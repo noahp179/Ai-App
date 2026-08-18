@@ -11,7 +11,7 @@
  *   - Intervals are capped so nothing disappears from review for over a year.
  */
 
-import type { SkillId, SkillState } from '../domain/types.js';
+import type { SkillId, SkillState } from '../domain/types';
 
 export const DAY_MS = 86_400_000;
 

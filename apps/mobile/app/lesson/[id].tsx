@@ -35,12 +35,12 @@ import {
   useTheme,
 } from '@synapse/ui';
 
-import { ConceptView } from '../../src/components/ConceptView.js';
-import { ExerciseView } from '../../src/components/ExerciseView.js';
-import { InteractiveCard } from '../../src/components/interactives/index.js';
-import { errorFeedback, successFeedback, tapFeedback } from '../../src/lib/haptics.js';
-import { useProgress } from '../../src/store/useProgress.js';
-import { useSession } from '../../src/store/useSession.js';
+import { ConceptView } from '../../src/components/ConceptView';
+import { ExerciseView } from '../../src/components/ExerciseView';
+import { InteractiveCard } from '../../src/components/interactives/index';
+import { errorFeedback, successFeedback, tapFeedback } from '../../src/lib/haptics';
+import { useProgress } from '../../src/store/useProgress';
+import { useSession } from '../../src/store/useSession';
 
 export default function LessonScreen(): React.JSX.Element {
   const theme = useTheme();

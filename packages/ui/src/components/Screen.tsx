@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useTheme } from '../theme/ThemeProvider.js';
+import { useTheme } from '../theme/ThemeProvider';
 
 export interface ScreenProps {
   children: React.ReactNode;

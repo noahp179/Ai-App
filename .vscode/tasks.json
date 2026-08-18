@@ -1,0 +1,56 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Web (browser)",
+      "detail": "Dev server at localhost:8081 — use Chrome DevTools device mode for phone/iPad sizes",
+      "type": "shell",
+      "command": "npm run web",
+      "isBackground": true,
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Mobile (QR / simulator)",
+      "detail": "Scan the QR with Expo Go, or press i for iOS Simulator / a for Android",
+      "type": "shell",
+      "command": "npm run mobile",
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Desktop (macOS)",
+      "detail": "Electron shell — requires the Web task running first",
+      "type": "shell",
+      "command": "npm run desktop",
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Test",
+      "type": "shell",
+      "command": "npm test",
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Test (watch)",
+      "type": "shell",
+      "command": "npm run test:watch --workspace @synapse/core",
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "dedicated" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Typecheck all",
+      "type": "shell",
+      "command": "npm run build --workspace @synapse/core && npx tsc --noEmit -p packages/ui/tsconfig.json && npx tsc --noEmit -p apps/mobile/tsconfig.json && npx tsc --noEmit -p apps/desktop/tsconfig.json",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": ["$tsc"]
+    }
+  ]
+}

@@ -18,8 +18,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { useTheme } from '../theme/ThemeProvider.js';
-import { Text } from './Text.js';
+import { useTheme } from '../theme/ThemeProvider';
+import { Text } from './Text';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'success' | 'danger' | 'premium';
 export type ButtonSize = 'sm' | 'md' | 'lg';

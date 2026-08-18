@@ -14,8 +14,8 @@
  * state gets you a nicer-looking button, not free content.
  */
 
-import type { Lesson, TrackId } from '../domain/types.js';
-import type { PlanId } from './plans.js';
+import type { Lesson, TrackId } from '../domain/types';
+import type { PlanId } from './plans';
 
 export interface Entitlement {
   plan: PlanId;

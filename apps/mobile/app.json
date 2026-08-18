@@ -6,20 +6,27 @@
     "orientation": "portrait",
     "scheme": "synapse",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
     "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#020617"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.synapse.learn",
       "buildNumber": "1",
-      "config": { "usesNonExemptEncryption": false },
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -35,10 +42,16 @@
       "output": "static",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router"],
-    "experiments": { "typedRoutes": true },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
     "extra": {
-      "eas": { "projectId": "00000000-0000-0000-0000-000000000000" }
+      "eas": {
+        "projectId": "00000000-0000-0000-0000-000000000000"
+      }
     }
   }
 }

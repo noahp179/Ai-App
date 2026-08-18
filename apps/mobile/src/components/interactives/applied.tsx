@@ -10,7 +10,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Badge, Text, useTheme } from '@synapse/ui';
 
-import { Slider } from '../Slider.js';
+import { Slider } from '../Slider';
 import {
   ActionRow,
   Bar,
@@ -20,7 +20,7 @@ import {
   SegmentedControl,
   clamp01,
   makeRandom,
-} from './shared.js';
+} from './shared';
 
 // ---------------------------------------------------------------------------
 // q-learning

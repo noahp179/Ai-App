@@ -6,13 +6,13 @@
  * the app rather than accumulating here.
  */
 
-export * from './theme/tokens.js';
+export * from './theme/tokens';
 export {
   ThemeProvider,
   useTheme,
   useThemePreference,
   useThemedStyles,
-} from './theme/ThemeProvider.js';
-export type { Theme, ColorScheme, ThemePreference } from './theme/ThemeProvider.js';
+} from './theme/ThemeProvider';
+export type { Theme, ColorScheme, ThemePreference } from './theme/ThemeProvider';
 
-export * from './components/index.js';
+export * from './components/index';

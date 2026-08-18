@@ -16,12 +16,12 @@ import type {
   SkillState,
   TrackId,
   UnlockedAchievement,
-} from '../domain/types.js';
-import { SKILLS_BY_ID } from '../content/skills.js';
-import { LESSON_INDEX, TRACKS_BY_ID, skillsInTrack } from '../content/index.js';
-import type { AchievementStats } from '../content/achievements.js';
-import { evaluateAchievements } from '../content/achievements.js';
-import { newSkillState, review, toRecall } from '../engine/scheduler.js';
+} from '../domain/types';
+import { SKILLS_BY_ID } from '../content/skills';
+import { LESSON_INDEX, TRACKS_BY_ID, skillsInTrack } from '../content/index';
+import type { AchievementStats } from '../content/achievements';
+import { evaluateAchievements } from '../content/achievements';
+import { newSkillState, review, toRecall } from '../engine/scheduler';
 import {
   addXpToGoal,
   dayKey,
@@ -30,9 +30,9 @@ import {
   scoreSession,
   targetXpForMinutes,
   type SessionXp,
-} from '../engine/progression.js';
-import type { StreakState } from '../domain/types.js';
-import { newStreak } from '../engine/progression.js';
+} from '../engine/progression';
+import type { StreakState } from '../domain/types';
+import { newStreak } from '../engine/progression';
 import {
   FREE_ENTITLEMENT,
   newHearts,
@@ -41,7 +41,7 @@ import {
   type Entitlement,
   type HeartState,
   type MeterState,
-} from '../monetization/entitlements.js';
+} from '../monetization/entitlements';
 
 export interface ProgressState {
   profile: LearnerProfile;

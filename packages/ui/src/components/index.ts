@@ -1,38 +1,38 @@
-export { Text } from './Text.js';
-export type { TextProps, TextTone } from './Text.js';
+export { Text } from './Text';
+export type { TextProps, TextTone } from './Text';
 
-export { Button } from './Button.js';
-export type { ButtonProps, ButtonVariant, ButtonSize } from './Button.js';
+export { Button } from './Button';
+export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
 
-export { Card } from './Card.js';
-export type { CardProps } from './Card.js';
+export { Card } from './Card';
+export type { CardProps } from './Card';
 
-export { ProgressBar } from './ProgressBar.js';
-export type { ProgressBarProps } from './ProgressBar.js';
+export { ProgressBar } from './ProgressBar';
+export type { ProgressBarProps } from './ProgressBar';
 
-export { ProgressRing } from './ProgressRing.js';
-export type { ProgressRingProps } from './ProgressRing.js';
+export { ProgressRing } from './ProgressRing';
+export type { ProgressRingProps } from './ProgressRing';
 
-export { Badge } from './Badge.js';
-export type { BadgeProps, BadgeTone } from './Badge.js';
+export { Badge } from './Badge';
+export type { BadgeProps, BadgeTone } from './Badge';
 
-export { StatTile } from './StatTile.js';
-export type { StatTileProps } from './StatTile.js';
+export { StatTile } from './StatTile';
+export type { StatTileProps } from './StatTile';
 
-export { Screen } from './Screen.js';
-export type { ScreenProps } from './Screen.js';
+export { Screen } from './Screen';
+export type { ScreenProps } from './Screen';
 
-export { AnswerOption } from './AnswerOption.js';
-export type { AnswerOptionProps, AnswerState } from './AnswerOption.js';
+export { AnswerOption } from './AnswerOption';
+export type { AnswerOptionProps, AnswerState } from './AnswerOption';
 
-export { FeedbackSheet } from './FeedbackSheet.js';
-export type { FeedbackSheetProps } from './FeedbackSheet.js';
+export { FeedbackSheet } from './FeedbackSheet';
+export type { FeedbackSheetProps } from './FeedbackSheet';
 
-export { TrackCard } from './TrackCard.js';
-export type { TrackCardProps } from './TrackCard.js';
+export { TrackCard } from './TrackCard';
+export type { TrackCardProps } from './TrackCard';
 
-export { EmptyState } from './EmptyState.js';
-export type { EmptyStateProps } from './EmptyState.js';
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';
 
-export { Skeleton } from './Skeleton.js';
-export type { SkeletonProps } from './Skeleton.js';
+export { Skeleton } from './Skeleton';
+export type { SkeletonProps } from './Skeleton';

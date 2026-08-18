@@ -25,7 +25,7 @@ import type {
   OrderSequenceExercise,
   ShortAnswerExercise,
   TrueFalseExercise,
-} from '../domain/types.js';
+} from '../domain/types';
 
 /** Auto-incrementing suffix so content authors never hand-write step ids. */
 let counter = 0;

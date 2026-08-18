@@ -6,7 +6,7 @@
  * safe to call after every session and returns only newly-crossed tiers.
  */
 
-import type { Achievement, UnlockedAchievement } from '../domain/types.js';
+import type { Achievement, UnlockedAchievement } from '../domain/types';
 
 export const ACHIEVEMENTS: Achievement[] = [
   {

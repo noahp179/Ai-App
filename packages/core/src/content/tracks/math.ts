@@ -6,8 +6,8 @@
  * each is taught to the depth that makes the AI content make sense — no further.
  */
 
-import type { Track } from '../../domain/types.js';
-import { concept, interactive, lesson, match, mcq, multi, numeric, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { concept, interactive, lesson, match, mcq, multi, numeric, shortAnswer, trueFalse } from '../builders';
 
 export const mathTrack: Track = {
   id: 'track-math',

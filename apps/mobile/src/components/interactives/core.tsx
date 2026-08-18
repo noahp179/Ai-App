@@ -10,7 +10,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { Badge, Card, Text, useTheme } from '@synapse/ui';
 
-import { Slider } from '../Slider.js';
+import { Slider } from '../Slider';
 
 // ---------------------------------------------------------------------------
 

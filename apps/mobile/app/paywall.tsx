@@ -25,7 +25,7 @@ import {
 } from '@synapse/core';
 import { Badge, Button, Card, Screen, Text, useTheme } from '@synapse/ui';
 
-import { useProgress } from '../src/store/useProgress.js';
+import { useProgress } from '../src/store/useProgress';
 
 const HEADLINES: Record<PaywallTrigger, { title: string; body: string }> = {
   'locked-lesson': {

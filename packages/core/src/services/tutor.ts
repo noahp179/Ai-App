@@ -11,7 +11,7 @@
  * learner on a plane still gets taught.
  */
 
-import type { Exercise } from '../domain/types.js';
+import type { Exercise } from '../domain/types';
 
 export interface TutorConfig {
   baseUrl: string;

@@ -24,8 +24,8 @@ import {
 } from '@synapse/core';
 import { Badge, Button, Card, ProgressBar, Screen, Text, useTheme } from '@synapse/ui';
 
-import { ExerciseView } from '../src/components/ExerciseView.js';
-import { useProgress } from '../src/store/useProgress.js';
+import { ExerciseView } from '../src/components/ExerciseView';
+import { useProgress } from '../src/store/useProgress';
 
 export default function PlacementScreen(): React.JSX.Element {
   const theme = useTheme();

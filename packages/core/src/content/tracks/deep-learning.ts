@@ -1,7 +1,7 @@
 /** Track 3 — Neural Networks & Deep Learning. Intermediate → expert. */
 
-import type { Track } from '../../domain/types.js';
-import { codeOutput, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { codeOutput, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const deepLearningTrack: Track = {
   id: 'track-deep-learning',

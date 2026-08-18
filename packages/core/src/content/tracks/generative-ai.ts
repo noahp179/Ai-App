@@ -1,7 +1,7 @@
 /** Track 6 — Generative AI Beyond Text. Intermediate → expert. */
 
-import type { Track } from '../../domain/types.js';
-import { concept, interactive, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { concept, interactive, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders';
 
 export const generativeAiTrack: Track = {
   id: 'track-generative-ai',

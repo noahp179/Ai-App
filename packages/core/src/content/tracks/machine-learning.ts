@@ -1,7 +1,7 @@
 /** Track 2 — Machine Learning Mechanics. Intro → intermediate. */
 
-import type { Track } from '../../domain/types.js';
-import { codeOutput, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { codeOutput, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const machineLearningTrack: Track = {
   id: 'track-machine-learning',

@@ -10,8 +10,8 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Badge, Text, useTheme } from '@synapse/ui';
 
-import { Slider } from '../Slider.js';
-import { ActionRow, Bar, Note, PlotCanvas, Readout, SegmentedControl, clamp01 } from './shared.js';
+import { Slider } from '../Slider';
+import { ActionRow, Bar, Note, PlotCanvas, Readout, SegmentedControl, clamp01 } from './shared';
 
 // ---------------------------------------------------------------------------
 // ml-type-sorter

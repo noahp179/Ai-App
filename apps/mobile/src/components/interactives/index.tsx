@@ -22,7 +22,7 @@ import {
   PromptLabWidget,
   TemperatureWidget,
   TokenizerWidget,
-} from './core.js';
+} from './core';
 import {
   BayesCalculator,
   CrossValidation,
@@ -31,7 +31,7 @@ import {
   FeatureScaling,
   MlTypeSorter,
   TrainTestSplit,
-} from './foundations.js';
+} from './foundations';
 import {
   AnomalyDetection,
   DecisionTree,
@@ -42,15 +42,15 @@ import {
   PcaProjection,
   Regularization,
   RocCurve,
-} from './classic.js';
+} from './classic';
 import {
   ActivationExplorer,
   Convolution,
   LearningRateSchedule,
   NeuralNetTrainer,
-} from './deep.js';
-import { BeamSearch, MoeRouter, Quantization, RagRetrieval } from './language.js';
-import { AgentLoopSim, DiffusionDenoise, DriftMonitor, QLearning } from './applied.js';
+} from './deep';
+import { BeamSearch, MoeRouter, Quantization, RagRetrieval } from './language';
+import { AgentLoopSim, DiffusionDenoise, DriftMonitor, QLearning } from './applied';
 
 export function Interactive({ widget }: { widget: InteractiveWidget }): React.JSX.Element {
   switch (widget) {

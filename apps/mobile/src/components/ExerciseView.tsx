@@ -17,7 +17,7 @@ import {
 } from '@synapse/core';
 import { AnswerOption, Badge, Card, Text, useTheme } from '@synapse/ui';
 
-import { tapFeedback } from '../lib/haptics.js';
+import { tapFeedback } from '../lib/haptics';
 
 export interface ExerciseViewProps {
   exercise: Exercise;

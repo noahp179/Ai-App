@@ -6,7 +6,7 @@
  * learner cannot see on screen.
  */
 
-import type { AttemptRecord, DailyGoal, Level, StreakState } from '../domain/types.js';
+import type { AttemptRecord, DailyGoal, Level, StreakState } from '../domain/types';
 
 // ---------------------------------------------------------------------------
 // XP

@@ -7,8 +7,8 @@
  * engine/placement.ts read.
  */
 
-import type { PlacementQuestion } from '../engine/placement.js';
-import { mcq, numeric, trueFalse } from './builders.js';
+import type { PlacementQuestion } from '../engine/placement';
+import { mcq, numeric, trueFalse } from './builders';
 
 export function placementPool(): PlacementQuestion[] {
   return [

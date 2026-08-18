@@ -3,7 +3,7 @@
 import React from 'react';
 import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { useTheme } from '../theme/ThemeProvider.js';
+import { useTheme } from '../theme/ThemeProvider';
 
 export interface CardProps {
   children: React.ReactNode;

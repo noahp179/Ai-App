@@ -6,8 +6,8 @@
  * everything upstream of the algorithm decides what is possible downstream.
  */
 
-import type { Track } from '../../domain/types.js';
-import { categorize, codeOutput, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { categorize, codeOutput, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const dataEngineeringTrack: Track = {
   id: 'track-data',

@@ -77,19 +77,28 @@ app; apps never reimplement a rule.
 
 ```bash
 npm install
-npm test                    # 164 tests, ~1s
-npm run build --workspace @synapse/core
-
-npm run mobile              # Expo dev server
-npm run ios                 # iOS simulator
-npm run android             # Android emulator
-npm run web                 # Browser
-
-npm run desktop             # Electron on macOS (dev)
-npm run desktop:dist        # Signed .dmg
+npm test          # 164 tests, ~1s — if this passes, the app will run
+npm run web       # open http://localhost:8081
 ```
 
+Then press <kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> in Chrome DevTools
+to preview it at iPhone, iPad, and desktop sizes.
+
+| | |
+|---|---|
+| `npm run web` | Browser — fastest, and how to check phone/tablet layouts |
+| `npm run mobile` | QR code for **Expo Go** on your real phone; press `i`/`a` for simulators |
+| `npm run desktop` | Electron shell for macOS (needs `npm run web` running too) |
+| `npm run desktop:dist` | Build a `.dmg` |
+
+VS Code users: the repo ships tasks, so
+<kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> starts the web preview and
+**Tasks: Run Task** covers the rest.
+
 Requires Node 20+. `cp .env.example .env` before running against a real backend.
+
+**→ [docs/RUNNING.md](docs/RUNNING.md)** has the full walkthrough: simulators,
+device previews, the desktop build, and troubleshooting.
 
 ---
 

@@ -19,9 +19,9 @@ import type {
   SkillId,
   SkillState,
   Step,
-} from '../domain/types.js';
-import { grade, type GradeResult, type Response } from './grading.js';
-import { dueSkills, retention } from './scheduler.js';
+} from '../domain/types';
+import { grade, type GradeResult, type Response } from './grading';
+import { dueSkills, retention } from './scheduler';
 
 // ---------------------------------------------------------------------------
 // Review session assembly

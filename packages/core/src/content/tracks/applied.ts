@@ -5,8 +5,8 @@
  * multi-unit subject.
  */
 
-import type { Track } from '../../domain/types.js';
-import { concept, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { concept, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 // ---------------------------------------------------------------------------
 

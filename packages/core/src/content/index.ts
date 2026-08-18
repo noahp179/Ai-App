@@ -16,20 +16,20 @@ import type {
   Track,
   TrackId,
   UnitId,
-} from '../domain/types.js';
-import { SKILLS_BY_ID } from './skills.js';
-import { foundationsTrack } from './tracks/foundations.js';
-import { machineLearningTrack } from './tracks/machine-learning.js';
-import { deepLearningTrack } from './tracks/deep-learning.js';
-import { llmTrack } from './tracks/llms.js';
-import { promptEngineeringTrack } from './tracks/prompt-engineering.js';
-import { generativeAiTrack } from './tracks/generative-ai.js';
-import { agentsTrack } from './tracks/agents.js';
-import { mathTrack } from './tracks/math.js';
-import { typesOfMlTrack } from './tracks/types-of-ml.js';
-import { classicMlTrack } from './tracks/classic-ml.js';
-import { dataEngineeringTrack } from './tracks/data-engineering.js';
-import { mlopsTrack, ethicsTrack, reinforcementLearningTrack } from './tracks/applied.js';
+} from '../domain/types';
+import { SKILLS_BY_ID } from './skills';
+import { foundationsTrack } from './tracks/foundations';
+import { machineLearningTrack } from './tracks/machine-learning';
+import { deepLearningTrack } from './tracks/deep-learning';
+import { llmTrack } from './tracks/llms';
+import { promptEngineeringTrack } from './tracks/prompt-engineering';
+import { generativeAiTrack } from './tracks/generative-ai';
+import { agentsTrack } from './tracks/agents';
+import { mathTrack } from './tracks/math';
+import { typesOfMlTrack } from './tracks/types-of-ml';
+import { classicMlTrack } from './tracks/classic-ml';
+import { dataEngineeringTrack } from './tracks/data-engineering';
+import { mlopsTrack, ethicsTrack, reinforcementLearningTrack } from './tracks/applied';
 
 export const TRACKS: Track[] = [
   foundationsTrack,
@@ -407,6 +407,6 @@ export function catalogStats(): CatalogStats {
   };
 }
 
-export { SKILLS, SKILLS_BY_ID, getSkill } from './skills.js';
-export { ACHIEVEMENTS, evaluateAchievements } from './achievements.js';
-export { placementPool } from './placement-pool.js';
+export { SKILLS, SKILLS_BY_ID, getSkill } from './skills';
+export { ACHIEVEMENTS, evaluateAchievements } from './achievements';
+export { placementPool } from './placement-pool';

@@ -7,7 +7,7 @@
  * offline and without a subscription.
  */
 
-import type { Exercise, ShortAnswerExercise } from '../domain/types.js';
+import type { Exercise, ShortAnswerExercise } from '../domain/types';
 
 /** The shape of a learner's response, discriminated by exercise kind. */
 export type Response =

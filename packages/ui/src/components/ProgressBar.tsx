@@ -8,7 +8,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { useTheme } from '../theme/ThemeProvider.js';
+import { useTheme } from '../theme/ThemeProvider';
 
 export interface ProgressBarProps {
   /** 0–1. Values outside the range are clamped. */

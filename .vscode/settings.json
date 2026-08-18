@@ -1,0 +1,32 @@
+{
+  // Use the TypeScript from node_modules, not the one bundled with VS Code —
+  // otherwise the editor can disagree with `npm run typecheck`.
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
+
+  // Generated output and dependencies — hidden from the tree and excluded from
+  // search and the file watcher, which keeps a monorepo this size responsive.
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.expo": true,
+    "**/*.tsbuildinfo": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/package-lock.json": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/.expo/**": true
+  },
+
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescriptreact]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[json]": { "editor.defaultFormatter": "esbenp.prettier-vscode" }
+}

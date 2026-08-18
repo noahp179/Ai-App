@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { GOAL_PRESETS, LEVELS, type LearnerGoal, type Level } from '@synapse/core';
 import { Button, Card, ProgressBar, Screen, Text, useTheme } from '@synapse/ui';
 
-import { useProgress } from '../src/store/useProgress.js';
+import { useProgress } from '../src/store/useProgress';
 
 const GOALS: Array<{ id: LearnerGoal; icon: string; label: string; blurb: string }> = [
   { id: 'curious', icon: '🤔', label: 'Understand the hype', blurb: 'Follow the conversation properly' },

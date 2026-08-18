@@ -1,7 +1,7 @@
 /** Track 7 — AI Agents & Applied Systems. Expert. */
 
-import type { Track } from '../../domain/types.js';
-import { concept, interactive, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { concept, interactive, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders';
 
 export const agentsTrack: Track = {
   id: 'track-agents',

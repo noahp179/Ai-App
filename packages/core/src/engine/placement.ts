@@ -12,9 +12,9 @@
  * matters more here than squeezing out the last few percent of precision.
  */
 
-import type { Domain, Exercise, Level } from '../domain/types.js';
-import { LEVELS, LEVEL_ORDER } from '../domain/types.js';
-import { grade, type Response } from './grading.js';
+import type { Domain, Exercise, Level } from '../domain/types';
+import { LEVELS, LEVEL_ORDER } from '../domain/types';
+import { grade, type Response } from './grading';
 
 export interface PlacementQuestion {
   exercise: Exercise;

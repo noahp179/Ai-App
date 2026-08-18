@@ -10,8 +10,8 @@
  * sticks in a way that a table of definitions does not.
  */
 
-import type { Track } from '../../domain/types.js';
-import { categorize, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders.js';
+import type { Track } from '../../domain/types';
+import { categorize, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const typesOfMlTrack: Track = {
   id: 'track-types-of-ml',

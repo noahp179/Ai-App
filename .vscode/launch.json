@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug core tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "--no-file-parallelism"],
+      "cwd": "${workspaceFolder}/packages/core",
+      "console": "integratedTerminal",
+      "smartStep": true,
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Debug current test file",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "${relativeFile}", "--no-file-parallelism"],
+      "cwd": "${workspaceFolder}/packages/core",
+      "console": "integratedTerminal",
+      "smartStep": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

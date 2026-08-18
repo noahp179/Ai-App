@@ -14,12 +14,12 @@ import {
   recommendTracks,
   skillsInTrack,
   validateCatalog,
-} from '../src/content/index.js';
-import { SKILLS, SKILLS_BY_ID } from '../src/content/skills.js';
-import { ACHIEVEMENTS, achievementProgress, evaluateAchievements } from '../src/content/achievements.js';
-import type { AchievementStats } from '../src/content/achievements.js';
-import { grade } from '../src/engine/grading.js';
-import { correctResponseFor } from './engine.test.js';
+} from '../src/content/index';
+import { SKILLS, SKILLS_BY_ID } from '../src/content/skills';
+import { ACHIEVEMENTS, achievementProgress, evaluateAchievements } from '../src/content/achievements';
+import type { AchievementStats } from '../src/content/achievements';
+import { grade } from '../src/engine/grading';
+import { correctResponseFor } from './engine.test';
 
 describe('catalog integrity', () => {
   const issues = validateCatalog();

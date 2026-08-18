@@ -20,7 +20,7 @@ import {
   spacing,
   typography,
   type Colors,
-} from './tokens.js';
+} from './tokens';
 
 export type ColorScheme = 'light' | 'dark';
 export type ThemePreference = ColorScheme | 'system';

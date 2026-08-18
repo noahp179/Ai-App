@@ -12,7 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { TRACKS_BY_ID, canAccessLesson, trackCompletion, trackMastery } from '@synapse/core';
 import { Badge, Card, ProgressBar, Screen, Text, useTheme } from '@synapse/ui';
 
-import { useProgress } from '../../src/store/useProgress.js';
+import { useProgress } from '../../src/store/useProgress';
 
 export default function TrackScreen(): React.JSX.Element {
   const theme = useTheme();

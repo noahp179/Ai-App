@@ -12,7 +12,7 @@ import { View } from 'react-native';
 import type { ConceptStep } from '@synapse/core';
 import { Card, Text, useTheme } from '@synapse/ui';
 
-import { Figure } from './Figure.js';
+import { Figure } from './Figure';
 
 export function ConceptView({ step }: { step: ConceptStep }): React.JSX.Element {
   const theme = useTheme();

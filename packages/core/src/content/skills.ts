@@ -7,7 +7,7 @@
  * `validateCatalog` in content/index.ts catches it.
  */
 
-import type { Skill } from '../domain/types.js';
+import type { Skill } from '../domain/types';
 
 const s = (
   id: string,

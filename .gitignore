@@ -14,6 +14,7 @@ release/
 .expo/
 .expo-shared/
 web-build/
+apps/mobile/dist/
 apps/mobile/ios/
 apps/mobile/android/
 
@@ -39,8 +40,10 @@ GoogleService-Info.plist
 # Editors / OS
 .DS_Store
 .idea/
-.vscode/*
-!.vscode/extensions.json
+# .vscode is committed deliberately — the tasks, recommended extensions, and
+# workspace TypeScript setting are how you run this project from the editor.
+# Only personal, machine-specific overrides are ignored.
+.vscode/*.local.json
 *.swp
 
 # Logs & coverage
