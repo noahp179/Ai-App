@@ -6,7 +6,7 @@
  */
 
 import type { Track } from '../../domain/types.js';
-import { concept, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders.js';
+import { concept, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders.js';
 
 // ---------------------------------------------------------------------------
 
@@ -71,6 +71,11 @@ export const mlopsTrack: Track = {
             concept(
               'Monitoring what matters',
               'Four layers, and teams routinely stop at the first.\n\n**System health** — latency, error rate, throughput. Necessary, and tells you nothing about whether predictions are any good.\n\n**Input drift** — has the distribution of incoming features shifted? Detectable immediately, without labels. Population Stability Index and KS tests are the usual instruments.\n\n**Prediction drift** — has the distribution of outputs shifted? A fraud model suddenly flagging 3× more transactions is worth a look before anyone complains.\n\n**Outcome quality** — the real thing. Accuracy against ground truth, which usually arrives late. Loan defaults surface over months.\n\nBecause labels lag, **drift is your early warning system**. A model can fail silently for weeks while every dashboard stays green.',
+            ),
+            interactive(
+              'Watch a model degrade silently',
+              'drift-monitor',
+              'Advance the weeks and watch the input distribution drift away from training while every system-health metric stays green. Accuracy only confirms it months later — drift is the early warning.',
             ),
             multi(
               'Which can be monitored without waiting for ground-truth labels? (Select all)',
@@ -233,6 +238,11 @@ export const ethicsTrack: Track = {
             concept(
               'Interpretable by design, or explained after the fact',
               '**Intrinsically interpretable** models — linear regression, shallow decision trees, rule lists — can be read directly. The coefficients *are* the explanation.\n\n**Post-hoc explanation** approximates the behaviour of a model too complex to read:\n\n**SHAP** — attributes a prediction across features using a game-theoretic allocation. Consistent and well-founded, but expensive.\n\n**LIME** — fits a simple local model around one prediction. Fast, less stable.\n\n**Attention weights** — often misread as explanations. Attention shows what was *attended to*, which is not the same as what was *causally used*, and this has been demonstrated repeatedly.\n\n**Counterfactuals** — "your loan would have been approved with £3,000 more income." Usually the most *actionable* form for an affected person, and increasingly what regulation actually asks for.\n\nAn important caution: a post-hoc explanation is a model of a model. It can be plausible and wrong, and a convincing wrong explanation is worse than none.',
+            ),
+            interactive(
+              'See a fairness gap open up',
+              'data-bias',
+              'Change nothing but who is in the training data, and watch per-group accuracy split apart while the headline number stays respectable. This is what an aggregate metric hides.',
             ),
             mcq(
               'A regulator requires that rejected applicants receive an actionable reason. Which is most appropriate?',
@@ -397,6 +407,11 @@ export const reinforcementLearningTrack: Track = {
             concept(
               'Exploration versus exploitation',
               'The agent knows one restaurant is good. Should it go back, or try a new one that might be better?\n\n**Exploit** and you guarantee known reward while possibly missing something better forever. **Explore** and you sacrifice immediate reward for information.\n\nThe standard approaches:\n\n**ε-greedy** — act greedily most of the time, randomly with probability ε. Crude and surprisingly effective.\n\n**Decaying ε** — explore heavily early, settle down as knowledge accumulates.\n\n**Upper confidence bound** — favour actions with high uncertainty, on the principle that optimism about the unknown is worth acting on.\n\nThis tradeoff is not confined to RL. It is A/B testing, it is clinical trial design, and it is why recommender systems that only exploit collapse into filter bubbles.',
+            ),
+            interactive(
+              'Train an agent in a gridworld',
+              'q-learning',
+              'Run episodes and watch the Q-table fill in as reward propagates backwards from the goal. Set epsilon to 0 and watch the agent lock onto the first path it stumbles across, however bad.',
             ),
             mcq(
               'An agent always picks its current best-known action. What is the risk?',

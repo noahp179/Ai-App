@@ -37,7 +37,7 @@ import {
 
 import { ConceptView } from '../../src/components/ConceptView.js';
 import { ExerciseView } from '../../src/components/ExerciseView.js';
-import { InteractiveCard } from '../../src/components/Interactive.js';
+import { InteractiveCard } from '../../src/components/interactives/index.js';
 import { errorFeedback, successFeedback, tapFeedback } from '../../src/lib/haptics.js';
 import { useProgress } from '../../src/store/useProgress.js';
 import { useSession } from '../../src/store/useSession.js';
@@ -278,7 +278,9 @@ export default function LessonScreen(): React.JSX.Element {
           }}
         >
           <Button
-            label={isExercise ? 'Check' : 'Continue'}
+            label={
+              isExercise ? 'Check' : step.type === 'interactive' ? 'Done exploring' : 'Continue'
+            }
             size="lg"
             fullWidth
             disabled={isExercise && !canCheck}

@@ -479,6 +479,11 @@ print(round(sigmoid(z), 2))`,
               ['sk-regularization'],
               'L1 zeroes out weak weights entirely, leaving a short list of features that actually matter. L2 would shrink all 5,000 without eliminating any. Elastic Net — L1 and L2 combined — is a common compromise when features are also correlated.',
             ),
+            interactive(
+              'Compare L1 and L2',
+              'regularization',
+              'Raise each penalty and watch the coefficient bars respond. L1 snaps weights to exactly zero one at a time; L2 shrinks them all together but never quite reaches zero.',
+            ),
             fill(
               '___ regularization drives weights exactly to zero, while ___ shrinks them smoothly toward zero.',
               [['l1', 'lasso'], ['l2', 'ridge']],
@@ -488,6 +493,11 @@ print(round(sigmoid(z), 2))`,
             concept(
               'Early stopping is regularization too',
               'The cheapest regulariser costs nothing: stop training when validation loss stops improving.\n\nTrack validation loss each epoch. Keep a copy of the best weights. If validation loss has not improved for **N** epochs (the *patience*, typically 5–20), stop and restore the best checkpoint.\n\nThis works because networks tend to learn broad structure first and memorise specifics later. Stopping early catches the model in the window where it has the signal but not yet the noise — and it requires no extra hyperparameter tuning, which is why it is in essentially every training loop.',
+            ),
+            interactive(
+              'Tune the learning-rate schedule',
+              'learning-rate-schedule',
+              'Compare constant, step decay, cosine annealing, and warmup-then-cosine on the same run. Notice that warmup barely matters for a small model and becomes essential for a large one.',
             ),
             order(
               'Put the early-stopping loop in order.',

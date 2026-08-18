@@ -77,6 +77,11 @@ export const deepLearningTrack: Track = {
               'Choosing an activation',
               '**ReLU** — `max(0, z)`. Cheap, no saturation for positive inputs, and the default for hidden layers since 2012. Its weakness is the *dying ReLU*: a unit stuck outputting zero has zero gradient and can never recover.\n\n**Leaky ReLU / GELU** — small negative slope, or a smooth probabilistic gate. GELU is standard in transformers.\n\n**Sigmoid** — saturates at both ends, so gradients vanish in deep stacks. Now used only for binary output layers.\n\n**Tanh** — zero-centred sigmoid. Better than sigmoid, still saturates. Lives on in some recurrent architectures.\n\n**Softmax** — output layer only, for multi-class. Converts logits into probabilities that sum to 1.\n\nRule of thumb: **ReLU or GELU in the hidden layers, and let the task pick the output activation.**',
             ),
+            interactive(
+              'Plot the activations',
+              'activation-explorer',
+              'Switch between ReLU, sigmoid, tanh, GELU, and leaky ReLU, and watch each function alongside its derivative. The derivative panel is the important one — where it flattens is where gradients die.',
+            ),
             match(
               'Match each activation to where it belongs.',
               [
@@ -115,6 +120,11 @@ export const deepLearningTrack: Track = {
               ['sk-mlp'],
               'Weights: 128 × 64 = 8,192. Biases: 64. Total 8,256. Fully connected layers dominate parameter counts, which is what motivated weight sharing in convolutions.',
               { hint: 'inputs × outputs, plus one bias per output.' },
+            ),
+            interactive(
+              'Train a network live',
+              'neural-net-trainer',
+              'Choose a dataset (XOR, circles, spirals), set the layers, and press train. Watch the loss curve fall and the decision boundary bend. Try XOR with zero hidden layers first — it can never work, and seeing it fail is the point.',
             ),
             codeOutput(
               'What shape does this print?',
@@ -542,6 +552,11 @@ print(h.shape)`,
               28,
               ['sk-convolution'],
               '3 × 3 × 3 = 27 weights (the third 3 is the RGB channel depth), plus 1 bias = 28. A layer with 64 such filters holds 1,792 parameters — several orders of magnitude below the fully connected equivalent.',
+            ),
+            interactive(
+              'Slide a kernel over pixels',
+              'convolution',
+              'Pick an edge-detection, blur, or sharpen kernel and step it across the grid one position at a time, watching each output value get computed. Then design your own kernel and see what it responds to.',
             ),
             mcq(
               'What does pooling do?',

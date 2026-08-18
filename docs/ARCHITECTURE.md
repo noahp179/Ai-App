@@ -66,6 +66,26 @@ Plus a test that grades every exercise's own stated answer and asserts it comes
 back correct — which catches the class of authoring error that is otherwise
 invisible until a learner hits it.
 
+## Interactive widgets
+
+37 widgets live in `apps/mobile/src/components/interactives/`, split by subject
+(`foundations`, `classic`, `deep`, `language`, `applied`, `core`) with a
+dispatcher in `index.tsx`.
+
+Content references a widget by name from the `InteractiveWidget` union in
+`@synapse/core`; the dispatcher's switch is exhaustive over that union, so
+declaring a widget without implementing it is a compile error rather than a
+blank screen a learner discovers. The reverse direction is covered by a test:
+every declared widget must appear in content at least once, and every track must
+contain at least one hands-on step.
+
+`interactives/shared.tsx` holds the primitives — `PlotCanvas` (reports taps in
+unit coordinates and hands its measured size to children), `Dot`, `Line`,
+`Path`, `Bar`, `Readout`, `SegmentedControl`, `ActionRow`, `Note`, and a seeded
+PRNG so generated datasets stay stable across re-renders. A scatter plot that
+reshuffles on every state change is unusable: you cannot reason about a change
+you made if the data moved too.
+
 ## Cross-platform strategy
 
 One React Native codebase. iOS and Android build natively through Expo; macOS

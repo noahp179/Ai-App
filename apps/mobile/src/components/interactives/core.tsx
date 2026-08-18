@@ -1,46 +1,16 @@
 /**
- * Interactive lesson widgets.
+ * The original nine widgets: tokenization, sampling, attention, and the
+ * classic optimisation demos.
  *
- * Each one exists to make a single idea manipulable — the point where a learner
- * stops reading about temperature and starts *feeling* what it does. All the
- * maths is computed live rather than faked, because a widget that lies is worse
- * than no widget.
+ * Split out of the old single-file `Interactive.tsx` when the widget count grew
+ * past thirty — one file per subject area keeps each of them findable.
  */
 
 import React, { useMemo, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
-import type { InteractiveWidget } from '@synapse/core';
 import { Badge, Card, Text, useTheme } from '@synapse/ui';
 
-import { Slider } from './Slider.js';
-
-export function Interactive({ widget }: { widget: InteractiveWidget }): React.JSX.Element {
-  switch (widget) {
-    case 'tokenizer':
-      return <TokenizerWidget />;
-    case 'temperature-sampler':
-      return <TemperatureWidget />;
-    case 'perceptron':
-      return <PerceptronWidget />;
-    case 'gradient-descent':
-      return <GradientDescentWidget />;
-    case 'attention-matrix':
-      return <AttentionWidget />;
-    case 'confusion-matrix':
-      return <ConfusionMatrixWidget />;
-    case 'bias-variance':
-      return <BiasVarianceWidget />;
-    case 'embedding-space':
-      return <EmbeddingWidget />;
-    case 'prompt-lab':
-      return <PromptLabWidget />;
-    default: {
-      const never: never = widget;
-      void never;
-      return <View />;
-    }
-  }
-}
+import { Slider } from '../Slider.js';
 
 // ---------------------------------------------------------------------------
 
@@ -49,7 +19,7 @@ export function Interactive({ widget }: { widget: InteractiveWidget }): React.JS
  * words fragment, and the split points land where a real tokenizer puts them
  * often enough to be honest. Labelled as an approximation in the UI.
  */
-function TokenizerWidget(): React.JSX.Element {
+export function TokenizerWidget(): React.JSX.Element {
   const theme = useTheme();
   const [text, setText] = useState('Tokenization determines what a model can see.');
 
@@ -151,7 +121,7 @@ function approximateTokens(text: string): string[] {
 // ---------------------------------------------------------------------------
 
 /** Real softmax over fixed logits, so the reshaping is genuine. */
-function TemperatureWidget(): React.JSX.Element {
+export function TemperatureWidget(): React.JSX.Element {
   const theme = useTheme();
   const [temperature, setTemperature] = useState(1);
 
@@ -238,7 +208,7 @@ function TemperatureWidget(): React.JSX.Element {
 // ---------------------------------------------------------------------------
 
 /** Live decision boundary from two weights and a bias, over four fixed points. */
-function PerceptronWidget(): React.JSX.Element {
+export function PerceptronWidget(): React.JSX.Element {
   const theme = useTheme();
   const [w1, setW1] = useState(1);
   const [w2, setW2] = useState(1);
@@ -315,7 +285,7 @@ function PerceptronWidget(): React.JSX.Element {
 // ---------------------------------------------------------------------------
 
 /** Runs real gradient descent on f(x) = x², so divergence is genuine. */
-function GradientDescentWidget(): React.JSX.Element {
+export function GradientDescentWidget(): React.JSX.Element {
   const theme = useTheme();
   const [learningRate, setLearningRate] = useState(0.1);
 
@@ -402,7 +372,7 @@ function GradientDescentWidget(): React.JSX.Element {
 // ---------------------------------------------------------------------------
 
 /** A hand-authored but plausible attention pattern, showing coreference. */
-function AttentionWidget(): React.JSX.Element {
+export function AttentionWidget(): React.JSX.Element {
   const theme = useTheme();
   const tokens = ['The', 'animal', "didn't", 'cross', 'the', 'street', 'because', 'it', 'was', 'tired'];
   const [selected, setSelected] = useState(7);
@@ -466,7 +436,7 @@ function AttentionWidget(): React.JSX.Element {
 // ---------------------------------------------------------------------------
 
 /** Threshold slider over a fixed score distribution — real precision/recall. */
-function ConfusionMatrixWidget(): React.JSX.Element {
+export function ConfusionMatrixWidget(): React.JSX.Element {
   const theme = useTheme();
   const [threshold, setThreshold] = useState(0.5);
 
@@ -552,7 +522,7 @@ function ConfusionMatrixWidget(): React.JSX.Element {
 // ---------------------------------------------------------------------------
 
 /** The U-shaped validation curve, driven by a model-complexity slider. */
-function BiasVarianceWidget(): React.JSX.Element {
+export function BiasVarianceWidget(): React.JSX.Element {
   const theme = useTheme();
   const [complexity, setComplexity] = useState(4);
 
@@ -619,7 +589,7 @@ function BiasVarianceWidget(): React.JSX.Element {
 // ---------------------------------------------------------------------------
 
 /** Cosine similarity over a small hand-placed 2-D embedding space. */
-function EmbeddingWidget(): React.JSX.Element {
+export function EmbeddingWidget(): React.JSX.Element {
   const theme = useTheme();
   const words = useMemo(
     () => [
@@ -727,7 +697,7 @@ function EmbeddingWidget(): React.JSX.Element {
 // ---------------------------------------------------------------------------
 
 /** Builds a prompt from toggleable parts, scoring specificity as you go. */
-function PromptLabWidget(): React.JSX.Element {
+export function PromptLabWidget(): React.JSX.Element {
   const theme = useTheme();
 
   const parts = useMemo(
@@ -813,32 +783,6 @@ function PromptLabWidget(): React.JSX.Element {
           ? 'Fully specified — the model has almost nothing left to guess.'
           : 'Each part you add removes one thing the model would otherwise have to invent.'}
       </Text>
-    </View>
-  );
-}
-
-/** Re-exported so lesson screens can size widget containers consistently. */
-export function InteractiveCard({
-  widget,
-  title,
-  instructions,
-}: {
-  widget: InteractiveWidget;
-  title: string;
-  instructions: string;
-}): React.JSX.Element {
-  const theme = useTheme();
-  return (
-    <View>
-      <Text variant="title" style={{ marginBottom: theme.spacing.sm }}>
-        {title}
-      </Text>
-      <Text variant="body" tone="secondary" style={{ marginBottom: theme.spacing.xl }}>
-        {instructions}
-      </Text>
-      <Card outlined>
-        <Interactive widget={widget} />
-      </Card>
     </View>
   );
 }

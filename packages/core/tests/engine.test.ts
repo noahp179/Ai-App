@@ -138,6 +138,86 @@ describe('grading', () => {
     expect(grade(exercise, { kind: 'number', value: Number.NaN }).correct).toBe(false);
   });
 
+  it('grades categorize with partial credit over the expected items', () => {
+    const exercise: Exercise = {
+      id: 'x7',
+      kind: 'categorize',
+      prompt: 'p',
+      categories: ['Supervised', 'Unsupervised'],
+      items: [
+        { item: 'Spam filter', category: 'Supervised' },
+        { item: 'Customer segments', category: 'Unsupervised' },
+        { item: 'Price prediction', category: 'Supervised' },
+      ],
+      skillIds: ['sk-ml-paradigms'],
+      explanation: 'e',
+    };
+
+    const perfect = grade(exercise, {
+      kind: 'buckets',
+      assignments: [
+        { item: 'Spam filter', category: 'Supervised' },
+        { item: 'Customer segments', category: 'Unsupervised' },
+        { item: 'Price prediction', category: 'Supervised' },
+      ],
+    });
+    expect(perfect.correct).toBe(true);
+    expect(perfect.score).toBe(1);
+
+    const partial = grade(exercise, {
+      kind: 'buckets',
+      assignments: [
+        { item: 'Spam filter', category: 'Supervised' },
+        { item: 'Customer segments', category: 'Supervised' },
+        { item: 'Price prediction', category: 'Supervised' },
+      ],
+    });
+    expect(partial.correct).toBe(false);
+    expect(partial.score).toBeCloseTo(2 / 3);
+    expect(partial.detail).toEqual([true, false, true]);
+  });
+
+  it('penalizes unsorted items rather than ignoring them', () => {
+    const exercise: Exercise = {
+      id: 'x8',
+      kind: 'categorize',
+      prompt: 'p',
+      categories: ['A', 'B'],
+      items: [
+        { item: 'one', category: 'A' },
+        { item: 'two', category: 'B' },
+      ],
+      skillIds: ['sk-ml-paradigms'],
+      explanation: 'e',
+    };
+
+    // Only one of two items placed — scoring is over the expected set.
+    const result = grade(exercise, {
+      kind: 'buckets',
+      assignments: [{ item: 'one', category: 'A' }],
+    });
+    expect(result.score).toBe(0.5);
+    expect(result.correct).toBe(false);
+  });
+
+  it('grades categorize case-insensitively', () => {
+    const exercise: Exercise = {
+      id: 'x9',
+      kind: 'categorize',
+      prompt: 'p',
+      categories: ['Alpha', 'Beta'],
+      items: [{ item: 'One', category: 'Alpha' }, { item: 'Two', category: 'Beta' }],
+      skillIds: ['sk-ml-paradigms'],
+      explanation: 'e',
+    };
+
+    const result = grade(exercise, {
+      kind: 'buckets',
+      assignments: [{ item: 'one', category: 'alpha' }, { item: 'TWO', category: 'BETA' }],
+    });
+    expect(result.correct).toBe(true);
+  });
+
   it('grades short answers against the rubric with stem tolerance', () => {
     const exercise = {
       id: 'x6',
@@ -634,6 +714,8 @@ function correctResponseFor(exercise: Exercise): Response {
       return { kind: 'number', value: exercise.answer };
     case 'short-answer':
       return { kind: 'text', values: [exercise.rubricKeywords.join(' ')] };
+    case 'categorize':
+      return { kind: 'buckets', assignments: exercise.items };
   }
 }
 

@@ -1,7 +1,7 @@
 /** Track 7 — AI Agents & Applied Systems. Expert. */
 
 import type { Track } from '../../domain/types.js';
-import { concept, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders.js';
+import { concept, interactive, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders.js';
 
 export const agentsTrack: Track = {
   id: 'track-agents',
@@ -49,6 +49,11 @@ export const agentsTrack: Track = {
               ],
               ['sk-agent-loop'],
               'The appended result is what makes it a loop rather than a chain — the agent can recover from a failed call by seeing the error.',
+            ),
+            interactive(
+              'Step an agent through its loop',
+              'agent-loop-sim',
+              'Give the agent a goal and step it through observe-think-act one iteration at a time. Inject a tool failure and watch it recover — or loop forever, which is exactly why step limits exist.',
             ),
             concept(
               'Tool use and function calling',

@@ -1,7 +1,7 @@
 /** Track 6 — Generative AI Beyond Text. Intermediate → expert. */
 
 import type { Track } from '../../domain/types.js';
-import { concept, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders.js';
+import { concept, interactive, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders.js';
 
 export const generativeAiTrack: Track = {
   id: 'track-generative-ai',
@@ -108,6 +108,11 @@ export const generativeAiTrack: Track = {
               ],
               ['sk-diffusion'],
               'Each step removes a little noise. The image does not appear all at once — it resolves gradually out of static.',
+            ),
+            interactive(
+              'Denoise step by step',
+              'diffusion-denoise',
+              'Drag the timestep from pure noise to finished image and watch structure resolve. Then reduce the step count and see quality degrade — the reason fast samplers were such an important advance.',
             ),
             mcq(
               'What does the network actually predict during diffusion training?',

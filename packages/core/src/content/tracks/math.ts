@@ -7,7 +7,7 @@
  */
 
 import type { Track } from '../../domain/types.js';
-import { concept, lesson, match, mcq, multi, numeric, shortAnswer, trueFalse } from '../builders.js';
+import { concept, interactive, lesson, match, mcq, multi, numeric, shortAnswer, trueFalse } from '../builders.js';
 
 export const mathTrack: Track = {
   id: 'track-math',
@@ -86,6 +86,11 @@ export const mathTrack: Track = {
               'The derivative of 3x² is 6x. At x = 2 that is 12 — the function is rising steeply, so a gradient step would move x down noticeably.',
               { hint: 'Bring the exponent down and reduce it by one.' },
             ),
+            interactive(
+              'Follow the slope',
+              'gradient-descent',
+              'The derivative is just the slope. Watch the optimizer read it and step downhill — and watch what happens when the step is larger than the valley is wide.',
+            ),
             mcq(
               'A loss function has zero gradient at the current weights. What does that mean for training?',
               [
@@ -117,6 +122,11 @@ export const mathTrack: Track = {
               'Bayes’ theorem',
               '`P(A | B) = P(B | A) × P(A) / P(B)`\n\nIt lets you flip a conditional around — go from "how often does the test fire when the disease is present" to the thing you actually want, "how likely is the disease given a positive test".\n\nThe classic worked example. A disease affects **1 in 1,000** people. A test is **99% accurate** in both directions. You test positive. What is the chance you have it?\n\nTake 100,000 people:\n- 100 have the disease. 99 test positive.\n- 99,900 do not. 1% of them — **999** — test positive anyway.\n\nSo 1,098 positive tests, of which 99 are real: **about 9%**.\n\nA 99% accurate test, and a positive result still means you probably do not have it. The rarity of the disease dominates. This is why screening programmes for rare conditions generate so many false positives, and why *precision* on rare classes is so hard to achieve.',
             ),
+            interactive(
+              'Compute the posterior',
+              'bayes-calculator',
+              'Set prevalence and test accuracy, then read off the probability that a positive result is real. Drag prevalence from 1-in-10 to 1-in-10,000 and watch the answer collapse.',
+            ),
             mcq(
               'A test is 99% accurate for a disease affecting 1 in 1,000. You test positive. Roughly what is the chance you have it?',
               ['99%', 'About 50%', 'About 9%', 'About 1%'],
@@ -135,6 +145,11 @@ export const mathTrack: Track = {
               'Entropy and cross-entropy',
               '**Entropy** measures uncertainty in a distribution. A fair coin has 1 bit of entropy — you genuinely do not know. A coin that always lands heads has 0 bits — the outcome carries no information.\n\n**Cross-entropy** measures how many bits you waste encoding reality with the wrong distribution. If the truth is P and your model predicts Q, cross-entropy is minimised exactly when Q equals P.\n\nThat is why it is the standard classification loss: **minimising cross-entropy is minimising the gap between your model\'s beliefs and reality.**\n\nIt also explains **perplexity**, the standard language model metric: perplexity is `e^(cross-entropy)`, interpretable as "how many options is the model effectively choosing between at each token". Perplexity 10 means it is about as uncertain as picking uniformly from 10 words. Lower is better.',
               { keyTerms: [{ term: 'Entropy', definition: 'Average uncertainty in a distribution, measured in bits or nats.' }, { term: 'Perplexity', definition: 'Exponentiated cross-entropy. The effective number of choices per token.' }] },
+            ),
+            interactive(
+              'Move the probabilities',
+              'entropy-explorer',
+              'Drag a distribution from uniform to near-certain and watch entropy fall from maximum to zero. Then compare entropy against cross-entropy when the predicted distribution drifts from the true one.',
             ),
             mcq(
               'A language model\'s perplexity drops from 40 to 12. What happened?',

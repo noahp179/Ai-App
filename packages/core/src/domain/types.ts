@@ -107,7 +107,8 @@ export type ExerciseKind =
   | 'match-pairs'
   | 'numeric'
   | 'code-output'
-  | 'short-answer';
+  | 'short-answer'
+  | 'categorize';
 
 interface ExerciseBase {
   id: StepId;
@@ -183,6 +184,23 @@ export interface CodeOutputExercise extends ExerciseBase {
 }
 
 /**
+ * Sort items into named buckets.
+ *
+ * The natural shape for taxonomy questions — "is this supervised, unsupervised,
+ * or reinforcement learning?" — where a multiple-choice per item would be
+ * tedious and a matching exercise implies a one-to-one pairing that does not
+ * exist here.
+ */
+export interface CategorizeExercise extends ExerciseBase {
+  kind: 'categorize';
+  prompt: string;
+  /** Bucket names, rendered as drop targets in the order given. */
+  categories: string[];
+  /** Each item plus the bucket it belongs in. Presented shuffled. */
+  items: Array<{ item: string; category: string }>;
+}
+
+/**
  * Free-response. Graded locally against `rubricKeywords` when offline or when
  * the learner has no AI-tutor entitlement; graded by the tutor gateway
  * otherwise, which returns qualitative feedback as well as a score.
@@ -205,7 +223,8 @@ export type Exercise =
   | MatchPairsExercise
   | NumericExercise
   | CodeOutputExercise
-  | ShortAnswerExercise;
+  | ShortAnswerExercise
+  | CategorizeExercise;
 
 // ---------------------------------------------------------------------------
 // Steps — what a lesson is made of
@@ -244,15 +263,48 @@ export interface InteractiveStep {
  * from content, so curriculum stays pure data.
  */
 export type InteractiveWidget =
+  // --- Foundations & data ---
+  | 'ml-type-sorter'
+  | 'train-test-split'
+  | 'data-bias'
+  | 'bayes-calculator'
+  | 'entropy-explorer'
+  | 'feature-scaling'
+  | 'cross-validation'
+  // --- Classic ML ---
+  | 'linear-regression'
+  | 'knn'
+  | 'kmeans'
+  | 'decision-tree'
+  | 'ensemble-vote'
+  | 'pca-projection'
+  | 'anomaly-detection'
+  | 'roc-curve'
+  | 'confusion-matrix'
+  | 'regularization'
+  | 'bias-variance'
+  // --- Deep learning ---
+  | 'perceptron'
+  | 'neural-net-trainer'
+  | 'activation-explorer'
+  | 'convolution'
+  | 'gradient-descent'
+  | 'learning-rate-schedule'
+  // --- Language models ---
   | 'tokenizer'
   | 'temperature-sampler'
-  | 'perceptron'
-  | 'gradient-descent'
   | 'attention-matrix'
-  | 'confusion-matrix'
-  | 'bias-variance'
   | 'embedding-space'
-  | 'prompt-lab';
+  | 'beam-search'
+  | 'moe-router'
+  | 'quantization'
+  | 'rag-retrieval'
+  | 'prompt-lab'
+  // --- Applied ---
+  | 'q-learning'
+  | 'agent-loop-sim'
+  | 'diffusion-denoise'
+  | 'drift-monitor';
 
 export type FigureName =
   | 'ai-ml-dl-venn'
@@ -270,6 +322,12 @@ export type FigureName =
   | 'cnn-filters'
   | 'overfitting-curves'
   | 'confusion-matrix'
+  | 'ml-paradigms'
+  | 'algorithm-map'
+  | 'knn-boundary'
+  | 'svm-margin'
+  | 'ensemble-tree'
+  | 'feature-pipeline'
   | 'mlops-lifecycle';
 
 export type Step = ConceptStep | ExerciseStep | InteractiveStep;

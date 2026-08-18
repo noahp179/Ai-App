@@ -26,13 +26,19 @@ import { promptEngineeringTrack } from './tracks/prompt-engineering.js';
 import { generativeAiTrack } from './tracks/generative-ai.js';
 import { agentsTrack } from './tracks/agents.js';
 import { mathTrack } from './tracks/math.js';
+import { typesOfMlTrack } from './tracks/types-of-ml.js';
+import { classicMlTrack } from './tracks/classic-ml.js';
+import { dataEngineeringTrack } from './tracks/data-engineering.js';
 import { mlopsTrack, ethicsTrack, reinforcementLearningTrack } from './tracks/applied.js';
 
 export const TRACKS: Track[] = [
   foundationsTrack,
   promptEngineeringTrack,
   mathTrack,
+  typesOfMlTrack,
   machineLearningTrack,
+  classicMlTrack,
+  dataEngineeringTrack,
   deepLearningTrack,
   llmTrack,
   generativeAiTrack,
@@ -296,6 +302,32 @@ export function validateCatalog(): ValidationIssue[] {
               err(location, `Exercise "${exercise.id}" has no rubric keywords`);
             }
             break;
+          case 'categorize': {
+            if (exercise.categories.length < 2) {
+              err(location, `Exercise "${exercise.id}" needs at least 2 categories`);
+            }
+            if (exercise.items.length < 2) {
+              err(location, `Exercise "${exercise.id}" needs at least 2 items`);
+            }
+            const declared = new Set(exercise.categories);
+            for (const entry of exercise.items) {
+              if (!declared.has(entry.category)) {
+                err(
+                  location,
+                  `Exercise "${exercise.id}" item "${entry.item}" targets undeclared category "${entry.category}"`,
+                );
+              }
+            }
+            // Every bucket should receive at least one item, or the learner is
+            // shown a decoy that can never be correct.
+            const used = new Set(exercise.items.map((i) => i.category));
+            for (const category of exercise.categories) {
+              if (!used.has(category)) {
+                warn(location, `Exercise "${exercise.id}" category "${category}" has no items`);
+              }
+            }
+            break;
+          }
           default:
             break;
         }

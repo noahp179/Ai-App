@@ -113,6 +113,43 @@ describe('catalog integrity', () => {
     }
   });
 
+  it('uses every declared interactive widget at least once', () => {
+    const used = new Set<string>();
+    for (const lesson of allLessons()) {
+      for (const step of lesson.steps) {
+        if (step.type === 'interactive') used.add(step.widget);
+      }
+    }
+    // Every name in the InteractiveWidget union must appear in content;
+    // an unused one is a widget nobody can reach.
+    const declared = new Set<string>([
+      'ml-type-sorter', 'train-test-split', 'data-bias', 'bayes-calculator',
+      'entropy-explorer', 'feature-scaling', 'cross-validation',
+      'linear-regression', 'knn', 'kmeans', 'decision-tree', 'ensemble-vote',
+      'pca-projection', 'anomaly-detection', 'roc-curve', 'confusion-matrix',
+      'regularization', 'bias-variance',
+      'perceptron', 'neural-net-trainer', 'activation-explorer', 'convolution',
+      'gradient-descent', 'learning-rate-schedule',
+      'tokenizer', 'temperature-sampler', 'attention-matrix', 'embedding-space',
+      'beam-search', 'moe-router', 'quantization', 'rag-retrieval', 'prompt-lab',
+      'q-learning', 'agent-loop-sim', 'diffusion-denoise', 'drift-monitor',
+    ]);
+
+    const unused = [...declared].filter((w) => !used.has(w));
+    expect(unused).toEqual([]);
+    expect(used.size).toBe(declared.size);
+  });
+
+  it('spreads interactives across the catalog rather than clustering them', () => {
+    const tracksWithInteractives = TRACKS.filter((track) =>
+      track.units.some((unit) =>
+        unit.lessons.some((lesson) => lesson.steps.some((s) => s.type === 'interactive')),
+      ),
+    );
+    // Every track should have at least one hands-on moment.
+    expect(tracksWithInteractives.length).toBe(TRACKS.length);
+  });
+
   it('maps skills to the exercises that practise them', () => {
     const map = exercisesBySkill();
     expect(map.size).toBeGreaterThan(50);

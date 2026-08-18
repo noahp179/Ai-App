@@ -34,6 +34,44 @@ export const SKILLS: Skill[] = [
   s('sk-class-imbalance', 'Class imbalance', 'data', 'intermediate', ['sk-features-labels']),
   s('sk-data-augmentation', 'Data augmentation', 'data', 'intermediate', ['sk-features-labels']),
 
+  // --- Types of machine learning -------------------------------------------
+  s('sk-ml-paradigms', 'The four learning paradigms', 'machine-learning', 'intro', ['sk-ai-ml-dl-relationship']),
+  s('sk-semi-supervised', 'Semi-supervised learning', 'machine-learning', 'intermediate', ['sk-supervised-learning', 'sk-unsupervised-learning']),
+  s('sk-self-supervised', 'Self-supervised learning', 'machine-learning', 'intermediate', ['sk-unsupervised-learning']),
+  s('sk-online-vs-batch', 'Online vs batch learning', 'machine-learning', 'intermediate', ['sk-supervised-learning']),
+  s('sk-instance-vs-model', 'Instance-based vs model-based', 'machine-learning', 'intermediate', ['sk-supervised-learning']),
+  s('sk-active-learning', 'Active learning', 'machine-learning', 'expert', ['sk-semi-supervised']),
+  s('sk-federated-learning', 'Federated learning', 'machine-learning', 'expert', ['sk-online-vs-batch']),
+  s('sk-multitask-learning', 'Multi-task learning', 'machine-learning', 'expert', ['sk-transfer-learning']),
+  s('sk-meta-learning', 'Meta-learning and few-shot', 'machine-learning', 'expert', ['sk-transfer-learning']),
+  s('sk-anomaly-detection', 'Anomaly detection', 'machine-learning', 'intermediate', ['sk-unsupervised-learning']),
+  s('sk-recommender-systems', 'Recommender systems', 'machine-learning', 'intermediate', ['sk-unsupervised-learning']),
+  s('sk-time-series', 'Time-series forecasting', 'machine-learning', 'intermediate', ['sk-classification-regression']),
+  s('sk-ranking', 'Learning to rank', 'machine-learning', 'expert', ['sk-classification-regression']),
+
+  // --- Classic algorithms --------------------------------------------------
+  s('sk-knn', 'k-nearest neighbours', 'machine-learning', 'intro', ['sk-classification-regression']),
+  s('sk-naive-bayes', 'Naive Bayes', 'machine-learning', 'intermediate', ['sk-bayes']),
+  s('sk-svm', 'Support vector machines', 'machine-learning', 'expert', ['sk-classification-regression']),
+  s('sk-kernel-trick', 'The kernel trick', 'machine-learning', 'expert', ['sk-svm']),
+  s('sk-dbscan', 'Density-based clustering', 'machine-learning', 'expert', ['sk-clustering']),
+  s('sk-hierarchical-clustering', 'Hierarchical clustering', 'machine-learning', 'expert', ['sk-clustering']),
+  s('sk-gradient-boosting', 'Gradient boosting in depth', 'machine-learning', 'expert', ['sk-ensembles']),
+  s('sk-hyperparameter-tuning', 'Hyperparameter search', 'machine-learning', 'intermediate', ['sk-cross-validation']),
+  s('sk-model-selection', 'Choosing an algorithm', 'machine-learning', 'intermediate', ['sk-ensembles', 'sk-knn']),
+  s('sk-calibration', 'Probability calibration', 'machine-learning', 'expert', ['sk-classification-metrics']),
+  s('sk-roc-pr-curves', 'ROC and PR curves', 'machine-learning', 'intermediate', ['sk-classification-metrics']),
+
+  // --- Feature engineering -------------------------------------------------
+  s('sk-categorical-encoding', 'Encoding categorical features', 'data', 'intermediate', ['sk-features-labels']),
+  s('sk-missing-data', 'Handling missing data', 'data', 'intermediate', ['sk-features-labels']),
+  s('sk-outliers', 'Outliers and robust statistics', 'data', 'intermediate', ['sk-features-labels']),
+  s('sk-feature-selection', 'Feature selection', 'data', 'intermediate', ['sk-regularization']),
+  s('sk-feature-crosses', 'Interactions and derived features', 'data', 'intermediate', ['sk-features-labels']),
+  s('sk-text-features', 'Text as features', 'data', 'intermediate', ['sk-tokenization']),
+  s('sk-data-labelling', 'Labelling and annotation quality', 'data', 'intermediate', ['sk-features-labels']),
+  s('sk-dataset-shift', 'Dataset shift in practice', 'data', 'expert', ['sk-model-monitoring']),
+
   // --- Machine learning ----------------------------------------------------
   s('sk-supervised-learning', 'Supervised learning', 'machine-learning', 'intro', ['sk-features-labels']),
   s('sk-unsupervised-learning', 'Unsupervised learning', 'machine-learning', 'intro', ['sk-features-labels']),

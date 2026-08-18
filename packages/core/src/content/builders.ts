@@ -8,6 +8,7 @@
  */
 
 import type {
+  CategorizeExercise,
   CodeOutputExercise,
   ConceptStep,
   Exercise,
@@ -179,6 +180,26 @@ export function codeOutput(
     answer,
     skillIds,
     explanation,
+  };
+}
+
+export function categorize(
+  prompt: string,
+  categories: string[],
+  items: Array<{ item: string; category: string }>,
+  skillIds: string[],
+  explanation: string,
+  hint?: string,
+): CategorizeExercise {
+  return {
+    id: nextId('cat'),
+    kind: 'categorize',
+    prompt,
+    categories,
+    items,
+    skillIds,
+    explanation,
+    ...(hint ? { hint } : {}),
   };
 }
 

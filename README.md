@@ -16,15 +16,31 @@ a graduate course.
 
 | | |
 |---|---|
-| **11 tracks** | Foundations → Prompt Engineering → Math → ML → Deep Learning → LLMs → Generative AI → Agents → RL → MLOps → Ethics |
-| **50 lessons** | 20 units, ~200 minutes of material, all three difficulty levels |
-| **252 exercises** | 9 exercise types, every one with a written explanation |
-| **109 skills** | Individually tracked with spaced-repetition scheduling |
-| **9 interactive labs** | Tokenizer, attention matrix, gradient descent, and more |
+| **14 tracks** | Foundations · Prompt Engineering · Math · **Types of ML** · ML Mechanics · **Classic Algorithms** · **Data & Features** · Deep Learning · LLMs · Generative AI · Agents · RL · MLOps · Ethics |
+| **72 lessons** | 27 units, ~290 minutes of material, all three difficulty levels |
+| **353 exercises** | 10 exercise types, every one with a written explanation |
+| **141 skills** | Individually tracked with spaced-repetition scheduling |
+| **37 interactive widgets** | Across 43 hands-on steps — every track has at least one |
 
 Every track spans intro, intermediate, and expert material. The curriculum is
 data (`packages/core/src/content/`), validated on every test run — a typo in a
 skill reference fails the build rather than silently breaking review scheduling.
+
+### Machine learning, in depth
+
+Three tracks cover ML specifically, from the taxonomy down to the algorithms:
+
+- **Types of Machine Learning** — the map before the territory. Supervised,
+  unsupervised, reinforcement, and self-supervised; then semi-supervised,
+  transfer, multi-task, meta-, active, and federated learning; batch vs online;
+  instance-based vs model-based; and the recurring problem shapes
+  (recommendation, ranking, forecasting, anomaly detection).
+- **Classic ML Algorithms** — k-NN, Naive Bayes, SVMs and the kernel trick,
+  decision trees, Random Forest, gradient boosting, k-means, DBSCAN,
+  hierarchical clustering, PCA, plus model selection and ROC/PR curves.
+- **Data & Feature Engineering** — categorical encoding, the three kinds of
+  missing data, outliers, feature selection and creation, text features,
+  labelling quality, and dataset shift.
 
 ---
 
@@ -61,7 +77,7 @@ app; apps never reimplement a rule.
 
 ```bash
 npm install
-npm test                    # 156 tests, ~1s
+npm test                    # 164 tests, ~1s
 npm run build --workspace @synapse/core
 
 npm run mobile              # Expo dev server
@@ -101,6 +117,38 @@ without a subscription.
 
 ---
 
+## Interactivity
+
+37 widgets, all built from plain views and `PanResponder` — no SVG, no charting
+library, no native modules, so they run identically on iOS, Android, and the web
+export the macOS app is built from.
+
+**They run the real algorithm, not an animation of one.** k-means genuinely
+converges to a local optimum and lands somewhere different from a different
+seed. The neural-net trainer does a real forward pass, real backpropagation, and
+real gradient descent — set hidden units to zero and it can never learn XOR,
+because a model with no nonlinearity is a straight line. Q-learning applies the
+actual update rule, so you watch reward propagate backwards from the goal one
+episode at a time. A widget that fakes the maths teaches the wrong intuition,
+which is worse than teaching none.
+
+A sample of what you can pull on:
+
+- **Sort real scenarios** into the four learning paradigms
+- **Fit a line by hand** against live MSE, then add an outlier and watch it tilt
+- **Step k-means** one iteration at a time, then reseed and get a different answer
+- **Build a decision tree** split by split, watching information gain
+- **Train a network** on XOR, circles, or spirals and watch the boundary bend
+- **Slide a convolution kernel** across pixels, one output value at a time
+- **Trace an ROC curve**, then switch to imbalanced data and watch AUC lie
+- **Drag Bayes' prevalence** and watch a 99%-accurate test become usually wrong
+- **Route tokens to experts** and collapse the router to see why balancing matters
+- **Run an agent loop**, inject a tool failure, and hit the step limit
+- **Watch a model drift** while every health dashboard stays green
+
+Every widget ends with a note saying what to notice — the point is never the
+widget, it is the thing it makes obvious.
+
 ## Design
 
 Dark-first, because the app is used in the evening on a phone. Tokens live in
@@ -133,14 +181,16 @@ what was deliberately *not* built — are in **[docs/MONETIZATION.md](docs/MONET
 npm test
 ```
 
-156 tests covering the grading engine, scheduler, XP and streak logic, session
+164 tests covering the grading engine, scheduler, XP and streak logic, session
 state machine, placement algorithm, entitlements, progress transitions, and
 catalog integrity.
 
 The catalog tests are load-bearing: they verify that every exercise's stated
 answer actually grades as correct, that every skill reference resolves, that no
-prerequisite graph has a cycle, and that no declared skill goes unpractised.
-Content is data written by hand, and data written by hand drifts.
+prerequisite graph has a cycle, that no declared skill goes unpractised, that
+every interactive widget is reachable from content, and that every track has at
+least one hands-on step. Content is data written by hand, and data written by
+hand drifts — two of those checks caught real gaps while this was being built.
 
 ---
 

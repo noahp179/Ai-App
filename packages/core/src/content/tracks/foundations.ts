@@ -418,6 +418,11 @@ export const foundationsTrack: Track = {
                 ],
               },
             ),
+            interactive(
+              'Split the data yourself',
+              'train-test-split',
+              'Drag the split boundaries and watch the three sets resize. Then switch on "reuse the test set" and watch the reported score drift optimistically upward with every peek.',
+            ),
             mcq(
               'A team tries 200 architectures, picks the best on the test set, and reports its score. What is wrong?',
               [
@@ -650,6 +655,11 @@ export const foundationsTrack: Track = {
             concept(
               'Where bias enters',
               'Bias rarely enters through a malicious line of code. It enters through ordinary decisions:\n\n**Historical bias.** The data faithfully records an unjust world. Recruiting data from an industry that hired mostly men teaches the model that pattern.\n\n**Representation bias.** Some groups are thin in the data. Early face recognition was trained on overwhelmingly light-skinned faces and performed dramatically worse on dark-skinned women — error rates differing by more than an order of magnitude.\n\n**Measurement bias.** The proxy you can measure is not the thing you care about. Healthcare algorithms have used *cost of care* as a proxy for *severity of illness*; because less money had historically been spent on Black patients, the model systematically underestimated their needs.\n\n**Aggregation bias.** One model for populations that genuinely differ, fitting the majority and failing the rest.',
+            ),
+            interactive(
+              'Watch bias enter through the data',
+              'data-bias',
+              'Skew the training sample away from one group and watch per-group accuracy diverge — with no change to the algorithm at all. Then rebalance and watch the gap close.',
             ),
             mcq(
               'A model uses healthcare spending as a proxy for illness severity and under-serves a group. Which bias is this?',

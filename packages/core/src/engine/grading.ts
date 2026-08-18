@@ -18,6 +18,7 @@ export type Response =
   | { kind: 'order'; items: string[] }
   | { kind: 'pairs'; pairs: Array<{ left: string; right: string }> }
   | { kind: 'number'; value: number }
+  | { kind: 'buckets'; assignments: Array<{ item: string; category: string }> }
   | { kind: 'skipped' };
 
 export interface GradeResult {
@@ -130,6 +131,25 @@ export function grade(exercise: Exercise, response: Response): GradeResult {
     case 'short-answer': {
       if (response.kind !== 'text') return miss();
       return gradeShortAnswer(exercise, response.values[0] ?? '');
+    }
+
+    case 'categorize': {
+      if (response.kind !== 'buckets') return miss();
+      const truth = new Map(exercise.items.map((i) => [normalize(i.item), normalize(i.category)]));
+      // Score over the *expected* items, so leaving items unsorted costs marks
+      // rather than being silently ignored.
+      const placed = new Map(
+        response.assignments.map((a) => [normalize(a.item), normalize(a.category)]),
+      );
+      const detail = exercise.items.map(
+        (i) => placed.get(normalize(i.item)) === truth.get(normalize(i.item)),
+      );
+      const hits = detail.filter(Boolean).length;
+      return {
+        correct: hits === exercise.items.length,
+        score: exercise.items.length === 0 ? 1 : hits / exercise.items.length,
+        detail,
+      };
     }
 
     default: {

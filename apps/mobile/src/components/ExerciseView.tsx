@@ -57,6 +57,8 @@ export function ExerciseView(props: ExerciseViewProps): React.JSX.Element {
       return <MatchExercise {...props} />;
     case 'short-answer':
       return <ShortAnswerExercise {...props} />;
+    case 'categorize':
+      return <CategorizeExercise {...props} />;
     default: {
       const never: never = exercise;
       void never;
@@ -665,6 +667,195 @@ function ShortAnswerExercise({
           <Text variant="body" tone="secondary">
             {exercise.sampleAnswer}
           </Text>
+        </Card>
+      ) : null}
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+/**
+ * Sort items into buckets.
+ *
+ * Tap an item to select it, then tap a bucket to place it — the same
+ * tap-to-assign pattern used by ordering and matching. Dragging would be
+ * fiddly on a phone and unusable with a screen reader; tapping is precise,
+ * reversible, and works with any input method.
+ */
+function CategorizeExercise({
+  exercise,
+  draft,
+  onDraftChange,
+  result,
+}: ExerciseViewProps): React.JSX.Element {
+  const theme = useTheme();
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const shuffled = useMemo(
+    () =>
+      exercise.kind === 'categorize'
+        ? seededShuffle(
+            exercise.items.map((i) => i.item),
+            hashString(exercise.id),
+          )
+        : [],
+    [exercise],
+  );
+
+  if (exercise.kind !== 'categorize') return <View />;
+
+  const assignments = draft?.kind === 'buckets' ? draft.assignments : [];
+  const placed = new Map(assignments.map((a) => [a.item, a.category]));
+  const unplaced = shuffled.filter((item) => !placed.has(item));
+
+  const assign = (category: string): void => {
+    if (!selected) return;
+    tapFeedback();
+    onDraftChange({
+      kind: 'buckets',
+      assignments: [...assignments.filter((a) => a.item !== selected), { item: selected, category }],
+    });
+    setSelected(null);
+  };
+
+  const unassign = (item: string): void => {
+    if (result) return;
+    tapFeedback();
+    onDraftChange({ kind: 'buckets', assignments: assignments.filter((a) => a.item !== item) });
+  };
+
+  /** After grading, look up whether a specific item landed in the right bucket. */
+  const isCorrect = (item: string): boolean | null => {
+    if (!result) return null;
+    const index = exercise.items.findIndex((i) => i.item === item);
+    return index === -1 ? null : (result.detail?.[index] ?? false);
+  };
+
+  return (
+    <View>
+      <Prompt>{exercise.prompt}</Prompt>
+
+      {/* Unplaced items */}
+      {unplaced.length > 0 && !result ? (
+        <View style={{ marginBottom: theme.spacing.xl }}>
+          <Text variant="label" tone="tertiary" caps style={{ marginBottom: theme.spacing.sm }}>
+            Tap an item, then tap a category
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+            {unplaced.map((item) => {
+              const active = selected === item;
+              return (
+                <Pressable
+                  key={item}
+                  onPress={() => {
+                    tapFeedback();
+                    setSelected(active ? null : item);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  style={{
+                    paddingHorizontal: theme.spacing.md,
+                    paddingVertical: theme.spacing.sm,
+                    borderRadius: theme.radii.md,
+                    borderWidth: 2,
+                    borderColor: active ? theme.colors.primary : theme.colors.border,
+                    backgroundColor: active ? theme.colors.primarySubtle : theme.colors.surface,
+                  }}
+                >
+                  <Text variant="caption" tone={active ? 'primary' : 'default'}>
+                    {item}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      ) : null}
+
+      {/* Buckets */}
+      <View style={{ gap: theme.spacing.md }}>
+        {exercise.categories.map((category) => {
+          const contents = assignments.filter((a) => a.category === category);
+          const isTarget = selected !== null && !result;
+
+          return (
+            <Pressable
+              key={category}
+              onPress={() => assign(category)}
+              disabled={!isTarget}
+              accessibilityRole="button"
+              accessibilityLabel={`Category ${category}`}
+              style={{
+                padding: theme.spacing.md,
+                borderRadius: theme.radii.lg,
+                borderWidth: 2,
+                borderStyle: isTarget ? 'solid' : 'dashed',
+                borderColor: isTarget ? theme.colors.primary : theme.colors.border,
+                backgroundColor: isTarget ? theme.colors.primarySubtle : 'transparent',
+                minHeight: 72,
+              }}
+            >
+              <Text variant="label" tone="tertiary" caps style={{ marginBottom: theme.spacing.sm }}>
+                {category}
+              </Text>
+
+              {contents.length === 0 ? (
+                <Text variant="caption" tone="tertiary">
+                  {isTarget ? 'Tap to place here' : 'Empty'}
+                </Text>
+              ) : (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.xs }}>
+                  {contents.map((entry) => {
+                    const correct = isCorrect(entry.item);
+                    return (
+                      <Pressable
+                        key={entry.item}
+                        onPress={() => unassign(entry.item)}
+                        disabled={result !== null}
+                        style={{
+                          paddingHorizontal: theme.spacing.sm,
+                          paddingVertical: theme.spacing.xs,
+                          borderRadius: theme.radii.sm,
+                          backgroundColor:
+                            correct === null
+                              ? theme.colors.surfaceMuted
+                              : correct
+                                ? theme.colors.successSubtle
+                                : theme.colors.dangerSubtle,
+                        }}
+                      >
+                        <Text
+                          variant="caption"
+                          tone={correct === null ? 'default' : correct ? 'success' : 'danger'}
+                        >
+                          {correct === null ? '' : correct ? '✓ ' : '✕ '}
+                          {entry.item}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {result && !result.correct ? (
+        <Card style={{ marginTop: theme.spacing.lg }} background={theme.colors.surfaceMuted}>
+          <Text variant="label" tone="tertiary" caps style={{ marginBottom: theme.spacing.sm }}>
+            Correct placement
+          </Text>
+          <View style={{ gap: theme.spacing.xs }}>
+            {exercise.items
+              .filter((entry) => !isCorrect(entry.item))
+              .map((entry) => (
+                <Text key={entry.item} variant="caption" tone="secondary">
+                  {entry.item} → {entry.category}
+                </Text>
+              ))}
+          </View>
         </Card>
       ) : null}
     </View>

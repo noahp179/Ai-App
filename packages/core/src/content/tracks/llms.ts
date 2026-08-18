@@ -169,6 +169,11 @@ export const llmTrack: Track = {
               'temperature-sampler',
               'Watch the same probability distribution reshape as you move temperature. At 0.1 nearly all mass sits on one token; at 2.0 it is almost uniform and the output becomes incoherent.',
             ),
+            interactive(
+              'Greedy vs beam search',
+              'beam-search',
+              'Watch the same model decode with greedy selection and with beam width 3. Greedy commits to the best next token and can be trapped; beam keeps several partial sequences alive and often finds a better whole.',
+            ),
             mcq(
               'You are extracting structured data from invoices. What temperature?',
               ['1.5', '1.0', 'Near 0', 'It makes no difference'],
@@ -521,6 +526,11 @@ export const llmTrack: Track = {
               ['sk-rag', 'sk-pretraining-finetuning'],
               'Frequently-changing facts are RAG\'s core use case. Fine-tuning is slow, expensive, unattributable, and gives you no way to revoke a fact once learned.',
             ),
+            interactive(
+              'Run a retrieval step',
+              'rag-retrieval',
+              'Type a question and watch chunks ranked by cosine similarity. Then switch to hybrid search and see which exact-match results semantic search alone was missing — usually the product codes and proper nouns.',
+            ),
             mcq(
               'A RAG system returns confident but wrong answers. Where do you look first?',
               [
@@ -630,6 +640,11 @@ export const llmTrack: Track = {
               'A 70B-parameter model in 16-bit precision needs about 140GB just to hold its weights. Making that servable is its own engineering discipline.\n\n**Quantization** stores weights at lower precision. 8-bit roughly halves memory with negligible quality loss; 4-bit halves it again with a modest but real cost. Modern methods (GPTQ, AWQ) are *calibration-aware* — they use sample data to decide which weights tolerate precision loss, which is why 4-bit is now usable rather than merely small.\n\nThe win is not only memory. Inference on large models is usually **memory-bandwidth bound**, not compute bound, so moving fewer bytes per weight makes generation faster.\n\n**Distillation** trains a small "student" model to reproduce a large "teacher" model\'s output distribution. The teacher\'s full probabilities carry more information than hard labels — the relative probabilities of the wrong answers encode learned similarity structure. Students routinely reach most of teacher quality at a fraction of the size.\n\nThese compose: distil, then quantize.',
               { keyTerms: [{ term: 'Quantization', definition: 'Storing weights at reduced numerical precision to cut memory and bandwidth.' }, { term: 'Distillation', definition: 'Training a small model to imitate a large model\'s output distribution.' }] },
             ),
+            interactive(
+              'Drop the precision',
+              'quantization',
+              'Move from 32-bit to 4-bit and watch memory footprint, throughput, and per-weight error all change together. The quality cost stays small far longer than most people expect.',
+            ),
             mcq(
               'Why does 4-bit quantization often speed up generation, not just reduce memory?',
               [
@@ -658,6 +673,11 @@ export const llmTrack: Track = {
               'Mixture of experts',
               'A dense model uses every parameter for every token. **Mixture of experts** replaces the feed-forward block with many parallel "expert" networks plus a small **router** that sends each token to just a few of them — typically 2 of 8, or 8 of 64.\n\nThe result is a model with a very large *total* parameter count but a much smaller *active* count per token. A model might hold 400B parameters while using 40B for any given token — near the quality of a huge dense model at a fraction of the compute.\n\nThe costs are real and mostly operational. All experts must be resident in memory even though most are idle, so the memory footprint is that of the full model. Routing must be balanced — a collapsed router that sends everything to two experts wastes the rest, so training needs an explicit load-balancing loss. And distributing experts across devices makes serving considerably more complex.\n\nMoE is now standard in frontier models precisely because inference compute, not memory, is usually the binding cost.',
               { keyTerms: [{ term: 'Router', definition: 'A small learned network choosing which experts process each token.' }, { term: 'Active parameters', definition: 'The subset actually used per token, as opposed to total parameters.' }] },
+            ),
+            interactive(
+              'Route tokens to experts',
+              'moe-router',
+              'Send tokens through the router and watch which experts activate. Track active parameters against total, and try to unbalance the router — then see why a load-balancing loss is required during training.',
             ),
             mcq(
               'What is the main advantage of a mixture-of-experts model?',
