@@ -13,8 +13,8 @@
  *    real options, not a dead end.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Pressable, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -26,12 +26,18 @@ import {
 } from '@synapse/core';
 import {
   Badge,
+  Burst,
   Button,
   Card,
+  Entrance,
   FeedbackSheet,
   ProgressBar,
+  ProgressRing,
   Screen,
+  StepTransition,
   Text,
+  useCountUp,
+  usePulse,
   useTheme,
 } from '@synapse/ui';
 
@@ -53,6 +59,8 @@ export default function LessonScreen(): React.JSX.Element {
   const loseHeart = useProgress((s) => s.loseHeart);
 
   const session = useSession();
+  const scrollRef = useRef<ScrollView>(null);
+  const [sheetHeight, setSheetHeight] = useState(0);
   const [summary, setSummary] = useState<null | {
     xpEarned: number;
     accuracy: number;
@@ -119,6 +127,19 @@ export default function LessonScreen(): React.JSX.Element {
     successFeedback();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snapshot?.status]);
+
+  // Nudge the answered option up into the visible band above the sheet. Runs
+  // after the sheet's slide-in so the two do not fight each other.
+  useEffect(() => {
+    if (!session.lastResult) {
+      setSheetHeight(0);
+      return;
+    }
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 160);
+    return () => clearTimeout(timer);
+  }, [session.lastResult]);
 
   const exit = useCallback(() => {
     session.end();
@@ -205,15 +226,20 @@ export default function LessonScreen(): React.JSX.Element {
       </View>
 
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={{
+          // The feedback sheet is absolutely positioned over the content, so the
+          // scroll area has to reserve room for it — otherwise the option the
+          // learner just answered ends up hidden behind the explanation of it.
           paddingHorizontal: theme.layout.screenPadding,
-          paddingBottom: 260,
+          paddingBottom: hasAnswered ? sheetHeight + theme.spacing.xl : 180,
           maxWidth: theme.layout.maxReadingWidth,
           alignSelf: 'center',
           width: '100%',
         }}
         showsVerticalScrollIndicator={false}
       >
+        <StepTransition stepKey={`${snapshot.index}-${step.id}`}>
         {step.type === 'concept' ? <ConceptView step={step} /> : null}
 
         {step.type === 'interactive' ? (
@@ -259,6 +285,7 @@ export default function LessonScreen(): React.JSX.Element {
             ) : null}
           </>
         ) : null}
+        </StepTransition>
       </ScrollView>
 
       {/* Primary action — fixed position, never moves */}
@@ -300,6 +327,7 @@ export default function LessonScreen(): React.JSX.Element {
               : step.exercise.explanation
           }
           bottomInset={insets.bottom}
+          onHeightChange={setSheetHeight}
           onContinue={session.advance}
           actions={
             <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
@@ -316,6 +344,15 @@ export default function LessonScreen(): React.JSX.Element {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * The completion screen.
+ *
+ * The single biggest payoff moment in the app, so it is choreographed rather
+ * than just rendered: the mark bursts, XP counts up, the accuracy ring fills,
+ * and badges arrive last. The whole sequence runs in about a second — long
+ * enough to feel earned, short enough that a learner doing six lessons in a row
+ * never waits on it.
+ */
 function CompletionView({
   summary,
   onDone,
@@ -330,6 +367,9 @@ function CompletionView({
   onDone: () => void;
 }): React.JSX.Element {
   const theme = useTheme();
+  const xp = useCountUp(summary.xpEarned, { duration: 1000 });
+  const accuracyPct = useCountUp(Math.round(summary.accuracy * 100), { duration: 1000 });
+  const badgePulse = usePulse(summary.leveledUp || summary.newAchievements > 0);
 
   const headline = summary.perfect
     ? 'Flawless'
@@ -342,53 +382,93 @@ function CompletionView({
   return (
     <Screen>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Text variant="display" style={{ marginBottom: theme.spacing.lg }}>
-          {summary.perfect ? '💎' : '🎉'}
-        </Text>
-
-        <Text variant="title" align="center">
-          {headline}
-        </Text>
-
-        <View
-          style={{
-            flexDirection: 'row',
-            gap: theme.spacing.xxl,
-            marginTop: theme.spacing.xxxl,
-            marginBottom: theme.spacing.xxl,
-          }}
-        >
-          <View style={{ alignItems: 'center' }}>
-            <Text variant="display" tone="primary">
-              +{summary.xpEarned}
-            </Text>
-            <Text variant="label" tone="tertiary" caps>
-              XP earned
-            </Text>
-          </View>
-          <View style={{ alignItems: 'center' }}>
-            <Text variant="display" tone={summary.accuracy >= 0.8 ? 'success' : 'default'}>
-              {Math.round(summary.accuracy * 100)}%
-            </Text>
-            <Text variant="label" tone="tertiary" caps>
-              Accuracy
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ gap: theme.spacing.sm, alignItems: 'center' }}>
-          {summary.leveledUp ? <Badge label="Level up!" tone="primary" filled /> : null}
-          {summary.newAchievements > 0 ? (
-            <Badge
-              label={`${summary.newAchievements} new achievement${summary.newAchievements > 1 ? 's' : ''}`}
-              tone="warning"
-              filled
+        <Entrance index={0} distance={0}>
+          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+            {/* The burst originates behind the mark, so the celebration reads as
+                coming from the achievement rather than decorating the screen. */}
+            <Burst
+              trigger={1}
+              radius={130}
+              particleCount={16}
+              size={10}
+              colors={
+                summary.perfect
+                  ? [theme.colors.primary, theme.colors.info, theme.colors.success]
+                  : [theme.colors.success, theme.colors.primary]
+              }
             />
-          ) : null}
-        </View>
+            <Text variant="display" style={{ marginBottom: theme.spacing.lg }}>
+              {summary.perfect ? '💎' : '🎉'}
+            </Text>
+          </View>
+        </Entrance>
+
+        <Entrance index={1}>
+          <Text variant="title" align="center">
+            {headline}
+          </Text>
+        </Entrance>
+
+        <Entrance index={2}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: theme.spacing.xxxl,
+              marginTop: theme.spacing.xxxl,
+              marginBottom: theme.spacing.xxl,
+            }}
+          >
+            <View style={{ alignItems: 'center' }}>
+              <Text variant="display" tone="primary">
+                +{xp}
+              </Text>
+              <Text variant="label" tone="tertiary" caps>
+                XP earned
+              </Text>
+            </View>
+
+            <View style={{ alignItems: 'center' }}>
+              <ProgressRing
+                value={summary.accuracy}
+                size={78}
+                thickness={7}
+                color={summary.accuracy >= 0.8 ? theme.colors.success : theme.colors.warning}
+              >
+                <Text
+                  variant="heading"
+                  style={{
+                    color:
+                      summary.accuracy >= 0.8 ? theme.colors.success : theme.colors.text,
+                  }}
+                >
+                  {accuracyPct}%
+                </Text>
+              </ProgressRing>
+              <Text variant="label" tone="tertiary" caps style={{ marginTop: theme.spacing.xs }}>
+                Accuracy
+              </Text>
+            </View>
+          </View>
+        </Entrance>
+
+        <Entrance index={3}>
+          <Animated.View style={[{ gap: theme.spacing.sm, alignItems: 'center' }, badgePulse]}>
+            {summary.leveledUp ? <Badge label="Level up!" tone="primary" filled /> : null}
+            {summary.newAchievements > 0 ? (
+              <Badge
+                label={`${summary.newAchievements} new achievement${summary.newAchievements > 1 ? 's' : ''}`}
+                tone="warning"
+                filled
+              />
+            ) : null}
+          </Animated.View>
+        </Entrance>
       </View>
 
-      <Button label="Continue" size="lg" fullWidth onPress={onDone} />
+      <Entrance index={4}>
+        <Button label="Continue" size="lg" fullWidth onPress={onDone} />
+      </Entrance>
     </Screen>
   );
 }

@@ -8,7 +8,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { Badge, Text, useTheme } from '@synapse/ui';
+import { Badge, Text, useTheme, useTicker } from '@synapse/ui';
 
 import { Slider } from '../Slider';
 import {
@@ -47,6 +47,7 @@ export function QLearning(): React.JSX.Element {
   );
   const [episodes, setEpisodes] = useState(0);
   const [lastReturn, setLastReturn] = useState<number | null>(null);
+  const [learning, setLearning] = useState(false);
   const [randomState] = useState(() => makeRandom(99));
 
   const stepEnv = useCallback((state: number, action: number): { next: number; reward: number; done: boolean } => {
@@ -103,7 +104,12 @@ export function QLearning(): React.JSX.Element {
     setQ(Array.from({ length: GRID_W * GRID_H }, () => [0, 0, 0, 0]));
     setEpisodes(0);
     setLastReturn(null);
+    setLearning(false);
   };
+
+  // Three episodes per tick: fast enough that value visibly floods backwards
+  // from the goal within seconds, slow enough to watch the wavefront spread.
+  useTicker(learning, 160, () => runEpisodes(3));
 
   const maxQ = Math.max(0.01, ...q.flat().map(Math.abs));
 
@@ -193,8 +199,12 @@ export function QLearning(): React.JSX.Element {
 
       <ActionRow
         actions={[
-          { label: 'Run 1 episode', onPress: () => runEpisodes(1), primary: true },
-          { label: 'Run 50', onPress: () => runEpisodes(50) },
+          {
+            label: learning ? 'Pause' : 'Learn',
+            onPress: () => setLearning((v) => !v),
+            primary: true,
+          },
+          { label: 'One episode', onPress: () => runEpisodes(1), disabled: learning },
           { label: 'Reset', onPress: reset },
         ]}
       />
@@ -356,6 +366,21 @@ export function DiffusionDenoise(): React.JSX.Element {
   const theme = useTheme();
   const [timestep, setTimestep] = useState(1);
   const [totalSteps, setTotalSteps] = useState(50);
+  const [playing, setPlaying] = useState(false);
+
+  // Walks the timestep from pure noise to finished image. Diffusion is a
+  // *process*, and a slider you have to drag yourself hides that — most people
+  // never move it far enough to see the image resolve.
+  useTicker(playing, 60, () => {
+    setTimestep((t) => {
+      const next = t - 0.02;
+      if (next <= 0) {
+        setPlaying(false);
+        return 0;
+      }
+      return next;
+    });
+  });
 
   const SIZE = 12;
 
@@ -424,6 +449,20 @@ export function DiffusionDenoise(): React.JSX.Element {
           color={totalSteps < 15 ? theme.colors.warning : theme.colors.info}
         />
       </View>
+
+      <ActionRow
+        actions={[
+          {
+            label: playing ? 'Pause' : timestep <= 0.01 ? 'Replay' : 'Denoise',
+            onPress: () => {
+              if (timestep <= 0.01) setTimestep(1);
+              setPlaying((p) => !p);
+            },
+            primary: true,
+          },
+          { label: 'Back to noise', onPress: () => { setTimestep(1); setPlaying(false); } },
+        ]}
+      />
 
       <Readout
         items={[

@@ -9,7 +9,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import type { InteractiveWidget } from '@synapse/core';
-import { Badge, Card, Screen, Text, useTheme } from '@synapse/ui';
+import { Badge, Card, Entrance, Screen, Text, useTheme } from '@synapse/ui';
 
 import { Interactive } from '../../src/components/interactives/index';
 
@@ -132,8 +132,9 @@ export default function PlaygroundScreen(): React.JSX.Element {
       </View>
 
       <View style={{ gap: theme.spacing.md }}>
-        {visible.map((entry) => (
-          <Card key={entry.widget} onPress={() => setActive(entry)} outlined>
+        {visible.map((entry, cardIndex) => (
+          <Entrance key={entry.widget} index={cardIndex}>
+          <Card onPress={() => setActive(entry)} outlined>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View
                 style={{
@@ -159,6 +160,7 @@ export default function PlaygroundScreen(): React.JSX.Element {
               </Text>
             </View>
           </Card>
+          </Entrance>
         ))}
       </View>
     </Screen>

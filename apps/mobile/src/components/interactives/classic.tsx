@@ -9,7 +9,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { Badge, Text, useTheme } from '@synapse/ui';
+import { Badge, Text, useTheme, useTicker } from '@synapse/ui';
 
 import { Slider } from '../Slider';
 import {
@@ -17,6 +17,7 @@ import {
   Bar,
   Dot,
   Line,
+  MovingDot,
   Note,
   Path,
   PlotCanvas,
@@ -273,6 +274,7 @@ export function KMeans(): React.JSX.Element {
   }, [k, seed, points]);
 
   const [state, setState] = useState<KMeansState>(initial);
+  const [playing, setPlaying] = useState(false);
 
   // Reset whenever the configuration changes underneath us.
   const configKey = `${k}-${seed}-${points.length}`;
@@ -280,6 +282,7 @@ export function KMeans(): React.JSX.Element {
   if (configKey !== lastKey) {
     setLastKey(configKey);
     setState(initial());
+    setPlaying(false);
   }
 
   const step = (): void => {
@@ -309,9 +312,14 @@ export function KMeans(): React.JSX.Element {
       });
 
       const moved = centroids.some((c, i) => dist(c, prev.centroids[i]!) > 0.001);
+      if (!moved) setPlaying(false);
       return { centroids, assignments, iteration: prev.iteration + 1, converged: !moved };
     });
   };
+
+  // Paced at 900ms so each assign-and-move is separately readable — faster and
+  // it becomes a blur, slower and it feels stalled.
+  useTicker(playing && !state.converged, 900, step);
 
   const inertia = useMemo(() => {
     if (state.iteration === 0) return null;
@@ -336,7 +344,15 @@ export function KMeans(): React.JSX.Element {
               />
             ))}
             {state.centroids.map((c, i) => (
-              <Dot key={`c-${i}`} point={c} size={size} color={colors[i]!} radius={10} hollow />
+              <MovingDot
+                key={`c-${i}`}
+                point={c}
+                size={size}
+                color={colors[i]!}
+                radius={10}
+                hollow
+                duration={700}
+              />
             ))}
           </>
         )}
@@ -364,9 +380,14 @@ export function KMeans(): React.JSX.Element {
 
       <ActionRow
         actions={[
-          { label: 'Step once', onPress: step, disabled: state.converged, primary: true },
-          { label: 'New seed', onPress: () => setSeed((s) => s + 1) },
-          { label: 'Reset', onPress: () => { setExtraPoints([]); setState(initial()); } },
+          {
+            label: playing ? 'Pause' : 'Run',
+            onPress: () => setPlaying((p) => !p),
+            disabled: state.converged,
+            primary: true,
+          },
+          { label: 'Step once', onPress: step, disabled: state.converged || playing },
+          { label: 'New seed', onPress: () => { setSeed((s) => s + 1); setPlaying(false); } },
         ]}
       />
 

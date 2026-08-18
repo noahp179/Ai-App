@@ -27,6 +27,7 @@ import {
   Badge,
   Button,
   Card,
+  Entrance,
   ProgressBar,
   ProgressRing,
   Screen,
@@ -87,6 +88,7 @@ export default function TodayScreen(): React.JSX.Element {
       </View>
 
       {/* Stat row */}
+      <Entrance index={1}>
       <Card outlined style={{ marginBottom: theme.spacing.xl }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
           <StatTile
@@ -119,8 +121,10 @@ export default function TodayScreen(): React.JSX.Element {
           />
         </View>
       </Card>
+      </Entrance>
 
       {/* Daily goal */}
+      <Entrance index={2}>
       <Card outlined style={{ marginBottom: theme.spacing.xl }}>
         <View
           style={{
@@ -149,9 +153,11 @@ export default function TodayScreen(): React.JSX.Element {
           </Text>
         ) : null}
       </Card>
+      </Entrance>
 
       {/* The primary action */}
       {nextLesson ? (
+        <Entrance index={3}>
         <Card
           onPress={() => router.push(`/lesson/${nextLesson.lesson.id}`)}
           elevated="md"
@@ -195,6 +201,7 @@ export default function TodayScreen(): React.JSX.Element {
             </Text>
           </View>
         </Card>
+        </Entrance>
       ) : null}
 
       {/* Review */}

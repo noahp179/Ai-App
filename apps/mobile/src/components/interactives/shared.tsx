@@ -10,6 +10,7 @@
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   PanResponder,
   Pressable,
   View,
@@ -17,7 +18,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { Text, useTheme, type Theme } from '@synapse/ui';
+import { Text, useAnimatedValue, useTheme, type Theme } from '@synapse/ui';
 
 // ---------------------------------------------------------------------------
 // Geometry
@@ -161,6 +162,43 @@ export function Dot({
         </Text>
       ) : null}
     </View>
+  );
+}
+
+/**
+ * A dot that glides to its position instead of teleporting.
+ *
+ * Used for anything the learner should be able to *follow* — a k-means centroid
+ * migrating to the mean of its cluster, an optimizer descending a loss curve.
+ * Watching the thing move is most of what makes the algorithm legible; a jump
+ * cut between frames tells you where it ended up but not what it did.
+ */
+export function MovingDot({
+  point,
+  size,
+  color,
+  radius = 5,
+  hollow = false,
+  duration = 420,
+}: DotProps & { duration?: number }): React.JSX.Element {
+  const left = useAnimatedValue(point.x * size.width - radius, { duration });
+  const top = useAnimatedValue((1 - point.y) * size.height - radius, { duration });
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left,
+        top,
+        width: radius * 2,
+        height: radius * 2,
+        borderRadius: radius,
+        backgroundColor: hollow ? 'transparent' : color,
+        borderWidth: hollow ? 3 : 0,
+        borderColor: color,
+      }}
+    />
   );
 }
 

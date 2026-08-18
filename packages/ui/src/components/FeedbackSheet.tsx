@@ -8,7 +8,14 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { Animated, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Animated,
+  ScrollView,
+  useWindowDimensions,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 import { useTheme } from '../theme/ThemeProvider';
 import { Button } from './Button';
@@ -26,6 +33,12 @@ export interface FeedbackSheetProps {
   /** Optional slot for the "Ask the tutor" affordance. */
   actions?: React.ReactNode;
   bottomInset?: number;
+  /**
+   * Reports the sheet's measured height. The lesson player pads its scroll area
+   * by exactly this, so the option the learner just answered clears the sheet
+   * without leaving a guessed-at gap of dead space.
+   */
+  onHeightChange?: (height: number) => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -38,10 +51,17 @@ export function FeedbackSheet({
   onContinue,
   actions,
   bottomInset = 0,
+  onHeightChange,
   style,
 }: FeedbackSheetProps): React.JSX.Element | null {
   const theme = useTheme();
+  const { height: screenHeight } = useWindowDimensions();
   const slide = useRef(new Animated.Value(visible ? 1 : 0)).current;
+
+  // Cap the sheet so a long explanation can never grow tall enough to bury the
+  // question it is explaining. Past the cap the text scrolls inside the sheet
+  // and the continue button stays pinned where the thumb expects it.
+  const maxHeight = Math.round(screenHeight * 0.62);
 
   useEffect(() => {
     Animated.spring(slide, {
@@ -62,6 +82,7 @@ export function FeedbackSheet({
   return (
     <Animated.View
       accessibilityLiveRegion="polite"
+      onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
       style={[
         {
           position: 'absolute',
@@ -73,6 +94,7 @@ export function FeedbackSheet({
           borderTopRightRadius: theme.radii.xxl,
           borderTopWidth: 2,
           borderColor: accent,
+          maxHeight,
           paddingHorizontal: theme.layout.screenPadding,
           paddingTop: theme.spacing.xl,
           paddingBottom: theme.spacing.xl + bottomInset,
@@ -90,11 +112,17 @@ export function FeedbackSheet({
         </Text>
       </View>
 
-      <Text variant="body" tone="secondary" style={{ marginBottom: theme.spacing.lg }}>
-        {explanation}
-      </Text>
+      <ScrollView
+        style={{ flexShrink: 1 }}
+        contentContainerStyle={{ paddingBottom: theme.spacing.md }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text variant="body" tone="secondary" style={{ marginBottom: theme.spacing.lg }}>
+          {explanation}
+        </Text>
 
-      {actions ? <View style={{ marginBottom: theme.spacing.lg }}>{actions}</View> : null}
+        {actions ? <View style={{ marginBottom: theme.spacing.lg }}>{actions}</View> : null}
+      </ScrollView>
 
       <Button
         label={continueLabel ?? 'Continue'}

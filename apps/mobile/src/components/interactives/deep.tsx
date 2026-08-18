@@ -9,7 +9,7 @@
 
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
-import { Badge, Text, useTheme } from '@synapse/ui';
+import { Badge, Text, useTheme, useTicker } from '@synapse/ui';
 
 import { Slider } from '../Slider';
 import {
@@ -414,6 +414,7 @@ export function NeuralNetTrainer(): React.JSX.Element {
   const [epoch, setEpoch] = useState(0);
   const [history, setHistory] = useState<number[]>([]);
   const [accuracy, setAccuracy] = useState(0);
+  const [training, setTraining] = useState(false);
   const [, forceRender] = useState(0);
 
   const data = useMemo(() => makeDataset(dataset), [dataset]);
@@ -424,6 +425,7 @@ export function NeuralNetTrainer(): React.JSX.Element {
     setEpoch(0);
     setHistory([]);
     setAccuracy(0);
+    setTraining(false);
     forceRender((v) => v + 1);
   }, [hidden, epoch]);
 
@@ -436,6 +438,7 @@ export function NeuralNetTrainer(): React.JSX.Element {
     setEpoch(0);
     setHistory([]);
     setAccuracy(0);
+    setTraining(false);
   }
 
   const train = (steps: number): void => {
@@ -446,6 +449,11 @@ export function NeuralNetTrainer(): React.JSX.Element {
     setAccuracy(netRef.current.accuracy(data));
     forceRender((v) => v + 1);
   };
+
+  // 25 gradient steps every 120ms. Fast enough that the boundary visibly bends
+  // within a couple of seconds, slow enough that you can watch it happen —
+  // which is the entire point of showing training rather than describing it.
+  useTicker(training, 120, () => train(25));
 
   // Sample the decision surface on a coarse grid.
   const GRID = 14;
@@ -535,8 +543,12 @@ export function NeuralNetTrainer(): React.JSX.Element {
 
       <ActionRow
         actions={[
-          { label: 'Train 50', onPress: () => train(50), primary: true },
-          { label: 'Train 500', onPress: () => train(500) },
+          {
+            label: training ? 'Pause' : 'Train',
+            onPress: () => setTraining((v) => !v),
+            primary: true,
+          },
+          { label: 'Jump 500', onPress: () => train(500), disabled: training },
           { label: 'Reset', onPress: reset },
         ]}
       />

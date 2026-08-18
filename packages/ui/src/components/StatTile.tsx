@@ -10,6 +10,7 @@ import React from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { useTheme } from '../theme/ThemeProvider';
+import { useCountUp } from '../motion/index';
 import { Text } from './Text';
 
 export interface StatTileProps {
@@ -19,6 +20,12 @@ export interface StatTileProps {
   /** Tints the value. Use it to key the tile to a colour the user knows. */
   color?: string;
   align?: 'left' | 'center';
+  /**
+   * Counts up from zero on mount when the value is numeric. On by default —
+   * these tiles show XP, streaks, and hearts, and watching them arrive is part
+   * of why they are worth showing at all.
+   */
+  animate?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -28,9 +35,16 @@ export function StatTile({
   icon,
   color,
   align = 'center',
+  animate = true,
   style,
 }: StatTileProps): React.JSX.Element {
   const theme = useTheme();
+
+  // Only animate plain integers. Values like "∞", "12.5k", or "3/5" have no
+  // meaningful intermediate states, so they render as-is.
+  const numeric = /^\d+$/.test(value) ? Number.parseInt(value, 10) : null;
+  const counted = useCountUp(numeric ?? 0, { enabled: animate && numeric !== null });
+  const shown = numeric !== null && animate ? String(counted) : value;
 
   return (
     <View
@@ -41,7 +55,7 @@ export function StatTile({
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs }}>
         {icon ? <Text variant="subheading">{icon}</Text> : null}
         <Text variant="title" style={color ? { color } : undefined}>
-          {value}
+          {shown}
         </Text>
       </View>
       <Text variant="label" tone="tertiary" caps style={{ marginTop: theme.spacing.xxs }}>

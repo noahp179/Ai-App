@@ -7,10 +7,11 @@
  * one also has a distinct icon, for colour-blind users and for glanceability.
  */
 
-import React from 'react';
-import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { useTheme } from '../theme/ThemeProvider';
+import { Burst, usePop, useShake } from '../motion/index';
 import { Text } from './Text';
 
 export type AnswerState = 'idle' | 'selected' | 'correct' | 'incorrect' | 'revealed';
@@ -39,6 +40,23 @@ export function AnswerOption({
   testID,
 }: AnswerOptionProps): React.JSX.Element {
   const theme = useTheme();
+  const { style: popStyle, pop } = usePop();
+  const { style: shakeStyle, shake } = useShake();
+  const burst = useRef(0);
+  const previousState = useRef<AnswerState>(state);
+
+  // React to the *transition* into a graded state, not to every render, so the
+  // celebration fires once when the answer lands rather than on each re-render.
+  useEffect(() => {
+    if (previousState.current === state) return;
+    previousState.current = state;
+    if (state === 'correct') {
+      burst.current += 1;
+      pop();
+    } else if (state === 'incorrect') {
+      shake();
+    }
+  }, [state, pop, shake]);
 
   const styling: Record<AnswerState, { border: string; background: string; icon: string | null; iconColor: string }> = {
     idle: {
@@ -76,6 +94,15 @@ export function AnswerOption({
   const current = styling[state];
 
   return (
+    <Animated.View style={[popStyle, shakeStyle]}>
+      {state === 'correct' ? (
+        <Burst
+          trigger={burst.current}
+          colors={[theme.colors.success, theme.colors.primary]}
+          radius={70}
+          particleCount={10}
+        />
+      ) : null}
     <Pressable
       testID={testID}
       accessibilityRole="radio"
@@ -128,5 +155,6 @@ export function AnswerOption({
         </Text>
       ) : null}
     </Pressable>
+    </Animated.View>
   );
 }

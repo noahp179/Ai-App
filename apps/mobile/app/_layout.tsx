@@ -13,7 +13,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ThemeProvider, useTheme } from '@synapse/ui';
+import { MotionProvider, ThemeProvider, useTheme } from '@synapse/ui';
 
 import { useProgress } from '../src/store/useProgress';
 
@@ -22,7 +22,9 @@ export default function RootLayout(): React.JSX.Element {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <AppShell />
+          <MotionProvider>
+            <AppShell />
+          </MotionProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

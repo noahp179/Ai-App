@@ -56,7 +56,7 @@ synapse/
 │   │   ├── monetization/ Plans and entitlement rules
 │   │   ├── store/        Pure progress-state transitions
 │   │   └── services/     AI tutor client, typed analytics
-│   └── ui/            Design system: tokens + 12 shared components
+│   └── ui/            Design system: tokens, motion primitives, 12 components
 ├── apps/
 │   ├── mobile/        Expo Router — iOS, Android, and the web build
 │   └── desktop/       Electron shell for macOS
@@ -66,7 +66,7 @@ synapse/
 **The rule that shapes everything:** all learning rules live in `@synapse/core`
 as pure functions. Grading, scheduling, XP, entitlements, and session state are
 testable without mounting a component or booting a simulator — which is why there
-are 156 tests that run in under a second.
+are 164 tests that run in under a second.
 
 The apps are rendering layers over that core. `packages/ui` never imports from an
 app; apps never reimplement a rule.
@@ -119,7 +119,7 @@ result is always presented as a suggestion the learner can override.
 handling hearts, mistake re-queuing, and attempt records. Not a React thing, so
 every rule is unit-testable in isolation.
 
-**Grading** (`engine/grading.ts`) — nine exercise kinds, all graded locally and
+**Grading** (`engine/grading.ts`) — ten exercise kinds, all graded locally and
 synchronously with partial credit where it makes sense. Free-response answers get
 a local keyword rubric as a fallback, so the app teaches fully offline and
 without a subscription.
@@ -163,6 +163,27 @@ widget, it is the thing it makes obvious.
 Dark-first, because the app is used in the evening on a phone. Tokens live in
 `packages/ui/src/theme/tokens.ts` — two palettes, a 4pt spacing grid, six type
 sizes. Components read tokens and never hardcode a value.
+
+### Motion
+
+Animation here is feedback, not decoration. The moment after an answer is when a
+learner finds out whether they understood, and a static state change wastes it.
+So: a correct answer pops and bursts, a wrong one shakes briefly, XP counts up,
+the accuracy ring fills, steps cross-fade so a new question is unmistakably new,
+and content staggers in so a dense explanation arrives in reading order.
+
+Nothing on the critical path exceeds ~350ms — a learner answering thirty
+questions must never wait on an animation.
+
+**Reduced motion is honoured throughout.** When the OS setting is on, every
+movement collapses to an instant state change — never to nothing, since the
+feedback still has to land. Vestibular disorders are common, and an education
+app that makes some users nauseous has failed them.
+
+Four widgets play rather than step: k-means runs to convergence with gliding
+centroids, the network trains live so you watch the boundary bend, diffusion
+denoises frame by frame, and the Q-learning agent floods value backwards from
+the goal.
 
 Specific decisions worth naming:
 

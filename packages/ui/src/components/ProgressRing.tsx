@@ -6,10 +6,11 @@
  * rendered a dozen times on the catalog screen.
  */
 
-import React from 'react';
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { useTheme } from '../theme/ThemeProvider';
+import { useReducedMotion } from '../motion/index';
 import { Text } from './Text';
 
 export interface ProgressRingProps {
@@ -36,9 +37,37 @@ export function ProgressRing({
   style,
 }: ProgressRingProps): React.JSX.Element {
   const theme = useTheme();
-  const clamped = Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
+  const reduced = useReducedMotion();
+  const target = Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
   const fill = color ?? theme.colors.primary;
   const track = trackColor ?? theme.colors.surfaceMuted;
+
+  // The two half-masks are driven by plain rotation transforms, which cannot be
+  // interpolated on the native thread here, so the sweep is animated by
+  // stepping React state from a listener. Cheap at this size and it keeps the
+  // ring filling rather than snapping — which matters, because the ring *is*
+  // the reward on the home screen.
+  const animated = useRef(new Animated.Value(target)).current;
+  const [clamped, setClamped] = useState(target);
+
+  useEffect(() => {
+    if (reduced) {
+      setClamped(target);
+      return;
+    }
+    const id = animated.addListener(({ value: v }) => setClamped(v));
+    const animation = Animated.timing(animated, {
+      toValue: target,
+      duration: 620,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    });
+    animation.start();
+    return () => {
+      animation.stop();
+      animated.removeListener(id);
+    };
+  }, [target, animated, reduced]);
 
   const degrees = clamped * 360;
   const rightRotation = Math.min(180, degrees);

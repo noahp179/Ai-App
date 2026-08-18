@@ -18,7 +18,7 @@ import {
   trackCompletion,
   type Level,
 } from '@synapse/core';
-import { Badge, Card, Screen, Text, TrackCard, useTheme } from '@synapse/ui';
+import { Badge, Card, Entrance, Screen, Text, TrackCard, useTheme } from '@synapse/ui';
 
 import { useProgress } from '../../src/store/useProgress';
 
@@ -77,7 +77,7 @@ export default function LearnScreen(): React.JSX.Element {
       </ScrollView>
 
       <View style={{ gap: theme.spacing.md }}>
-        {tracks.map((track) => {
+        {tracks.map((track, cardIndex) => {
           const completion = trackCompletion(progress, track.id);
           const unmet = track.prerequisites.filter(
             (id) => !progress.completedTrackIds.includes(id),
@@ -90,13 +90,14 @@ export default function LearnScreen(): React.JSX.Element {
               : undefined;
 
           return (
-            <TrackCard
-              key={track.id}
-              track={track}
-              progress={completion}
-              lockedReason={prerequisiteHint}
-              onPress={() => router.push(`/track/${track.id}`)}
-            />
+            <Entrance key={track.id} index={cardIndex}>
+              <TrackCard
+                track={track}
+                progress={completion}
+                lockedReason={prerequisiteHint}
+                onPress={() => router.push(`/track/${track.id}`)}
+              />
+            </Entrance>
           );
         })}
       </View>

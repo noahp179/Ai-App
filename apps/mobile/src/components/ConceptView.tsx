@@ -10,7 +10,7 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import type { ConceptStep } from '@synapse/core';
-import { Card, Text, useTheme } from '@synapse/ui';
+import { Card, Entrance, Text, useTheme } from '@synapse/ui';
 
 import { Figure } from './Figure';
 
@@ -20,19 +20,28 @@ export function ConceptView({ step }: { step: ConceptStep }): React.JSX.Element 
 
   return (
     <View>
-      <Text variant="title" style={{ marginBottom: theme.spacing.xl }}>
-        {step.title}
-      </Text>
+      <Entrance index={0}>
+        <Text variant="title" style={{ marginBottom: theme.spacing.xl }}>
+          {step.title}
+        </Text>
+      </Entrance>
 
       {step.figure ? (
-        <Figure name={step.figure} style={{ marginBottom: theme.spacing.xl }} />
+        <Entrance index={1}>
+          <Figure name={step.figure} style={{ marginBottom: theme.spacing.xl }} />
+        </Entrance>
       ) : null}
 
+      {/* Paragraphs arrive in reading order rather than all at once, which
+          paces a dense explanation and stops a wall of text landing as a wall. */}
       {paragraphs.map((paragraph, index) => (
-        <RichParagraph key={`${step.id}-p-${index}`} text={paragraph} />
+        <Entrance key={`${step.id}-p-${index}`} index={index + (step.figure ? 2 : 1)}>
+          <RichParagraph text={paragraph} />
+        </Entrance>
       ))}
 
       {step.keyTerms && step.keyTerms.length > 0 ? (
+        <Entrance index={paragraphs.length + 2}>
         <Card
           background={theme.colors.surfaceMuted}
           style={{ marginTop: theme.spacing.xl }}
@@ -53,6 +62,7 @@ export function ConceptView({ step }: { step: ConceptStep }): React.JSX.Element 
             ))}
           </View>
         </Card>
+        </Entrance>
       ) : null}
     </View>
   );

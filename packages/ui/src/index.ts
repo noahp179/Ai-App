@@ -16,3 +16,21 @@ export {
 export type { Theme, ColorScheme, ThemePreference } from './theme/ThemeProvider';
 
 export * from './components/index';
+
+export {
+  MotionProvider,
+  useReducedMotion,
+  useDuration,
+  useEntrance,
+  Entrance,
+  Stagger,
+  usePop,
+  useShake,
+  usePulse,
+  useCountUp,
+  Burst,
+  StepTransition,
+  useAnimatedValue,
+  useTicker,
+} from './motion/index';
+export type { EntranceOptions } from './motion/index';
