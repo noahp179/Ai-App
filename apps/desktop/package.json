@@ -1,0 +1,50 @@
+{
+  "name": "@synapse/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Synapse for macOS — an Electron shell around the Expo web build.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build:web": "npm run export:web --workspace @synapse/mobile",
+    "build:main": "tsc -p tsconfig.json",
+    "build": "npm run build:web && npm run build:main",
+    "dev": "npm run build:main && electron . --dev",
+    "dist": "npm run build && electron-builder --mac",
+    "dist:universal": "npm run build && electron-builder --mac --universal"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.2"
+  },
+  "build": {
+    "appId": "app.synapse.learn",
+    "productName": "Synapse",
+    "directories": { "output": "release", "buildResources": "build" },
+    "files": [
+      "dist/**/*",
+      "!node_modules/**/*"
+    ],
+    "extraResources": [
+      { "from": "../mobile/dist", "to": "web" }
+    ],
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    }
+  }
+}

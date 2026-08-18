@@ -1,0 +1,34 @@
+{
+  "name": "synapse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Synapse — an all-levels learning platform for AI, ML, deep learning, and generative AI. iOS, Android, and macOS.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build --workspace @synapse/core --workspace @synapse/ui",
+    "test": "npm run test --workspace @synapse/core",
+    "typecheck": "tsc --build --force",
+    "lint": "eslint . --ext .ts,.tsx",
+    "mobile": "npm run start --workspace @synapse/mobile",
+    "ios": "npm run ios --workspace @synapse/mobile",
+    "android": "npm run android --workspace @synapse/mobile",
+    "web": "npm run web --workspace @synapse/mobile",
+    "desktop": "npm run dev --workspace @synapse/desktop",
+    "desktop:dist": "npm run dist --workspace @synapse/desktop"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^8.57.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "composite": false,
+    "noEmit": true,
+    "types": ["react"],
+    "paths": {
+      "@synapse/core": ["../../packages/core/src/index.ts"],
+      "@synapse/ui": ["../../packages/ui/src/index.ts"],
+      "@/*": ["./src/*"]
+    },
+    "baseUrl": "."
+  },
+  "include": ["app/**/*.ts", "app/**/*.tsx", "src/**/*.ts", "src/**/*.tsx"]
+}

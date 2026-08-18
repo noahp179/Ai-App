@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  verify:
+    name: Test and typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Test core
+        run: npm test --workspace @synapse/core
+
+      # Core must be built first — the UI and app packages consume its
+      # declaration output through TypeScript project references.
+      - name: Build core
+        run: npm run build --workspace @synapse/core
+
+      - name: Typecheck UI
+        run: npx tsc --noEmit -p packages/ui/tsconfig.json
+
+      - name: Typecheck mobile
+        run: npx tsc --noEmit -p apps/mobile/tsconfig.json
+
+      - name: Typecheck desktop
+        run: npx tsc --noEmit -p apps/desktop/tsconfig.json

@@ -1,0 +1,39 @@
+{
+  "name": "@synapse/mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "ios": "expo run:ios",
+    "android": "expo run:android",
+    "web": "expo start --web",
+    "export:web": "expo export --platform web --output-dir dist",
+    "prebuild": "expo prebuild"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "@synapse/core": "*",
+    "@synapse/ui": "*",
+    "expo": "~51.0.39",
+    "expo-constants": "~16.0.2",
+    "expo-haptics": "~13.0.1",
+    "expo-linear-gradient": "~13.0.2",
+    "expo-linking": "~6.3.1",
+    "expo-router": "~3.5.24",
+    "expo-status-bar": "~1.12.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-gesture-handler": "~2.16.1",
+    "react-native-reanimated": "~3.10.1",
+    "react-native-safe-area-context": "4.10.5",
+    "react-native-screens": "3.31.1",
+    "react-native-web": "~0.19.10",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12",
+    "typescript": "^5.7.2"
+  }
+}
