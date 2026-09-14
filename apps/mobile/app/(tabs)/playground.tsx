@@ -1,7 +1,7 @@
 /**
  * Lab — every interactive widget, freed from its lesson.
  *
- * All 37 are also embedded in lessons, but a browsable sandbox is worth having
+ * All 41 are also embedded in lessons, but a browsable sandbox is worth having
  * on its own: somewhere to poke at an idea without committing to a session, and
  * somewhere to come back to when a concept has gone fuzzy.
  */
@@ -21,9 +21,22 @@ interface LabEntry {
   group: LabGroup;
 }
 
-type LabGroup = 'Foundations' | 'Classic ML' | 'Deep learning' | 'Language models' | 'Applied';
+type LabGroup =
+  | 'Foundations'
+  | 'Classic ML'
+  | 'Deep learning'
+  | 'Language models'
+  | 'Applied'
+  | 'Computer science';
 
-const GROUPS: LabGroup[] = ['Foundations', 'Classic ML', 'Deep learning', 'Language models', 'Applied'];
+const GROUPS: LabGroup[] = [
+  'Foundations',
+  'Classic ML',
+  'Deep learning',
+  'Language models',
+  'Applied',
+  'Computer science',
+];
 
 const LAB_ENTRIES: LabEntry[] = [
   // --- Foundations ---
@@ -72,6 +85,12 @@ const LAB_ENTRIES: LabEntry[] = [
   { widget: 'agent-loop-sim', title: 'Agent loop', blurb: 'Step through observe-think-act, then inject a tool failure.', icon: '🤖', group: 'Applied' },
   { widget: 'diffusion-denoise', title: 'Diffusion', blurb: 'Drag from pure noise to a finished image, one step at a time.', icon: '🎨', group: 'Applied' },
   { widget: 'drift-monitor', title: 'Drift monitoring', blurb: 'Watch a model degrade while every health dashboard stays green.', icon: '📡', group: 'Applied' },
+
+  // --- Computer science ---
+  { widget: 'big-o-explorer', title: 'Big-O growth', blurb: 'Give the better algorithm a 200× penalty and find where it still wins.', icon: '📈', group: 'Computer science' },
+  { widget: 'sorting-visualizer', title: 'Sorting', blurb: 'Step four algorithms and watch the comparison counter, not the bars.', icon: '🔢', group: 'Computer science' },
+  { widget: 'hash-table-probe', title: 'Hash tables', blurb: 'Fill the table past 0.75 load and watch the worst case go first.', icon: '🗄️', group: 'Computer science' },
+  { widget: 'graph-traversal', title: 'BFS vs DFS', blurb: 'Same maze, same code, one structure different — and different answers.', icon: '🕸️', group: 'Computer science' },
 ];
 
 export default function PlaygroundScreen(): React.JSX.Element {

@@ -32,10 +32,12 @@ import { dataEngineeringTrack } from './tracks/data-engineering';
 import { mlopsTrack, ethicsTrack, reinforcementLearningTrack } from './tracks/applied';
 import { computerVisionTrack } from './tracks/computer-vision';
 import { nlpTrack } from './tracks/nlp';
+import { dsaTrack } from './tracks/dsa';
 import { PATHS } from './paths';
 
 export const TRACKS: Track[] = [
   foundationsTrack,
+  dsaTrack,
   promptEngineeringTrack,
   mathTrack,
   typesOfMlTrack,

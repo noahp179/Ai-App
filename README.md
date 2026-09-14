@@ -16,12 +16,12 @@ a graduate course.
 
 | | |
 |---|---|
-| **7 learning paths** | Curated routes through the catalog — pick a goal and the order is decided |
-| **16 tracks** | Foundations · Prompt Engineering · Math · **Types of ML** · ML Mechanics · **Classic Algorithms** · **Data & Features** · Deep Learning · **Computer Vision** · **NLP** · LLMs · Generative AI · Agents · RL · MLOps · Ethics |
-| **114 lessons** | 49 units, ~430 minutes of material, all three difficulty levels |
-| **536 exercises** | 10 exercise types, every one with a written explanation |
-| **161 skills** | Individually tracked with spaced-repetition scheduling |
-| **37 interactive widgets** | Every track has at least one hands-on step |
+| **13 learning paths** | Curated routes through the catalog — pick a goal and the order is decided |
+| **17 tracks** | Foundations · **Data Structures & Algorithms** · Prompt Engineering · Math · Types of ML · ML Mechanics · Classic Algorithms · Data & Features · Deep Learning · Computer Vision · NLP · LLMs · Generative AI · Agents · RL · MLOps · Ethics |
+| **123 lessons** | 53 units, ~460 minutes of material, all three difficulty levels |
+| **578 exercises** | 10 exercise types, every one with a written explanation |
+| **177 skills** | Individually tracked with spaced-repetition scheduling |
+| **41 interactive widgets** | Every track has at least one hands-on step |
 
 Every track spans intro, intermediate, and expert material. The curriculum is
 data (`packages/core/src/content/`), validated on every test run — a typo in a
@@ -35,12 +35,18 @@ through several of them, built around a goal someone actually has:
 | | |
 |---|---|
 | **Follow the Conversation** | Understand what people are talking about. No maths. |
+| **Start With the Fundamentals** | The computer science underneath, before any of the AI |
 | **Build With LLMs** | Ship a language-model feature that survives real users |
 | **Machine Learning Engineer** | Train it, evaluate it honestly, keep it alive in production |
+| **Data Science Foundations** | The classical toolkit, before anything deep |
 | **Deep Learning, Properly** | From one neuron to the architectures behind modern models |
+| **Computer Vision Engineer** | Pixels to production, one pipeline |
+| **NLP Engineer** | From bag of words to production language models |
 | **Generative AI End to End** | Text, images, and the models that make both |
+| **Safety and Alignment** | How these systems are steered, and why that is hard |
 | **AI for Decision Makers** | Enough depth to ask the right questions — no calculus |
 | **Learning From Consequences** | Reinforcement learning, from gridworlds to RLHF |
+| **ML Interview Prep** | The algorithms round and the ML round, plus the maths behind both |
 
 Paths own no content — they are references into the same tracks — so a lesson
 finished anywhere counts toward every path containing it, and a path can never
@@ -65,7 +71,22 @@ Three tracks cover ML specifically, from the taxonomy down to the algorithms:
   labelling quality, dataset shift, where training data comes from, synthetic
   data and model collapse, class imbalance, and the four kinds of leakage.
 
-And two tracks for the domains that previously had skills but no home:
+### Computer science
+
+One track here is not about AI. **Data Structures & Algorithms** covers Big-O
+from first principles, analysing loops and recursion, amortised cost, the five
+structures every language ships, binary search and balanced trees, graph
+traversal from BFS to Dijkstra, sorting and its O(n log n) lower bound, and
+recursion through to dynamic programming and greedy algorithms.
+
+It earns its place twice: the ML engineering path runs straight into complexity
+analysis the moment anyone asks why a nested loop over a million rows is a bad
+idea, and people arriving from outside software need somewhere to learn this
+that does not assume a degree. Four of the interactive widgets are its own —
+including one that hands the asymptotically better algorithm a 200× constant
+penalty and lets you find the crossover where it still wins.
+
+And two tracks for the AI domains that previously had skills but no home:
 
 - **Computer Vision** — images as tensors, convolution from first principles,
   pooling and receptive fields, the architecture lineage from LeNet to ResNet,
@@ -161,7 +182,7 @@ without a subscription.
 
 ## Interactivity
 
-37 widgets, all built from plain views and `PanResponder` — no SVG, no charting
+41 widgets, all built from plain views and `PanResponder` — no SVG, no charting
 library, no native modules, so they run identically on iOS, Android, and the web
 export the macOS app is built from.
 
@@ -176,6 +197,8 @@ which is worse than teaching none.
 
 A sample of what you can pull on:
 
+- **Race four sorting algorithms** and watch the comparison counter, not the bars
+- **Run BFS and DFS on one maze** and see which finds the shorter route
 - **Sort real scenarios** into the four learning paradigms
 - **Fit a line by hand** against live MSE, then add an outlier and watch it tilt
 - **Step k-means** one iteration at a time, then reseed and get a different answer

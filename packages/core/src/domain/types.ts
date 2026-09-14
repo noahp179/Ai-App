@@ -57,6 +57,7 @@ export const DOMAINS = [
   'ethics-safety',
   'math',
   'data',
+  'computer-science',
 ] as const;
 export type Domain = (typeof DOMAINS)[number];
 
@@ -75,6 +76,7 @@ export const DOMAIN_LABELS: Record<Domain, string> = {
   'ethics-safety': 'Ethics & Safety',
   math: 'Math for AI',
   data: 'Data & Features',
+  'computer-science': 'Computer Science',
 };
 
 // ---------------------------------------------------------------------------
@@ -305,7 +307,12 @@ export type InteractiveWidget =
   | 'q-learning'
   | 'agent-loop-sim'
   | 'diffusion-denoise'
-  | 'drift-monitor';
+  | 'drift-monitor'
+  // --- Computer science ---
+  | 'big-o-explorer'
+  | 'sorting-visualizer'
+  | 'hash-table-probe'
+  | 'graph-traversal';
 
 export type FigureName =
   | 'ai-ml-dl-venn'

@@ -74,6 +74,7 @@ export const PATHS: Path[] = [
     gradient: ['#0EA5E9', '#22D3EE'],
     trackIds: [
       'track-foundations',
+      'track-dsa',
       'track-math',
       'track-types-of-ml',
       'track-machine-learning',
@@ -85,6 +86,7 @@ export const PATHS: Path[] = [
       'Choose an algorithm for a problem and defend the choice',
       'Build an evaluation that does not lie to you',
       'Find leakage, imbalance, and drift before they find you',
+      'State the complexity of the code you just wrote',
       'Ship a model with shadow, canary, and rollback in place',
     ],
     entryLevel: 'intro',
@@ -194,6 +196,157 @@ export const PATHS: Path[] = [
     ],
     entryLevel: 'intermediate',
     goals: ['research', 'curious'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-cs-first',
+    title: 'Start With the Fundamentals',
+    tagline: 'The computer science underneath, before any of the AI',
+    description:
+      'For people coming to AI from outside software. What things cost, the structures every language ships, and the maths that makes machine learning readable — then the AI foundations, which land very differently once you already think in terms of complexity and data structures.',
+    audience: 'Career changers and self-taught engineers filling the gaps',
+    icon: '🧱',
+    gradient: ['#22C55E', '#6366F1'],
+    trackIds: ['track-dsa', 'track-math', 'track-foundations'],
+    outcomes: [
+      'Read code and state its time and space complexity',
+      'Choose a data structure from the access pattern rather than by habit',
+      'Read vector, matrix and probability notation without stalling',
+      'Hold an informed conversation about what AI systems do',
+    ],
+    entryLevel: 'intro',
+    goals: ['career-switch', 'curious'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-ml-interview',
+    title: 'ML Interview Prep',
+    tagline: 'The two things every loop tests, plus the maths behind them',
+    description:
+      'Machine-learning interviews are two interviews wearing one badge: an algorithms round that is pure data structures and complexity, and an ML round that asks you to justify a model choice and read an evaluation honestly. This covers both, plus the maths that the follow-up questions reach for.',
+    audience: 'Anyone with an ML or data-science loop coming up',
+    icon: '📝',
+    gradient: ['#F59E0B', '#8B5CF6'],
+    trackIds: [
+      'track-dsa',
+      'track-math',
+      'track-types-of-ml',
+      'track-machine-learning',
+      'track-classic-ml',
+      'track-deep-learning',
+    ],
+    outcomes: [
+      'Analyse an algorithm’s complexity under time pressure',
+      'Pick a structure and defend the choice out loud',
+      'Justify an algorithm choice for a described problem',
+      'Explain backpropagation and the bias–variance tradeoff clearly',
+    ],
+    entryLevel: 'intro',
+    goals: ['exam-prep', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-vision',
+    title: 'Computer Vision Engineer',
+    tagline: 'Pixels to production, one pipeline',
+    description:
+      'The vision specialisation end to end. The maths and deep-learning core first, then convolution, architectures and the modern branches — and the operational work that decides whether a model that scores well ever helps anyone.',
+    audience: 'Engineers building perception systems',
+    icon: '👁️',
+    gradient: ['#0EA5E9', '#8B5CF6'],
+    trackIds: [
+      'track-foundations',
+      'track-math',
+      'track-deep-learning',
+      'track-computer-vision',
+      'track-mlops',
+    ],
+    outcomes: [
+      'Explain what each stage of a CNN contributes',
+      'Choose between a CNN and a vision transformer for a given dataset size',
+      'Match the task — classification, detection, segmentation — to an architecture',
+      'Serve a vision model within a latency and cost budget',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['career-switch', 'build-products'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-nlp',
+    title: 'NLP Engineer',
+    tagline: 'From bag of words to production language models',
+    description:
+      'Language specifically, in the order the field actually developed. Tokenization and word vectors, the recurrent models and their bottleneck, then transformers and LLMs — which are far easier to reason about once you have felt the problem attention solved.',
+    audience: 'Engineers working with text at depth',
+    icon: '🔤',
+    gradient: ['#14B8A6', '#F59E0B'],
+    trackIds: [
+      'track-foundations',
+      'track-nlp',
+      'track-deep-learning',
+      'track-llms',
+      'track-mlops',
+    ],
+    outcomes: [
+      'Explain tokenization choices and their downstream effects',
+      'Describe the seq2seq bottleneck and how attention removed it',
+      'Read a transformer architecture block by block',
+      'Deploy and monitor a language model under real load',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['career-switch', 'build-products'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-safety',
+    title: 'Safety and Alignment',
+    tagline: 'How these systems are steered, and why that is hard',
+    description:
+      'The technical route into alignment. How models are trained to be useful, what reinforcement learning from human feedback actually does, why specification gaming is the same problem in a different costume, and what fairness, interpretability and governance demand of a deployed system.',
+    audience: 'Researchers, policy people, and engineers who own the risk',
+    icon: '🛡️',
+    gradient: ['#6366F1', '#34D399'],
+    trackIds: [
+      'track-foundations',
+      'track-types-of-ml',
+      'track-llms',
+      'track-rl',
+      'track-ethics',
+    ],
+    outcomes: [
+      'Explain RLHF and what the KL penalty is holding back',
+      'Recognise specification gaming before it is trained in',
+      'Name the fairness criterion a system is accountable to, and why the others fail',
+      'Say what a responsible deployment has to be able to answer',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['research', 'lead-teams'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-data-science',
+    title: 'Data Science Foundations',
+    tagline: 'The classical toolkit, before anything deep',
+    description:
+      'The route for tabular data, which is still most of the data. Probability and statistics, the paradigm map, the algorithms that win on structured problems, and the feature and data work that is most of the actual job.',
+    audience: 'Analysts and scientists working with structured data',
+    icon: '📊',
+    gradient: ['#F59E0B', '#84CC16'],
+    trackIds: [
+      'track-foundations',
+      'track-math',
+      'track-types-of-ml',
+      'track-classic-ml',
+      'track-data',
+    ],
+    outcomes: [
+      'Frame a business question as a supervised learning problem',
+      'Choose among k-NN, trees, boosting and linear models with reasons',
+      'Build an evaluation that survives class imbalance',
+      'Catch leakage before it reaches a stakeholder deck',
+    ],
+    entryLevel: 'intro',
+    goals: ['career-switch', 'exam-prep'] as LearnerGoal[],
   },
 ];
 

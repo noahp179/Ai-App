@@ -139,6 +139,7 @@ describe('catalog integrity', () => {
       'tokenizer', 'temperature-sampler', 'attention-matrix', 'embedding-space',
       'beam-search', 'moe-router', 'quantization', 'rag-retrieval', 'prompt-lab',
       'q-learning', 'agent-loop-sim', 'diffusion-denoise', 'drift-monitor',
+      'big-o-explorer', 'sorting-visualizer', 'hash-table-probe', 'graph-traversal',
     ]);
 
     const unused = [...declared].filter((w) => !used.has(w));
@@ -227,22 +228,20 @@ describe('learning paths', () => {
     expect(after.lessonId).not.toBe(first.lessonId);
   });
 
-  it('ranks a started path above one with nothing completed in it', () => {
-    // Computer Vision belongs to exactly one path, so completing a lesson from
-    // it starts that path and no other.
+  it('ranks every started path above every path with nothing completed in it', () => {
     const cv = getTrack('track-computer-vision')!;
-    const lessonId = cv.units[0]!.lessons[0]!.id;
-    const started = PATHS.filter((p) => p.trackIds.includes(cv.id));
-    expect(started).toHaveLength(1);
+    const done = new Set([cv.units[0]!.lessons[0]!.id]);
 
-    const ranked = recommendPaths(new Set([lessonId]));
-    expect(ranked[0]?.id).toBe(started[0]!.id);
+    const ranked = recommendPaths(done);
+    const started = ranked.filter((p) => pathProgress(p, done).completedLessons > 0);
+    const untouched = ranked.filter((p) => pathProgress(p, done).completedLessons === 0);
 
-    const untouched = ranked.filter(
-      (p) => pathProgress(p, new Set([lessonId])).completedLessons === 0,
-    );
+    expect(started.length).toBeGreaterThan(0);
     expect(untouched.length).toBeGreaterThan(0);
-    expect(ranked.indexOf(started[0]!)).toBeLessThan(ranked.indexOf(untouched[0]!));
+
+    const lastStarted = Math.max(...started.map((p) => ranked.indexOf(p)));
+    const firstUntouched = Math.min(...untouched.map((p) => ranked.indexOf(p)));
+    expect(lastStarted).toBeLessThan(firstUntouched);
   });
 
   it('sinks a finished path to the bottom', () => {

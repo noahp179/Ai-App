@@ -51,6 +51,7 @@ import {
 } from './deep';
 import { BeamSearch, MoeRouter, Quantization, RagRetrieval } from './language';
 import { AgentLoopSim, DiffusionDenoise, DriftMonitor, QLearning } from './applied';
+import { BigOExplorer, GraphTraversal, HashTableProbe, SortingVisualizer } from './cs';
 
 export function Interactive({ widget }: { widget: InteractiveWidget }): React.JSX.Element {
   switch (widget) {
@@ -137,6 +138,16 @@ export function Interactive({ widget }: { widget: InteractiveWidget }): React.JS
       return <DiffusionDenoise />;
     case 'drift-monitor':
       return <DriftMonitor />;
+
+    // --- Computer science ---
+    case 'big-o-explorer':
+      return <BigOExplorer />;
+    case 'sorting-visualizer':
+      return <SortingVisualizer />;
+    case 'hash-table-probe':
+      return <HashTableProbe />;
+    case 'graph-traversal':
+      return <GraphTraversal />;
 
     default: {
       // Exhaustiveness guard — a new widget name must be handled above.

@@ -212,6 +212,24 @@ export const SKILLS: Skill[] = [
   s('sk-responsible-deployment', 'Deploying AI responsibly', 'ethics-safety', 'intermediate', ['sk-algorithmic-bias']),
   s('sk-model-cards', 'Documenting a model’s limits', 'ethics-safety', 'intermediate', ['sk-responsible-deployment']),
   s('sk-red-teaming', 'Red-teaming and abuse testing', 'ethics-safety', 'expert', ['sk-responsible-deployment']),
+
+  // --- Computer science fundamentals ---------------------------------------
+  s('sk-big-o', 'Big-O and growth rates', 'computer-science', 'intro'),
+  s('sk-complexity-analysis', 'Analysing loops and recursion', 'computer-science', 'intermediate', ['sk-big-o']),
+  s('sk-space-complexity', 'Space complexity and the time/space trade', 'computer-science', 'intermediate', ['sk-big-o']),
+  s('sk-amortised-analysis', 'Amortised analysis', 'computer-science', 'expert', ['sk-complexity-analysis']),
+  s('sk-arrays-lists', 'Arrays, dynamic arrays, and linked lists', 'computer-science', 'intro', ['sk-big-o']),
+  s('sk-hash-tables', 'Hash tables and collisions', 'computer-science', 'intermediate', ['sk-arrays-lists']),
+  s('sk-stacks-queues', 'Stacks, queues, and deques', 'computer-science', 'intro', ['sk-arrays-lists']),
+  s('sk-heaps', 'Heaps and priority queues', 'computer-science', 'intermediate', ['sk-arrays-lists']),
+  s('sk-binary-search', 'Binary search and sorted invariants', 'computer-science', 'intro', ['sk-arrays-lists']),
+  s('sk-trees', 'Binary search trees and balance', 'computer-science', 'intermediate', ['sk-binary-search']),
+  s('sk-graphs', 'Graph representations', 'computer-science', 'intermediate', ['sk-stacks-queues']),
+  s('sk-graph-traversal', 'BFS, DFS, and shortest paths', 'computer-science', 'expert', ['sk-graphs']),
+  s('sk-sorting', 'Sorting algorithms and their trade-offs', 'computer-science', 'intermediate', ['sk-complexity-analysis']),
+  s('sk-recursion', 'Recursion and divide and conquer', 'computer-science', 'intermediate', ['sk-complexity-analysis']),
+  s('sk-dynamic-programming', 'Memoisation and dynamic programming', 'computer-science', 'expert', ['sk-recursion']),
+  s('sk-greedy', 'Greedy algorithms and when they fail', 'computer-science', 'expert', ['sk-sorting']),
 ];
 
 export const SKILLS_BY_ID: ReadonlyMap<string, Skill> = new Map(SKILLS.map((sk) => [sk.id, sk]));
