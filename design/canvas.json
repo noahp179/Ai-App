@@ -1,0 +1,54 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",     "title": "Today",                     "x": 0,    "y": 0,    "w": 393,  "h": 852 },
+    { "file": "Lesson.dc.html",   "title": "Lesson · answer + feedback","x": 473,  "y": 0,    "w": 393,  "h": 852 },
+    { "file": "Complete.dc.html", "title": "Lesson complete",           "x": 946,  "y": 0,    "w": 393,  "h": 852 },
+    { "file": "Lab.dc.html",      "title": "Lab",                       "x": 1419, "y": 0,    "w": 393,  "h": 852 },
+    { "file": "Widget.dc.html",   "title": "Interactive widget",        "x": 1892, "y": 0,    "w": 393,  "h": 1230 },
+    { "file": "Desktop.dc.html",  "title": "macOS window",              "x": 0,    "y": 1420, "w": 1280, "h": 860 },
+    { "file": "Tokens.dc.html",   "title": "Design system",             "x": 1400, "y": 1420, "w": 960,  "h": 2693 }
+  ],
+  "annotations": [
+    {
+      "id": "n-start",
+      "x": 0, "y": -250, "w": 900,
+      "text": "SYNAPSE — screens and design system\n\nEvery colour, size, radius and duration here is lifted from packages/ui/src/theme/tokens.ts and the shipped components, so these artboards read as the same product, not a redraw of it. The five phone screens are live: select an answer and check it, filter the Lab, train the network.\n\nWhat is proposed rather than shipped is called out in the notes under each screen."
+    },
+    {
+      "id": "n-today",
+      "x": 0, "y": 900, "w": 393,
+      "text": "TODAY — hierarchy, reordered\n\nShipped, the continue card is the fourth thing on screen, under two stat cards. This screen exists to answer one question — what do I do right now — so the lesson leads, with its own primary button rather than a whole-card tap target.\n\nThe four stats compress into one chip strip, and daily goal and level progress share a card: two meters moving toward two horizons.\n\nThe track's identity rail uses the full gradient (violet → pink for Deep Learning) instead of just its first stop."
+    },
+    {
+      "id": "n-lesson",
+      "x": 473, "y": 900, "w": 393,
+      "text": "LESSON — the teaching moment\n\nShown in its most informative state: wrong answer marked, right answer revealed with a dashed border, explanation up.\n\nState is never carried by colour alone — every state has its own glyph (✕ incorrect, → revealed, ✓ correct). The sheet caps at 62% of the screen, scrolls its own text, and the scroll area reserves exactly the sheet's measured height so the option you just answered is never buried under the explanation of it.\n\nProposed: the tutor follow-ups become real chips with the brand mark, not flat metadata badges — today they look unpressable. And the step counter (4/9) becomes visible instead of screen-reader-only."
+    },
+    {
+      "id": "n-complete",
+      "x": 946, "y": 900, "w": 393,
+      "text": "COMPLETE — reward that says something\n\nXP and accuracy tell you that you played. Proposed addition: \"What you strengthened\" — the three skills this session actually moved, with the mastery delta and the next review date, straight out of the spaced-repetition scheduler.\n\nThe burst fires from behind the mark so the celebration reads as coming from the achievement rather than decorating the screen. Under reduced motion the particles never render and every number arrives at its final value."
+    },
+    {
+      "id": "n-lab",
+      "x": 1419, "y": 900, "w": 393,
+      "text": "LAB — 37 experiments, scannable\n\nThe filters work. Each of the five groups carries a tint, so the icon tells you which part of the curriculum an experiment belongs to before you have read its title, and the chips carry counts so an empty-looking filter is never a surprise.\n\nThe list fades under the tab bar rather than being clipped mid-row."
+    },
+    {
+      "id": "n-widget",
+      "x": 1892, "y": 1280, "w": 393,
+      "text": "WIDGET — this one is not a mockup\n\nA real 2-h-1 network: real forward pass, real backpropagation, real gradient descent, running in the artboard. Train it, drag the learning rate, switch datasets.\n\nSet hidden units to 0 and train on XOR and it will sit at chance forever, because a model with no nonlinearity is a straight line. That failure is the lesson, which is why the widget has to run the actual algorithm — a faked animation would teach the wrong intuition."
+    },
+    {
+      "id": "n-desktop",
+      "x": 0, "y": 2320, "w": 620,
+      "text": "macOS — the tab bar becomes a sidebar\n\nProposed. Today the desktop build is the phone layout stretched: a bottom tab bar and a centred column. At Mac and iPad widths the same five destinations move to a sidebar, the cards go two-up, and the plan upsell gets a permanent home at the foot of the nav instead of competing with the lesson.\n\n⌘1–⌘5 and ↵ are surfaced because the components already support keyboard shortcuts — AnswerOption takes a shortcut prop that nothing currently passes."
+    },
+    {
+      "id": "n-icons",
+      "x": 1400, "y": 4200, "w": 620,
+      "text": "ICONS — the one real break with what ships\n\nThe shipped build uses emoji for tab, stat, track and Lab icons. Emoji render differently on every OS, ignore the theme colour, cannot take a state tint, and shift the vertical rhythm.\n\nThese are 24×24 line icons on a single 1.8px stroke inheriting currentColor, so the streak icon is amber, hearts are rose, and an inactive tab dims properly. Twenty of them cover every icon the app currently draws with an emoji."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

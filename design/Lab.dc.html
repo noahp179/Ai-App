@@ -1,0 +1,218 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --bg:#020617;--surface:#0B1220;--surfaceEl:#1E293B;--muted:#111C31;
+  --border:#1E2A44;--borderStrong:#2C3B5A;
+  --text:#F8FAFC;--text2:#CBD5E1;--text3:#94A3B8;
+  --primary:#8B5CF6;--primary2:#A78BFA;--primarySubtle:rgba(139,92,246,.16);
+  --success:#34D399;--successSubtle:rgba(52,211,153,.16);
+  --danger:#FB7185;--dangerSubtle:rgba(251,113,133,.16);
+  --warning:#FBBF24;--warningSubtle:rgba(251,191,36,.16);
+  --info:#22D3EE;--infoSubtle:rgba(34,211,238,.16);
+  --indigo:#6366F1;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-xxl:28px;--r-pill:999px;
+  --sh-sm:0 2px 8px rgba(0,0,0,.16);--sh-md:0 6px 16px rgba(0,0,0,.22);--sh-lg:0 12px 28px rgba(0,0,0,.3);
+  --mono:Menlo,ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.display{font-size:34px;line-height:40px;font-weight:800;letter-spacing:-.6px;margin:0}
+.title{font-size:26px;line-height:32px;font-weight:700;letter-spacing:-.4px;margin:0}
+.heading{font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.2px;margin:0}
+.subheading{font-size:17px;line-height:24px;font-weight:600;letter-spacing:-.1px;margin:0}
+.body{font-size:16px;line-height:25px;font-weight:400;margin:0}
+.bodyStrong{font-size:16px;line-height:25px;font-weight:600;margin:0}
+.caption{font-size:14px;line-height:20px;font-weight:500;margin:0}
+.label{font-size:12px;line-height:16px;font-weight:700;letter-spacing:.6px;margin:0}
+.caps{text-transform:uppercase}
+.mono{font-family:var(--mono);font-size:14px;line-height:21px;font-weight:500}
+.t2{color:var(--text2)}.t3{color:var(--text3)}
+.card{background:var(--surface);border-radius:var(--r-xl);padding:16px}
+.card.outlined{border:1px solid var(--border)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:var(--r-pill);
+  font-size:12px;line-height:16px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.badge.primary{background:var(--primarySubtle);color:var(--primary)}
+.badge.success{background:var(--successSubtle);color:var(--success)}
+.badge.danger{background:var(--dangerSubtle);color:var(--danger)}
+.badge.warning{background:var(--warningSubtle);color:var(--warning)}
+.badge.info{background:var(--infoSubtle);color:var(--info)}
+.badge.neutral{background:var(--muted);color:var(--text2)}
+.badge.fill-info{background:var(--info);color:#04141A}
+.badge.fill-primary{background:var(--primary);color:#fff}
+.badge.fill-warning{background:var(--warning);color:#2A1A00}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:0;width:100%;
+  border-radius:var(--r-lg);font-size:16px;line-height:25px;font-weight:600;color:#fff;
+  height:52px;padding:0 20px;cursor:pointer;font-family:inherit;transition:transform .09s,opacity .09s}
+.btn.lg{height:58px;padding:0 24px}
+.btn.sm{height:40px;padding:0 16px;font-size:14px;line-height:20px;font-weight:500;width:auto}
+.btn.primary{background:var(--primary)}
+.btn.success{background:var(--success);color:#022C1E}
+.btn.danger{background:var(--danger);color:#2B0710}
+.btn.premium{background:var(--warning);color:#2A1A00}
+.btn.secondary{background:var(--surfaceEl);border:1px solid var(--borderStrong);color:var(--text)}
+.btn:active{transform:translateY(2px) scale(.985);opacity:.92}
+.icon{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.row{display:flex;align-items:center}
+
+/* ---- Lab ---- */
+  body{width:393px;height:852px;overflow:hidden;position:relative}
+  .content{position:absolute;inset:0 0 64px 0;padding:14px 20px 0;overflow:hidden}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 20px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--r-pill);
+    border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;
+    font-family:inherit;font-size:14px;line-height:20px;font-weight:500}
+  .chip .n{font-size:12px;font-weight:700;color:var(--text3)}
+  .chip[aria-pressed="true"]{border-color:var(--primary);background:var(--primarySubtle);color:var(--primary)}
+  .chip[aria-pressed="true"] .n{color:var(--primary2)}
+
+  .list{display:flex;flex-direction:column;gap:12px}
+  .item{display:flex;align-items:center;gap:12px;padding:16px;border-radius:var(--r-xl);
+    background:var(--surface);border:1px solid var(--border);cursor:pointer;
+    animation:en .28s cubic-bezier(0,0,.2,1) both}
+  @keyframes en{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none} }
+  .tile{width:44px;height:44px;border-radius:var(--r-md);display:grid;place-items:center;flex:none;
+    background:var(--muted)}
+  .tile .icon{width:22px;height:22px}
+  .item .txt{flex:1;min-width:0}
+  .item .txt .b{display:block}
+  .item .go{color:var(--text3);width:18px;height:18px}
+  .fade{position:absolute;left:0;right:0;bottom:64px;height:56px;pointer-events:none;
+    background:linear-gradient(180deg,rgba(2,6,23,0),var(--bg))}
+
+  .tabbar{position:absolute;left:0;right:0;bottom:0;height:64px;background:var(--surface);
+    border-top:1px solid var(--border);display:flex;padding-top:8px}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text3)}
+  .tab .icon{width:22px;height:22px;opacity:.45}
+  .tab.on{color:var(--primary)}.tab.on .icon{opacity:1}
+  @media (prefers-reduced-motion:reduce){.item{animation:none} }
+</style>
+</helmet>
+<svg class="sprite" aria-hidden="true"><defs>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2.7s4.6 3.9 4.6 8a4.6 4.6 0 1 1-9.2 0c0-1.7.8-3.1 1.6-4 .2 1 .8 1.8 1.5 2 .6-2.4-.3-4.6 1.5-6Z"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 5 13.4h5.2L9.6 22l8.4-11.6h-5.2L13 2Z"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.4 4.7 13a4.6 4.6 0 0 1 6.5-6.5l.8.8.8-.8A4.6 4.6 0 1 1 19.3 13Z"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3.8 10.6 12 3.8l8.2 6.8v9a.9.9 0 0 1-.9.9h-4.1v-6.1H8.8v6.1H4.7a.9.9 0 0 1-.9-.9Z"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.8C10.3 5.2 8 4.4 4.8 4.4v13.2c3.2 0 5.5.8 7.2 2.4"/><path d="M12 6.8c1.7-1.6 4-2.4 7.2-2.4v13.2c-3.2 0-5.5.8-7.2 2.4"/><path d="M12 6.8v13.2"/></symbol>
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="M20.4 12.4a8.4 8.4 0 0 1-14.2 5.9"/><path d="M3.6 11.6A8.4 8.4 0 0 1 17.8 5.7"/><path d="M17.9 2.4v3.6h-3.6"/><path d="M6.1 21.6V18h3.6"/></symbol>
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M9.2 3h5.6"/><path d="M10.2 3v6.4L5 18a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5.2-8.6V3"/><path d="M7.6 15.2h8.8"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.7"/><path d="M4.8 20.6a7.2 7.2 0 0 1 14.4 0"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4.5 12h15"/><path d="M13.2 5.7 19.5 12l-6.3 6.3"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4.8 12.6 9.8 17.6 19.2 6.8"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6 18 18M18 6 6 18"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><path d="M7.4 10.4V8a4.6 4.6 0 0 1 9.2 0v2.4"/><rect x="5" y="10.4" width="14" height="9.6" rx="2.4"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9.4 5.6 15.8 12l-6.4 6.4"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M12 1.6c1 5.9 3.5 8.4 9.4 9.4-5.9 1-8.4 3.5-9.4 9.4-1-5.9-3.5-8.4-9.4-9.4 5.9-1 8.4-3.5 9.4-9.4Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-gem" viewBox="0 0 24 24"><path d="M6.4 3h11.2l3.4 5.6L12 21 3 8.6Z"/><path d="M3 8.6h18"/></symbol>
+<symbol id="i-brain" viewBox="0 0 24 24"><circle cx="4.8" cy="6.6" r="1.9"/><circle cx="4.8" cy="17.4" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19.2" cy="6.6" r="1.9"/><circle cx="19.2" cy="17.4" r="1.9"/><path d="M6.4 7.7 10.4 10.9M6.4 16.3 10.4 13.1M13.6 10.9 17.6 7.7M13.6 13.1 17.6 16.3"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.4" y="3.4" width="7.2" height="7.2" rx="1.6"/><rect x="13.4" y="3.4" width="7.2" height="7.2" rx="1.6"/><rect x="3.4" y="13.4" width="7.2" height="7.2" rx="1.6"/><rect x="13.4" y="13.4" width="7.2" height="7.2" rx="1.6"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3.6 20.4h16.8"/><path d="M4 16.2 9.4 10l4 3.6 6.2-7.4"/></symbol>
+<symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3.4v17.2"/><path d="M6.4 6.6h11.2"/><path d="M6.4 6.6 3.4 13a3 3 0 0 0 6 0Z"/><path d="M17.6 6.6 14.6 13a3 3 0 0 0 6 0Z"/></symbol>
+<symbol id="i-split" viewBox="0 0 24 24"><path d="M3.6 6.4h6l4.8 11.2h6"/><path d="M3.6 17.6h6l2-4.6"/><path d="M17.4 3.6l3 2.8-3 2.8"/><path d="M17.4 14.8l3 2.8-3 2.8"/></symbol>
+<symbol id="i-tree" viewBox="0 0 24 24"><circle cx="12" cy="4.6" r="2.4"/><circle cx="5.6" cy="19.4" r="2.4"/><circle cx="18.4" cy="19.4" r="2.4"/><path d="M12 7v3.6M12 10.6H5.6V17M12 10.6h6.4V17"/></symbol>
+<symbol id="i-text" viewBox="0 0 24 24"><path d="M4.4 6.6V4.4h15.2v2.2"/><path d="M12 4.4v15.2"/><path d="M8.6 19.6h6.8"/></symbol>
+<symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.2"/><path d="M12 12 18 6.4"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M1.8 12S5.4 5.4 12 5.4 22.2 12 22.2 12 18.6 18.6 12 18.6 1.8 12 1.8 12Z"/><circle cx="12" cy="12" r="3.2"/></symbol>
+<symbol id="i-bot" viewBox="0 0 24 24"><rect x="3.6" y="7.4" width="16.8" height="12" rx="3.2"/><path d="M12 3.2v4.2"/><circle cx="9" cy="13.4" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="13.4" r="1.2" fill="currentColor" stroke="none"/></symbol>
+</defs></svg>
+<div class="content">
+  <h1 class="title">Lab</h1>
+  <p class="caption t2" style="margin-top:4px">37 ideas you can pull on directly. Nothing here is graded.</p>
+
+  <div class="chips">
+    <sc-for list="{{chips}}" as="c" hint-placeholder-count="6">
+      <button type="button" class="chip" aria-pressed="{{c.on}}" onClick="{{c.pick}}">
+        <span>{{c.label}}</span><span class="n">{{c.count}}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <div class="list">
+    <sc-for list="{{entries}}" as="e" hint-placeholder-count="6">
+      <div class="item" style="animation-delay:{{e.delay}}">
+        <span class="tile" style="color:{{e.color}}"><svg class="icon"><use href="#{{e.icon}}"/></svg></span>
+        <span class="txt">
+          <span class="b bodyStrong">{{e.title}}</span>
+          <span class="caption t2">{{e.blurb}}</span>
+        </span>
+        <svg class="icon go"><use href="#i-chevron"/></svg>
+      </div>
+    </sc-for>
+  </div>
+</div>
+<div class="fade"></div>
+
+<nav class="tabbar">
+  <span class="tab"><svg class="icon"><use href="#i-home"/></svg><span class="label">Today</span></span>
+  <span class="tab"><svg class="icon"><use href="#i-book"/></svg><span class="label">Learn</span></span>
+  <span class="tab"><svg class="icon"><use href="#i-repeat"/></svg><span class="label">Practice</span></span>
+  <span class="tab on"><svg class="icon"><use href="#i-flask"/></svg><span class="label">Lab</span></span>
+  <span class="tab"><svg class="icon"><use href="#i-user"/></svg><span class="label">Profile</span></span>
+</nav>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":393,"height":852}}'>
+// Each group carries a tint, so the icon says which part of the curriculum an
+// experiment belongs to before you have read its title.
+const GROUPS = [
+  ['Foundations',     '#22D3EE', 7],
+  ['Classic ML',      '#FBBF24', 11],
+  ['Deep learning',   '#8B5CF6', 6],
+  ['Language models', '#FB7185', 9],
+  ['Applied',         '#34D399', 4],
+];
+
+const ENTRIES = [
+  ['Which type of ML?', 'Sort real scenarios into the four learning paradigms.', 'i-grid', 'Foundations'],
+  ['Train / test split', 'Resize the splits, then watch peeking at test inflate your score.', 'i-split', 'Foundations'],
+  ['Bayes and base rates', 'Why a 99% accurate test can be usually wrong.', 'i-scale', 'Foundations'],
+  ['Fit a line', 'Drag slope and intercept against live mean squared error.', 'i-chart', 'Classic ML'],
+  ['k-means clustering', 'Place points and step the algorithm to convergence.', 'i-target', 'Classic ML'],
+  ['Decision tree splits', 'Pick a split and watch Gini impurity and information gain.', 'i-tree', 'Classic ML'],
+  ['Train a network', 'A real MLP with real backprop. Try XOR with no hidden layer.', 'i-brain', 'Deep learning'],
+  ['Convolution', 'Step a kernel across pixels and watch each output computed.', 'i-grid', 'Deep learning'],
+  ['Attention', 'Trace which words a token attends to, and why pronouns resolve.', 'i-eye', 'Language models'],
+  ['Tokenizer', 'See how text becomes the units a model actually processes.', 'i-text', 'Language models'],
+  ['Agent loop', 'Step through observe-think-act, then inject a tool failure.', 'i-bot', 'Applied'],
+  ['Drift monitoring', 'Watch a model degrade while every health dashboard stays green.', 'i-radar', 'Applied'],
+];
+
+class Component extends DCLogic {
+  state = { group: null };
+
+  renderVals() {
+    const group = this.state.group;
+    const pick = (name) => () => this.setState({ group: group === name ? null : name });
+    const tint = (name) => (GROUPS.find((g) => g[0] === name) || [, '#94A3B8'])[1];
+
+    const chips = [{ label: 'All', count: 37, on: group === null, pick: pick(null) }].concat(
+      GROUPS.map((g) => ({ label: g[0], count: g[2], on: group === g[0], pick: pick(g[0]) }))
+    );
+
+    const entries = ENTRIES
+      .filter((e) => group === null || e[3] === group)
+      .map((e, index) => ({
+        title: e[0],
+        blurb: e[1],
+        icon: e[2],
+        color: tint(e[3]),
+        delay: Math.min(index * 40, 320) + 'ms',
+      }));
+
+    return { chips, entries };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --bg:#020617;--surface:#0B1220;--surfaceEl:#1E293B;--muted:#111C31;
+  --border:#1E2A44;--borderStrong:#2C3B5A;
+  --text:#F8FAFC;--text2:#CBD5E1;--text3:#94A3B8;
+  --primary:#8B5CF6;--primary2:#A78BFA;--primarySubtle:rgba(139,92,246,.16);
+  --success:#34D399;--successSubtle:rgba(52,211,153,.16);
+  --danger:#FB7185;--dangerSubtle:rgba(251,113,133,.16);
+  --warning:#FBBF24;--warningSubtle:rgba(251,191,36,.16);
+  --info:#22D3EE;--infoSubtle:rgba(34,211,238,.16);
+  --indigo:#6366F1;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-xxl:28px;--r-pill:999px;
+  --sh-sm:0 2px 8px rgba(0,0,0,.16);--sh-md:0 6px 16px rgba(0,0,0,.22);--sh-lg:0 12px 28px rgba(0,0,0,.3);
+  --mono:Menlo,ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.display{font-size:34px;line-height:40px;font-weight:800;letter-spacing:-.6px;margin:0}
+.title{font-size:26px;line-height:32px;font-weight:700;letter-spacing:-.4px;margin:0}
+.heading{font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.2px;margin:0}
+.subheading{font-size:17px;line-height:24px;font-weight:600;letter-spacing:-.1px;margin:0}
+.body{font-size:16px;line-height:25px;font-weight:400;margin:0}
+.bodyStrong{font-size:16px;line-height:25px;font-weight:600;margin:0}
+.caption{font-size:14px;line-height:20px;font-weight:500;margin:0}
+.label{font-size:12px;line-height:16px;font-weight:700;letter-spacing:.6px;margin:0}
+.caps{text-transform:uppercase}
+.mono{font-family:var(--mono);font-size:14px;line-height:21px;font-weight:500}
+.t2{color:var(--text2)}.t3{color:var(--text3)}
+.card{background:var(--surface);border-radius:var(--r-xl);padding:16px}
+.card.outlined{border:1px solid var(--border)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:var(--r-pill);
+  font-size:12px;line-height:16px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.badge.primary{background:var(--primarySubtle);color:var(--primary)}
+.badge.success{background:var(--successSubtle);color:var(--success)}
+.badge.danger{background:var(--dangerSubtle);color:var(--danger)}
+.badge.warning{background:var(--warningSubtle);color:var(--warning)}
+.badge.info{background:var(--infoSubtle);color:var(--info)}
+.badge.neutral{background:var(--muted);color:var(--text2)}
+.badge.fill-info{background:var(--info);color:#04141A}
+.badge.fill-primary{background:var(--primary);color:#fff}
+.badge.fill-warning{background:var(--warning);color:#2A1A00}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:0;width:100%;
+  border-radius:var(--r-lg);font-size:16px;line-height:25px;font-weight:600;color:#fff;
+  height:52px;padding:0 20px;cursor:pointer;font-family:inherit;transition:transform .09s,opacity .09s}
+.btn.lg{height:58px;padding:0 24px}
+.btn.sm{height:40px;padding:0 16px;font-size:14px;line-height:20px;font-weight:500;width:auto}
+.btn.primary{background:var(--primary)}
+.btn.success{background:var(--success);color:#022C1E}
+.btn.danger{background:var(--danger);color:#2B0710}
+.btn.premium{background:var(--warning);color:#2A1A00}
+.btn.secondary{background:var(--surfaceEl);border:1px solid var(--borderStrong);color:var(--text)}
+.btn:active{transform:translateY(2px) scale(.985);opacity:.92}
+.icon{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sprite{position:absolute;width:0;height:0;overflow:hidden}
+.row{display:flex;align-items:center}
+
+/* ---- Tokens ---- */
+  body{width:960px;padding:32px 36px 40px}
+  h2.sec{font-size:13px;line-height:16px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+    color:var(--text3);margin:36px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+  .head{display:flex;align-items:center;gap:14px}
+  .mk{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;
+    background:linear-gradient(140deg,#8B5CF6,#6366F1)}
+  .mk .icon{width:24px;height:24px;color:#fff}
+
+  .sw{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  .sw > div{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--border)}
+  .sw .chip{height:56px}
+  .sw .meta{padding:8px 10px;background:var(--surface)}
+  .sw .nm{font-size:12px;font-weight:700;letter-spacing:.2px}
+  .sw .hx{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px}
+
+  .type table{width:100%;border-collapse:collapse}
+  .type td{padding:10px 0;border-bottom:1px solid var(--border);vertical-align:baseline}
+  .type td.k{width:120px;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3)}
+  .type td.s{width:190px;font-family:var(--mono);font-size:11px;color:var(--text3)}
+
+  .scale{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+  .scale .u{text-align:center}
+  .scale .u i{display:block;background:var(--primarySubtle);border:1px solid var(--primary);
+    border-radius:3px;margin:0 auto 6px}
+  .rad{display:flex;gap:14px;flex-wrap:wrap}
+  .rad .r{width:76px;height:76px;background:var(--surfaceEl);border:1px solid var(--borderStrong);
+    display:grid;place-items:end center;padding-bottom:6px}
+
+  .elev{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .elev .e{height:88px;border-radius:var(--r-xl);background:var(--surface);display:grid;place-items:center}
+
+  .comp{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .stackv > * + *{margin-top:12px}
+  .btnrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btnrow .btn{width:auto}
+  .badges{display:flex;gap:8px;flex-wrap:wrap}
+
+  .opt{display:flex;align-items:center;gap:8px;min-height:56px;padding:12px 16px;
+    border-radius:var(--r-lg);border:2px solid var(--border);background:var(--surface);font-size:16px}
+  .opt .mark{width:20px;height:20px;flex:none}
+  .opt.sel{border-color:var(--primary);background:var(--primarySubtle)}
+  .opt.ok{border-color:var(--success);background:var(--successSubtle)}
+  .opt.no{border-color:var(--danger);background:var(--dangerSubtle)}
+  .opt.rev{border-color:var(--success);background:transparent;border-style:dashed}
+  .opt .kb{font-family:var(--mono);font-size:12px;color:var(--text3);background:var(--muted);
+    border-radius:var(--r-sm);padding:2px 8px}
+
+  .bar{height:10px;border-radius:5px;background:var(--muted);overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:5px;background:var(--primary)}
+
+  .icons{display:grid;grid-template-columns:repeat(10,1fr);gap:12px}
+  .ic{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;
+    border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface)}
+  .ic .icon{width:22px;height:22px;color:var(--text2)}
+  .ic span{font-size:10px;color:var(--text3);letter-spacing:.2px}
+
+  .motion table{width:100%;border-collapse:collapse}
+  .motion td{padding:8px 0;border-bottom:1px solid var(--border);font-size:14px}
+  .motion td.k{width:150px;font-weight:600}
+  .motion td.v{width:118px;white-space:nowrap;font-family:var(--mono);color:var(--primary2)}
+  .motion td.d{color:var(--text3)}
+</style>
+</helmet>
+<svg class="sprite" aria-hidden="true"><defs>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2.7s4.6 3.9 4.6 8a4.6 4.6 0 1 1-9.2 0c0-1.7.8-3.1 1.6-4 .2 1 .8 1.8 1.5 2 .6-2.4-.3-4.6 1.5-6Z"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 5 13.4h5.2L9.6 22l8.4-11.6h-5.2L13 2Z"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.4 4.7 13a4.6 4.6 0 0 1 6.5-6.5l.8.8.8-.8A4.6 4.6 0 1 1 19.3 13Z"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r=".9" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3.8 10.6 12 3.8l8.2 6.8v9a.9.9 0 0 1-.9.9h-4.1v-6.1H8.8v6.1H4.7a.9.9 0 0 1-.9-.9Z"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.8C10.3 5.2 8 4.4 4.8 4.4v13.2c3.2 0 5.5.8 7.2 2.4"/><path d="M12 6.8c1.7-1.6 4-2.4 7.2-2.4v13.2c-3.2 0-5.5.8-7.2 2.4"/><path d="M12 6.8v13.2"/></symbol>
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="M20.4 12.4a8.4 8.4 0 0 1-14.2 5.9"/><path d="M3.6 11.6A8.4 8.4 0 0 1 17.8 5.7"/><path d="M17.9 2.4v3.6h-3.6"/><path d="M6.1 21.6V18h3.6"/></symbol>
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M9.2 3h5.6"/><path d="M10.2 3v6.4L5 18a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5.2-8.6V3"/><path d="M7.6 15.2h8.8"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.7"/><path d="M4.8 20.6a7.2 7.2 0 0 1 14.4 0"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4.5 12h15"/><path d="M13.2 5.7 19.5 12l-6.3 6.3"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4.8 12.6 9.8 17.6 19.2 6.8"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6 18 18M18 6 6 18"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><path d="M7.4 10.4V8a4.6 4.6 0 0 1 9.2 0v2.4"/><rect x="5" y="10.4" width="14" height="9.6" rx="2.4"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9.4 5.6 15.8 12l-6.4 6.4"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M12 1.6c1 5.9 3.5 8.4 9.4 9.4-5.9 1-8.4 3.5-9.4 9.4-1-5.9-3.5-8.4-9.4-9.4 5.9-1 8.4-3.5 9.4-9.4Z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-gem" viewBox="0 0 24 24"><path d="M6.4 3h11.2l3.4 5.6L12 21 3 8.6Z"/><path d="M3 8.6h18"/></symbol>
+<symbol id="i-brain" viewBox="0 0 24 24"><circle cx="4.8" cy="6.6" r="1.9"/><circle cx="4.8" cy="17.4" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19.2" cy="6.6" r="1.9"/><circle cx="19.2" cy="17.4" r="1.9"/><path d="M6.4 7.7 10.4 10.9M6.4 16.3 10.4 13.1M13.6 10.9 17.6 7.7M13.6 13.1 17.6 16.3"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.4" y="3.4" width="7.2" height="7.2" rx="1.6"/><rect x="13.4" y="3.4" width="7.2" height="7.2" rx="1.6"/><rect x="3.4" y="13.4" width="7.2" height="7.2" rx="1.6"/><rect x="13.4" y="13.4" width="7.2" height="7.2" rx="1.6"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3.6 20.4h16.8"/><path d="M4 16.2 9.4 10l4 3.6 6.2-7.4"/></symbol>
+<symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3.4v17.2"/><path d="M6.4 6.6h11.2"/><path d="M6.4 6.6 3.4 13a3 3 0 0 0 6 0Z"/><path d="M17.6 6.6 14.6 13a3 3 0 0 0 6 0Z"/></symbol>
+<symbol id="i-split" viewBox="0 0 24 24"><path d="M3.6 6.4h6l4.8 11.2h6"/><path d="M3.6 17.6h6l2-4.6"/><path d="M17.4 3.6l3 2.8-3 2.8"/><path d="M17.4 14.8l3 2.8-3 2.8"/></symbol>
+<symbol id="i-tree" viewBox="0 0 24 24"><circle cx="12" cy="4.6" r="2.4"/><circle cx="5.6" cy="19.4" r="2.4"/><circle cx="18.4" cy="19.4" r="2.4"/><path d="M12 7v3.6M12 10.6H5.6V17M12 10.6h6.4V17"/></symbol>
+<symbol id="i-text" viewBox="0 0 24 24"><path d="M4.4 6.6V4.4h15.2v2.2"/><path d="M12 4.4v15.2"/><path d="M8.6 19.6h6.8"/></symbol>
+<symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.2"/><path d="M12 12 18 6.4"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M1.8 12S5.4 5.4 12 5.4 22.2 12 22.2 12 18.6 18.6 12 18.6 1.8 12 1.8 12Z"/><circle cx="12" cy="12" r="3.2"/></symbol>
+<symbol id="i-bot" viewBox="0 0 24 24"><rect x="3.6" y="7.4" width="16.8" height="12" rx="3.2"/><path d="M12 3.2v4.2"/><circle cx="9" cy="13.4" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="13.4" r="1.2" fill="currentColor" stroke="none"/></symbol>
+</defs></svg>
+<header class="head">
+  <span class="mk"><svg class="icon"><use href="#i-star"/></svg></span>
+  <div>
+    <h1 class="title">Synapse design system</h1>
+    <p class="caption t3" style="margin-top:2px">Dark-first. Every value here is the one in
+      <span class="mono">packages/ui/src/theme/tokens.ts</span> — components read tokens and never hardcode.</p>
+  </div>
+</header>
+
+<h2 class="sec">Surfaces &amp; text</h2>
+<div class="sw">
+  <div><div class="chip" style="background:#020617"></div><div class="meta"><div class="nm">background</div><div class="hx">#020617</div></div></div>
+  <div><div class="chip" style="background:#0B1220"></div><div class="meta"><div class="nm">surface</div><div class="hx">#0B1220</div></div></div>
+  <div><div class="chip" style="background:#111C31"></div><div class="meta"><div class="nm">surfaceMuted</div><div class="hx">#111C31</div></div></div>
+  <div><div class="chip" style="background:#1E293B"></div><div class="meta"><div class="nm">surfaceElevated</div><div class="hx">#1E293B</div></div></div>
+  <div><div class="chip" style="background:#1E2A44"></div><div class="meta"><div class="nm">border</div><div class="hx">#1E2A44</div></div></div>
+  <div><div class="chip" style="background:#2C3B5A"></div><div class="meta"><div class="nm">borderStrong</div><div class="hx">#2C3B5A</div></div></div>
+  <div><div class="chip" style="background:#F8FAFC"></div><div class="meta"><div class="nm">text</div><div class="hx">#F8FAFC</div></div></div>
+  <div><div class="chip" style="background:#CBD5E1"></div><div class="meta"><div class="nm">textSecondary</div><div class="hx">#CBD5E1</div></div></div>
+  <div><div class="chip" style="background:#94A3B8"></div><div class="meta"><div class="nm">textTertiary</div><div class="hx">#94A3B8</div></div></div>
+  <div><div class="chip" style="background:#152238"></div><div class="meta"><div class="nm">skeleton</div><div class="hx">#152238</div></div></div>
+  <div><div class="chip" style="background:rgba(2,6,23,.72)"></div><div class="meta"><div class="nm">scrim</div><div class="hx">slate950 / 72%</div></div></div>
+  <div><div class="chip" style="background:linear-gradient(120deg,#8B5CF6,#6366F1)"></div><div class="meta"><div class="nm">gradient.brand</div><div class="hx">violet → indigo</div></div></div>
+</div>
+
+<h2 class="sec">Brand &amp; semantic</h2>
+<div class="sw">
+  <div><div class="chip" style="background:#8B5CF6"></div><div class="meta"><div class="nm">primary</div><div class="hx">#8B5CF6</div></div></div>
+  <div><div class="chip" style="background:#7C3AED"></div><div class="meta"><div class="nm">primaryPressed</div><div class="hx">#7C3AED</div></div></div>
+  <div><div class="chip" style="background:#A78BFA"></div><div class="meta"><div class="nm">xp</div><div class="hx">#A78BFA</div></div></div>
+  <div><div class="chip" style="background:#34D399"></div><div class="meta"><div class="nm">success</div><div class="hx">#34D399</div></div></div>
+  <div><div class="chip" style="background:#FB7185"></div><div class="meta"><div class="nm">danger / heart</div><div class="hx">#FB7185</div></div></div>
+  <div><div class="chip" style="background:#FBBF24"></div><div class="meta"><div class="nm">warning / streak</div><div class="hx">#FBBF24</div></div></div>
+  <div><div class="chip" style="background:#22D3EE"></div><div class="meta"><div class="nm">info / gem</div><div class="hx">#22D3EE</div></div></div>
+  <div><div class="chip" style="background:rgba(139,92,246,.16)"></div><div class="meta"><div class="nm">primarySubtle</div><div class="hx">16% tint</div></div></div>
+  <div><div class="chip" style="background:rgba(52,211,153,.16)"></div><div class="meta"><div class="nm">successSubtle</div><div class="hx">16% tint</div></div></div>
+  <div><div class="chip" style="background:rgba(251,113,133,.16)"></div><div class="meta"><div class="nm">dangerSubtle</div><div class="hx">16% tint</div></div></div>
+  <div><div class="chip" style="background:rgba(251,191,36,.16)"></div><div class="meta"><div class="nm">warningSubtle</div><div class="hx">16% tint</div></div></div>
+  <div><div class="chip" style="background:rgba(34,211,238,.16)"></div><div class="meta"><div class="nm">infoSubtle</div><div class="hx">16% tint</div></div></div>
+</div>
+
+<h2 class="sec">Type scale</h2>
+<div class="type"><table>
+  <tr><td class="k">display</td><td class="s">34 / 40 · 800 · −0.6</td><td><span class="display">Learn how AI works</span></td></tr>
+  <tr><td class="k">title</td><td class="s">26 / 32 · 700 · −0.4</td><td><span class="title">Backpropagation</span></td></tr>
+  <tr><td class="k">heading</td><td class="s">20 / 26 · 700 · −0.2</td><td><span class="heading">Why does training use more memory?</span></td></tr>
+  <tr><td class="k">subheading</td><td class="s">17 / 24 · 600 · −0.1</td><td><span class="subheading">Vanishing gradients</span></td></tr>
+  <tr><td class="k">body</td><td class="s">16 / 25 · 400</td><td><span class="body">Every intermediate activation is needed on the way back.</span></td></tr>
+  <tr><td class="k">bodyStrong</td><td class="s">16 / 25 · 600</td><td><span class="bodyStrong">Daily goal</span></td></tr>
+  <tr><td class="k">caption</td><td class="s">14 / 20 · 500</td><td><span class="caption t2">6 skills ready — keep them from slipping</span></td></tr>
+  <tr><td class="k">label</td><td class="s">12 / 16 · 700 · +0.6</td><td><span class="label caps t3">Deep learning · unit 2</span></td></tr>
+  <tr><td class="k">mono</td><td class="s">14 / 21 · 500 · Menlo</td><td><span class="mono">loss = 0.0412 · acc = 92.5%</span></td></tr>
+</table></div>
+
+<h2 class="sec">Spacing — 4pt grid</h2>
+<div class="scale">
+  <div class="u"><i style="width:2px;height:44px"></i><span class="label t3">xxs 2</span></div>
+  <div class="u"><i style="width:4px;height:44px"></i><span class="label t3">xs 4</span></div>
+  <div class="u"><i style="width:8px;height:44px"></i><span class="label t3">sm 8</span></div>
+  <div class="u"><i style="width:12px;height:44px"></i><span class="label t3">md 12</span></div>
+  <div class="u"><i style="width:16px;height:44px"></i><span class="label t3">lg 16</span></div>
+  <div class="u"><i style="width:20px;height:44px"></i><span class="label t3">xl 20</span></div>
+  <div class="u"><i style="width:24px;height:44px"></i><span class="label t3">xxl 24</span></div>
+  <div class="u"><i style="width:32px;height:44px"></i><span class="label t3">xxxl 32</span></div>
+  <div class="u"><i style="width:40px;height:44px"></i><span class="label t3">huge 40</span></div>
+  <div class="u"><i style="width:56px;height:44px"></i><span class="label t3">giant 56</span></div>
+</div>
+
+<h2 class="sec">Radii</h2>
+<div class="rad">
+  <div class="r" style="border-radius:8px"><span class="label t3">sm 8</span></div>
+  <div class="r" style="border-radius:12px"><span class="label t3">md 12</span></div>
+  <div class="r" style="border-radius:16px"><span class="label t3">lg 16</span></div>
+  <div class="r" style="border-radius:20px"><span class="label t3">xl 20</span></div>
+  <div class="r" style="border-radius:28px"><span class="label t3">xxl 28</span></div>
+  <div class="r" style="border-radius:999px"><span class="label t3">pill</span></div>
+</div>
+
+<h2 class="sec">Elevation</h2>
+<div class="elev">
+  <div class="e" style="box-shadow:var(--sh-sm)"><span class="caption t2">sm · 0 2 8 / 16%</span></div>
+  <div class="e" style="box-shadow:var(--sh-md)"><span class="caption t2">md · 0 6 16 / 22%</span></div>
+  <div class="e" style="box-shadow:var(--sh-lg)"><span class="caption t2">lg · 0 12 28 / 30%</span></div>
+</div>
+
+<h2 class="sec">Components</h2>
+<div class="comp">
+  <div class="stackv">
+    <p class="label caps t3">Buttons — 58 / 52 / 40 tall, radius 16</p>
+    <div class="btnrow">
+      <button class="btn primary" type="button">Primary</button>
+      <button class="btn secondary" type="button">Secondary</button>
+      <button class="btn sm primary" type="button">Small</button>
+    </div>
+    <div class="btnrow">
+      <button class="btn success" type="button">Correct</button>
+      <button class="btn danger" type="button">Not quite</button>
+      <button class="btn premium" type="button">Upgrade</button>
+    </div>
+
+    <p class="label caps t3" style="margin-top:20px">Badges</p>
+    <div class="badges">
+      <span class="badge primary">Continue</span>
+      <span class="badge success">Mastered</span>
+      <span class="badge danger">Out of hearts</span>
+      <span class="badge warning">Streak at risk</span>
+      <span class="badge info">Hands-on</span>
+      <span class="badge neutral">Free</span>
+      <span class="badge fill-primary">Level up!</span>
+      <span class="badge fill-info">Hands-on</span>
+      <span class="badge fill-warning">2 achievements</span>
+    </div>
+
+    <p class="label caps t3" style="margin-top:20px">Progress</p>
+    <div class="bar"><i style="width:62%"></i></div>
+    <div class="bar" style="height:8px"><i style="width:38%;background:var(--success)"></i></div>
+  </div>
+
+  <div class="stackv">
+    <p class="label caps t3">Answer states — never colour alone</p>
+    <div class="opt"><span style="flex:1">Idle</span><span class="kb">1</span></div>
+    <div class="opt sel"><span style="flex:1">Selected</span><span class="kb">2</span></div>
+    <div class="opt ok"><span style="flex:1">Correct</span>
+      <svg class="icon mark" style="color:var(--success)"><use href="#i-check"/></svg></div>
+    <div class="opt no"><span style="flex:1">Incorrect</span>
+      <svg class="icon mark" style="color:var(--danger)"><use href="#i-x"/></svg></div>
+    <div class="opt rev"><span style="flex:1">Revealed — this was the answer</span>
+      <svg class="icon mark" style="color:var(--success)"><use href="#i-arrow"/></svg></div>
+  </div>
+</div>
+
+<h2 class="sec">Icons — drawn, not emoji</h2>
+<p class="caption t3" style="margin:-4px 0 14px">The shipped build uses emoji for tab, stat and track
+  icons. Emoji render differently on every OS, cannot take a theme colour, and read as decoration.
+  These are 24&#215;24 line icons on the same 1.8px stroke, inheriting <span class="mono">currentColor</span>.</p>
+<div class="icons">
+  <div class="ic"><svg class="icon"><use href="#i-home"/></svg><span>home</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-book"/></svg><span>learn</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-repeat"/></svg><span>practice</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-flask"/></svg><span>lab</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-user"/></svg><span>profile</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-flame"/></svg><span>streak</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-bolt"/></svg><span>xp</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-heart"/></svg><span>hearts</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-gem"/></svg><span>gems</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-target"/></svg><span>level</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-star"/></svg><span>brand</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-check"/></svg><span>correct</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-x"/></svg><span>wrong</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-lock"/></svg><span>locked</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-chevron"/></svg><span>more</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-brain"/></svg><span>deep</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-eye"/></svg><span>attention</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-tree"/></svg><span>tree</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-radar"/></svg><span>drift</span></div>
+  <div class="ic"><svg class="icon"><use href="#i-bot"/></svg><span>agent</span></div>
+</div>
+
+<h2 class="sec">Motion</h2>
+<div class="motion"><table>
+  <tr><td class="k">instant</td><td class="v">90ms</td><td class="d">Button press — the 2px depress</td></tr>
+  <tr><td class="k">fast</td><td class="v">160ms</td><td class="d">Selection, chip toggles</td></tr>
+  <tr><td class="k">normal</td><td class="v">240ms</td><td class="d">Progress bar advancing</td></tr>
+  <tr><td class="k">slow</td><td class="v">380ms</td><td class="d">Feedback sheet slide-in, step cross-fade</td></tr>
+  <tr><td class="k">celebration</td><td class="v">700ms</td><td class="d">Burst and count-up — off the critical path</td></tr>
+  <tr><td class="k">spring</td><td class="v">.34 1.56 .64 1</td><td class="d">Correct-answer pop, 1.06 overshoot</td></tr>
+</table></div>
+<p class="caption t3" style="margin-top:14px">Reduced motion collapses every one of these to an
+  instant state change — never to nothing, because the feedback still has to land.</p>
+</x-dc>
+
+</body>
+</html>

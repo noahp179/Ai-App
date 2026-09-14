@@ -52,3 +52,8 @@ npm-debug.log*
 yarn-error.log*
 coverage/
 .nyc_output/
+
+# Seeded design canvas — a 2.3MB copy of the Claude Design editor payload with
+# the artboards below injected. Regenerate it from design/*.dc.html rather than
+# committing it.
+design/synapse-screens.html

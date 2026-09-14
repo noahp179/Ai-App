@@ -164,6 +164,12 @@ Dark-first, because the app is used in the evening on a phone. Tokens live in
 `packages/ui/src/theme/tokens.ts` — two palettes, a 4pt spacing grid, six type
 sizes. Components read tokens and never hardcode a value.
 
+**[design/](design/)** holds a seven-artboard design canvas built on those exact
+tokens: Today, a graded lesson, the completion screen, the Lab, the network
+trainer, the macOS window, and a full design-system sheet. Four of the artboards
+are live — you can answer the question, filter the Lab, and train the network in
+them — and the sticky notes say which parts are shipped and which are proposals.
+
 ### Motion
 
 Animation here is feedback, not decoration. The moment after an answer is when a
