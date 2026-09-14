@@ -9,7 +9,13 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { TRACKS_BY_ID, canAccessLesson, trackCompletion, trackMastery } from '@synapse/core';
+import {
+  TRACKS_BY_ID,
+  canAccessLesson,
+  pathsForTrack,
+  trackCompletion,
+  trackMastery,
+} from '@synapse/core';
 import { Badge, Card, ProgressBar, Screen, Text, useTheme } from '@synapse/ui';
 
 import { useProgress } from '../../src/store/useProgress';
@@ -34,6 +40,7 @@ export default function TrackScreen(): React.JSX.Element {
 
   const completion = trackCompletion(progress, track.id);
   const mastery = trackMastery(progress, track.id);
+  const paths = pathsForTrack(track.id);
 
   return (
     <Screen scroll>
@@ -84,6 +91,39 @@ export default function TrackScreen(): React.JSX.Element {
           <ProgressBar value={completion} color={track.gradient[0]} />
         </View>
       </View>
+
+      {/* Which routes lead through here. A track seen in isolation raises
+          "why am I learning this"; naming the paths answers it. */}
+      {paths.length > 0 ? (
+        <Card outlined style={{ marginBottom: theme.spacing.xl }}>
+          <Text variant="label" tone="tertiary" caps style={{ marginBottom: theme.spacing.md }}>
+            Part of {paths.length === 1 ? 'this path' : 'these paths'}
+          </Text>
+          <View style={{ gap: theme.spacing.sm }}>
+            {paths.map((path) => (
+              <Pressable
+                key={path.id}
+                onPress={() => router.push(`/path/${path.id}`)}
+                accessibilityRole="button"
+                style={{ flexDirection: 'row', alignItems: 'center' }}
+              >
+                <Text variant="subheading" style={{ marginRight: theme.spacing.md }}>
+                  {path.icon}
+                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text variant="caption">{path.title}</Text>
+                  <Text variant="label" tone="tertiary">
+                    {path.trackIds.length} tracks · step {path.trackIds.indexOf(track.id) + 1}
+                  </Text>
+                </View>
+                <Text variant="caption" tone="primary">
+                  →
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </Card>
+      ) : null}
 
       {/* Outcomes */}
       <Card outlined style={{ marginBottom: theme.spacing.xl }}>

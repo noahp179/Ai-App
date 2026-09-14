@@ -16,15 +16,37 @@ a graduate course.
 
 | | |
 |---|---|
-| **14 tracks** | Foundations · Prompt Engineering · Math · **Types of ML** · ML Mechanics · **Classic Algorithms** · **Data & Features** · Deep Learning · LLMs · Generative AI · Agents · RL · MLOps · Ethics |
-| **72 lessons** | 27 units, ~290 minutes of material, all three difficulty levels |
-| **353 exercises** | 10 exercise types, every one with a written explanation |
-| **141 skills** | Individually tracked with spaced-repetition scheduling |
-| **37 interactive widgets** | Across 43 hands-on steps — every track has at least one |
+| **7 learning paths** | Curated routes through the catalog — pick a goal and the order is decided |
+| **16 tracks** | Foundations · Prompt Engineering · Math · **Types of ML** · ML Mechanics · **Classic Algorithms** · **Data & Features** · Deep Learning · **Computer Vision** · **NLP** · LLMs · Generative AI · Agents · RL · MLOps · Ethics |
+| **114 lessons** | 49 units, ~430 minutes of material, all three difficulty levels |
+| **536 exercises** | 10 exercise types, every one with a written explanation |
+| **161 skills** | Individually tracked with spaced-repetition scheduling |
+| **37 interactive widgets** | Every track has at least one hands-on step |
 
 Every track spans intro, intermediate, and expert material. The curriculum is
 data (`packages/core/src/content/`), validated on every test run — a typo in a
 skill reference fails the build rather than silently breaking review scheduling.
+
+### Paths
+
+Sixteen tracks is a catalog, not a curriculum. A **path** is an ordered route
+through several of them, built around a goal someone actually has:
+
+| | |
+|---|---|
+| **Follow the Conversation** | Understand what people are talking about. No maths. |
+| **Build With LLMs** | Ship a language-model feature that survives real users |
+| **Machine Learning Engineer** | Train it, evaluate it honestly, keep it alive in production |
+| **Deep Learning, Properly** | From one neuron to the architectures behind modern models |
+| **Generative AI End to End** | Text, images, and the models that make both |
+| **AI for Decision Makers** | Enough depth to ask the right questions — no calculus |
+| **Learning From Consequences** | Reinforcement learning, from gridworlds to RLHF |
+
+Paths own no content — they are references into the same tracks — so a lesson
+finished anywhere counts toward every path containing it, and a path can never
+drift out of sync with the curriculum except by naming a track that no longer
+exists, which the catalog validator rejects. Onboarding goals rank them, and
+every track appears in at least one path (also a test).
 
 ### Machine learning, in depth
 
@@ -40,7 +62,18 @@ Three tracks cover ML specifically, from the taxonomy down to the algorithms:
   hierarchical clustering, PCA, plus model selection and ROC/PR curves.
 - **Data & Feature Engineering** — categorical encoding, the three kinds of
   missing data, outliers, feature selection and creation, text features,
-  labelling quality, and dataset shift.
+  labelling quality, dataset shift, where training data comes from, synthetic
+  data and model collapse, class imbalance, and the four kinds of leakage.
+
+And two tracks for the domains that previously had skills but no home:
+
+- **Computer Vision** — images as tensors, convolution from first principles,
+  pooling and receptive fields, the architecture lineage from LeNet to ResNet,
+  vision transformers, and detection versus segmentation.
+- **NLP Before Transformers** — normalisation, TF-IDF, byte-pair encoding,
+  Word2Vec, RNNs and LSTMs, and the seq2seq bottleneck that attention removed.
+  Worth doing before the LLM track: attention is much easier to appreciate once
+  you have felt the problem it solved.
 
 ---
 
@@ -66,7 +99,7 @@ synapse/
 **The rule that shapes everything:** all learning rules live in `@synapse/core`
 as pure functions. Grading, scheduling, XP, entitlements, and session state are
 testable without mounting a component or booting a simulator — which is why there
-are 164 tests that run in under a second.
+are 177 tests that run in under a second.
 
 The apps are rendering layers over that core. `packages/ui` never imports from an
 app; apps never reimplement a rule.
@@ -77,7 +110,7 @@ app; apps never reimplement a rule.
 
 ```bash
 npm install
-npm test          # 164 tests, ~1s — if this passes, the app will run
+npm test          # 177 tests, ~1s — if this passes, the app will run
 npm run web       # open http://localhost:8081
 ```
 
@@ -217,16 +250,17 @@ what was deliberately *not* built — are in **[docs/MONETIZATION.md](docs/MONET
 npm test
 ```
 
-164 tests covering the grading engine, scheduler, XP and streak logic, session
-state machine, placement algorithm, entitlements, progress transitions, and
-catalog integrity.
+177 tests covering the grading engine, scheduler, XP and streak logic, session
+state machine, placement algorithm, entitlements, progress transitions, path
+curation, and catalog integrity.
 
 The catalog tests are load-bearing: they verify that every exercise's stated
 answer actually grades as correct, that every skill reference resolves, that no
 prerequisite graph has a cycle, that no declared skill goes unpractised, that
-every interactive widget is reachable from content, and that every track has at
-least one hands-on step. Content is data written by hand, and data written by
-hand drifts — two of those checks caught real gaps while this was being built.
+every interactive widget is reachable from content, that every track has at
+least one hands-on step, and that every track is reachable from at least one
+learning path. Content is data written by hand, and data written by hand drifts
+— several of those checks caught real gaps while this was being built.
 
 ---
 

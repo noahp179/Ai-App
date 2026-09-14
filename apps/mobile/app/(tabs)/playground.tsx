@@ -1,7 +1,7 @@
 /**
  * Lab — every interactive widget, freed from its lesson.
  *
- * All 36 are also embedded in lessons, but a browsable sandbox is worth having
+ * All 37 are also embedded in lessons, but a browsable sandbox is worth having
  * on its own: somewhere to poke at an idea without committing to a session, and
  * somewhere to come back to when a concept has gone fuzzy.
  */

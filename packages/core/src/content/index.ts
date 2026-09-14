@@ -30,6 +30,9 @@ import { typesOfMlTrack } from './tracks/types-of-ml';
 import { classicMlTrack } from './tracks/classic-ml';
 import { dataEngineeringTrack } from './tracks/data-engineering';
 import { mlopsTrack, ethicsTrack, reinforcementLearningTrack } from './tracks/applied';
+import { computerVisionTrack } from './tracks/computer-vision';
+import { nlpTrack } from './tracks/nlp';
+import { PATHS } from './paths';
 
 export const TRACKS: Track[] = [
   foundationsTrack,
@@ -40,6 +43,8 @@ export const TRACKS: Track[] = [
   classicMlTrack,
   dataEngineeringTrack,
   deepLearningTrack,
+  computerVisionTrack,
+  nlpTrack,
   llmTrack,
   generativeAiTrack,
   agentsTrack,
@@ -366,6 +371,26 @@ export function validateCatalog(): ValidationIssue[] {
     }
   }
 
+  // Paths are pure curation over tracks, so the only way they can rot is by
+  // naming a track that has been renamed or removed.
+  const seenPathIds = new Set<string>();
+  for (const path of PATHS) {
+    if (seenPathIds.has(path.id)) err(path.id, 'Duplicate path id');
+    seenPathIds.add(path.id);
+    if (path.trackIds.length === 0) warn(path.id, 'Path contains no tracks');
+    const seenInPath = new Set<string>();
+    for (const trackId of path.trackIds) {
+      if (!trackIds.has(trackId)) err(path.id, `Path references unknown track "${trackId}"`);
+      if (seenInPath.has(trackId)) warn(path.id, `Path lists track "${trackId}" twice`);
+      seenInPath.add(trackId);
+    }
+  }
+  // A track reachable from no path is a track nobody is ever routed to.
+  const routed = new Set(PATHS.flatMap((p) => p.trackIds));
+  for (const track of TRACKS) {
+    if (!routed.has(track.id)) warn(track.id, 'Track appears in no learning path');
+  }
+
   // Skills defined but never practised are dead weight in the radar chart.
   const practised = new Set(allExercises().flatMap((e) => e.skillIds));
   for (const skillId of SKILLS_BY_ID.keys()) {
@@ -410,3 +435,15 @@ export function catalogStats(): CatalogStats {
 export { SKILLS, SKILLS_BY_ID, getSkill } from './skills';
 export { ACHIEVEMENTS, evaluateAchievements } from './achievements';
 export { placementPool } from './placement-pool';
+export {
+  PATHS,
+  PATHS_BY_ID,
+  getPath,
+  pathProgress,
+  pathStats,
+  pathTracks,
+  pathsForTrack,
+  recommendPaths,
+  type PathProgress,
+  type PathStats,
+} from './paths';

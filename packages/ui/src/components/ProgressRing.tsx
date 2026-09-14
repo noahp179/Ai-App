@@ -106,23 +106,39 @@ export function ProgressRing({
         }}
       />
 
-      {/* Right half: sweeps the first 180°. */}
+      {/* Right half: sweeps the first 180°.
+          The rotation goes on the clipping window, not on the ring inside it —
+          a full ring is rotationally symmetric, so rotating the ring itself
+          changes nothing and the arc renders at a constant 50%. Rotating the
+          window carries its visible slice around the circle instead, which is
+          what actually sweeps. Origin is the circle's centre in both halves. */}
       <View style={[halfStyle, { left: size / 2 }]}>
-        <View style={{ width: size / 2, height: size, overflow: 'hidden' }}>
-          <View
-            style={[
-              arcStyle,
-              { left: -size / 2, transform: [{ rotate: `${rightRotation - 180}deg` }] },
-            ]}
-          />
+        <View
+          style={{
+            width: size / 2,
+            height: size,
+            overflow: 'hidden',
+            transform: [{ rotate: `${rightRotation - 180}deg` }],
+            transformOrigin: 'left center',
+          }}
+        >
+          <View style={[arcStyle, { left: -size / 2 }]} />
         </View>
       </View>
 
       {/* Left half: only engages past 180°. */}
       {leftRotation > 0 ? (
         <View style={[halfStyle, { left: 0 }]}>
-          <View style={{ width: size / 2, height: size, overflow: 'hidden' }}>
-            <View style={[arcStyle, { transform: [{ rotate: `${leftRotation}deg` }] }]} />
+          <View
+            style={{
+              width: size / 2,
+              height: size,
+              overflow: 'hidden',
+              transform: [{ rotate: `${leftRotation - 180}deg` }],
+              transformOrigin: 'right center',
+            }}
+          >
+            <View style={[arcStyle]} />
           </View>
         </View>
       ) : null}

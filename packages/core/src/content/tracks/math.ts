@@ -7,7 +7,7 @@
  */
 
 import type { Track } from '../../domain/types';
-import { concept, interactive, lesson, match, mcq, multi, numeric, shortAnswer, trueFalse } from '../builders';
+import { categorize, concept, interactive, lesson, match, mcq, multi, numeric, shortAnswer, trueFalse } from '../builders';
 
 export const mathTrack: Track = {
   id: 'track-math',
@@ -25,6 +25,9 @@ export const mathTrack: Track = {
     'Understand what a derivative tells an optimizer',
     'Apply Bayes’ theorem and reason about base rates',
     'Explain what cross-entropy measures',
+    'Read a matrix as a transformation and say what its principal directions mean',
+    'Choose between Euclidean distance and cosine similarity, and say why',
+    'Explain expected value, variance, and why models optimise in log space',
   ],
   units: [
     {
@@ -218,6 +221,314 @@ export const mathTrack: Track = {
             [0, 1, 2],
             ['sk-derivatives'],
             'The first three are correct. Zero gradient also occurs at maxima and saddle points — which is most flat points in high dimensions.',
+          ),
+        ],
+      },
+    },
+    // -----------------------------------------------------------------------
+    {
+      id: 'unit-math-2',
+      title: 'Matrices and Similarity',
+      description: 'What a matrix does to space, and how to measure closeness.',
+      lessons: [
+        lesson({
+          id: 'lesson-matrices',
+          title: 'Matrices as Transformations',
+          summary: 'Stop reading matrices as grids of numbers. They are functions.',
+          level: 'intermediate',
+          domain: 'math',
+          steps: [
+            concept(
+              'A matrix is a function on space',
+              'The grid-of-numbers picture is technically true and almost useless. The working picture is this: **a matrix takes a vector and returns a different vector.** It is a function, and matrix multiplication is function application.\n\nWhat kinds of function? Ones that keep the origin fixed and keep straight lines straight — rotations, scalings, shears, projections, and combinations of them.\n\nThe columns tell you everything. Multiply a matrix by `[1, 0]` and you get its first column; by `[0, 1]` and you get its second. **A matrix is fully described by where it sends the basis vectors**, because everything else follows by linearity.\n\nSo when a neural network layer multiplies by a weight matrix, it is not "mixing numbers". It is applying a learned linear transformation to the representation — rotating and stretching the space until the classes are easier to separate. The nonlinearity that follows is what lets the next layer bend space rather than just tilt it.',
+              {
+                keyTerms: [
+                  { term: 'Linear transformation', definition: 'A function that preserves straight lines and the origin. Every matrix is one.' },
+                  { term: 'Basis vectors', definition: 'The unit vectors along each axis. A matrix is defined by where it sends them.' },
+                ],
+              },
+            ),
+            mcq(
+              'A 2×2 matrix has columns `[0, 1]` and `[-1, 0]`. What does it do to a vector?',
+              [
+                'Scales it by 2',
+                'Rotates it 90° counter-clockwise',
+                'Projects it onto the x-axis',
+                'Leaves it unchanged',
+              ],
+              1,
+              ['sk-matrices'],
+              'The columns say where the basis vectors land: `[1, 0]` goes to `[0, 1]` and `[0, 1]` goes to `[-1, 0]`. Both have rotated a quarter turn counter-clockwise, so every vector does.',
+              'Ask where each basis vector ends up.',
+            ),
+            concept(
+              'Eigenvectors: the directions a matrix does not turn',
+              'Most vectors get both rotated and stretched. A few special ones only get **stretched** — they come out pointing the same way, just longer or shorter. Those are the matrix\'s **eigenvectors**, and the stretch factor for each is its **eigenvalue**.\n\n`A v = λ v` — applying the matrix is the same as multiplying by a single number.\n\nThis is not a curiosity. It is what **PCA** runs on. Take your data, build its covariance matrix, and find that matrix\'s eigenvectors: they are the directions along which the data varies, ordered by how much. The top eigenvector is the single direction that explains the most variance. Keep the top few and you have compressed the data while keeping most of its structure.\n\nThe same idea reappears as **spectral clustering**, as **PageRank** (the ranking is the top eigenvector of the link matrix), and in the stability analysis that tells you whether a recurrent network\'s activations will explode or die.',
+              {
+                keyTerms: [
+                  { term: 'Eigenvector', definition: 'A direction a matrix only scales, never rotates.' },
+                  { term: 'Eigenvalue', definition: 'The factor by which its eigenvector is scaled.' },
+                ],
+              },
+            ),
+            interactive(
+              'Find the direction of most variance',
+              'pca-projection',
+              'Rotate the projection axis and watch the variance of the projected points rise and fall. The angle that maximises it is the top eigenvector of the covariance matrix — PCA is nothing more than finding it.',
+            ),
+            mcq(
+              'PCA keeps the top two principal components of a 50-dimensional dataset. What has it kept?',
+              [
+                'The two original features with the largest values',
+                'The two directions in feature space along which the data varies most',
+                'The first two rows of the data',
+                'The two features most correlated with the label',
+              ],
+              1,
+              ['sk-eigenvectors', 'sk-dimensionality-reduction'],
+              'Principal components are directions, not original features — each is a weighted combination of all 50. And PCA never looks at the label, which is exactly why it can discard a low-variance direction that happened to be the one that mattered.',
+            ),
+            trueFalse(
+              'Matrix multiplication is commutative: `AB` always equals `BA`.',
+              false,
+              ['sk-matrices'],
+              'It is not. Rotating then stretching lands somewhere different from stretching then rotating. Order is meaning — which is why the order of layers in a network is not arbitrary.',
+            ),
+            numeric(
+              'You multiply a `(32 × 784)` batch by a `(784 × 128)` weight matrix, then by a `(128 × 10)` output matrix. How many columns does the final result have?',
+              10,
+              ['sk-matrices'],
+              '`(32 × 784) @ (784 × 128) → (32 × 128)`, then `(32 × 128) @ (128 × 10) → (32 × 10)`. The batch dimension of 32 rides through untouched; the feature dimension is what each layer reshapes.',
+            ),
+          ],
+        }),
+
+        lesson({
+          id: 'lesson-similarity',
+          title: 'Measuring Similarity',
+          summary: 'Euclidean or cosine? The choice changes what "similar" means.',
+          level: 'intermediate',
+          domain: 'math',
+          steps: [
+            concept(
+              'Two vectors, two questions',
+              'Given two vectors there are two different questions you might be asking, and they have different answers.\n\n**Euclidean distance** asks *how far apart are these points?* — straight-line distance, `√Σ(aᵢ − bᵢ)²`. Small means close.\n\n**Cosine similarity** asks *are these pointing the same way?* — the dot product divided by both lengths, which is exactly the cosine of the angle between them. It runs from 1 (same direction) through 0 (perpendicular) to −1 (opposite), and it **ignores magnitude entirely**.\n\nThe difference bites in practice. Take two documents about the same subject, one three times longer. Their word-count vectors point in nearly the same direction but sit far apart in Euclidean space. Cosine says "the same topic". Euclidean says "very different documents". For topic search, cosine is the question you meant to ask.',
+              {
+                keyTerms: [
+                  { term: 'Cosine similarity', definition: 'Dot product normalised by both lengths. Measures direction, not magnitude.' },
+                  { term: 'Euclidean distance', definition: 'Straight-line distance. Sensitive to magnitude.' },
+                ],
+              },
+            ),
+            mcq(
+              'Why do embedding search systems almost always rank by cosine similarity rather than Euclidean distance?',
+              [
+                'Cosine is faster to compute',
+                'Meaning is carried by direction in embedding space; magnitude mostly reflects things like length and frequency',
+                'Euclidean distance does not work in high dimensions',
+                'Cosine similarity is bounded and Euclidean is not',
+              ],
+              1,
+              ['sk-cosine-similarity'],
+              'Direction encodes what the text is about; magnitude tends to track incidental properties. Rank by cosine and a one-line question can match a long document that answers it. (Once vectors are length-normalised the two rankings agree exactly — which is why vector databases normalise on write and then use a plain dot product.)',
+            ),
+            interactive(
+              'Move through embedding space',
+              'embedding-space',
+              'Drag a point around and watch which neighbours it picks up. Notice that the nearest words change with direction, not with how far from the origin you drag.',
+            ),
+            numeric(
+              'What is the cosine similarity of `[3, 4]` and `[6, 8]`?',
+              1,
+              ['sk-cosine-similarity'],
+              'The second vector is exactly twice the first, so they point the same way: cosine 1. Their Euclidean distance, meanwhile, is 5 — not small at all. Same direction, different magnitude, and the two measures disagree completely.',
+              { tolerance: 0.01, hint: 'Look at the two vectors before computing anything.' },
+            ),
+            match(
+              'Match each task to the measure that fits it.',
+              [
+                { left: 'Ranking documents by topic, regardless of length', right: 'Cosine similarity' },
+                { left: 'Finding the nearest weather station to a farm', right: 'Euclidean distance' },
+                { left: 'Grouping customers by absolute spend', right: 'Euclidean distance' },
+                { left: 'Matching a short question to a long answer', right: 'Cosine similarity' },
+              ],
+              ['sk-cosine-similarity', 'sk-vectors'],
+              'The rule of thumb: if magnitude is part of what you mean by different, use Euclidean. If it is noise, use cosine.',
+            ),
+            trueFalse(
+              'If two vectors are length-normalised, ranking by cosine similarity and ranking by Euclidean distance give the same order.',
+              true,
+              ['sk-cosine-similarity'],
+              'True, and it is why vector databases normalise on write. On the unit sphere, `d² = 2 − 2·cos`, a strictly decreasing function of cosine — so the orderings are identical and you can use whichever the hardware computes faster.',
+            ),
+          ],
+        }),
+      ],
+    },
+
+    // -----------------------------------------------------------------------
+    {
+      id: 'unit-math-3',
+      title: 'Uncertainty and Optimization',
+      description: 'Expectations, variance, and why everything is done in log space.',
+      lessons: [
+        lesson({
+          id: 'lesson-expectation',
+          title: 'Expected Value and Variance',
+          summary: 'The average outcome, and how much you should trust it.',
+          level: 'intermediate',
+          domain: 'math',
+          steps: [
+            concept(
+              'The long-run average',
+              '**Expected value** is the probability-weighted average of the outcomes: `E[X] = Σ P(x) · x`. It is what you would get per trial if you ran the thing forever.\n\nA bet paying £10 on a fair coin and losing £4 otherwise has `E = 0.5 × 10 + 0.5 × (−4) = £3`. Worth taking, on repeat.\n\nThe catch is that the expected value need not be an outcome that can ever happen — the expected number of heads in one flip is 0.5 — and it says nothing at all about the spread. That is what **variance** is for: `Var(X) = E[(X − E[X])²]`, the average squared distance from the mean. Standard deviation is its square root, back in the original units.\n\nTwo models can share a validation accuracy of 84% and be completely different products: one at 84% ± 1% across folds, one at 84% ± 12%. Report the mean without the variance and you have hidden the only number that told you whether the result was real.',
+              {
+                keyTerms: [
+                  { term: 'Expected value', definition: 'The probability-weighted mean of a random variable.' },
+                  { term: 'Variance', definition: 'Average squared deviation from the mean. Its square root is the standard deviation.' },
+                ],
+              },
+            ),
+            numeric(
+              'A model earns £5 when it is right and costs £20 when it is wrong. It is right 80% of the time. What is the expected value per prediction, in pounds?',
+              0,
+              ['sk-expectation'],
+              '`0.8 × 5 + 0.2 × (−20) = 4 − 4 = 0`. Break-even. An 80%-accurate model sounds good and is worth exactly nothing here, because the cost of an error is four times the value of a success. Accuracy without the cost matrix is not a business case.',
+              { unit: '£', hint: 'Weight each outcome by how often it happens.' },
+            ),
+            concept(
+              'Variance is where bias–variance comes from',
+              'The bias–variance decomposition you meet in machine learning is this same variance, applied to the model itself.\n\nImagine retraining your model on many different samples of the data. **Bias** is how far the average prediction lands from the truth — error from the model being too simple to represent the pattern. **Variance** is how much the prediction jumps around between those retrainings — error from the model chasing the noise in whichever sample it got.\n\nA deep tree grown to purity has near-zero bias and enormous variance: a different sample gives a different tree. A straight line fitted to a curve has low variance and stubborn bias: every sample gives roughly the same wrong answer.\n\n**Random forests attack variance** — average many high-variance trees and the noise cancels while the signal survives. **Boosting attacks bias** — add small models that each fix what the current ensemble gets wrong. Knowing which one your error is made of tells you which fix to reach for.',
+              { figure: 'overfitting-curves' },
+            ),
+            interactive(
+              'Slide model complexity',
+              'bias-variance',
+              'Move complexity from underfit to overfit and watch training error fall monotonically while test error turns around. The turning point is where added variance starts costing more than the removed bias was worth.',
+            ),
+            mcq(
+              'Five-fold cross-validation gives accuracies of 91%, 62%, 88%, 59%, and 90%. What should you conclude?',
+              [
+                'The model is 78% accurate — report the mean and move on',
+                'The variance is huge; the mean is not trustworthy and something differs between folds',
+                'The model is definitely overfitting',
+                'Two folds are corrupted and should be dropped',
+              ],
+              1,
+              ['sk-expectation', 'sk-cross-validation'],
+              'A 30-point spread means the estimate is unstable. Report it and investigate — a bimodal split like this usually means the folds are not exchangeable: a grouping leaked across them, or the data is ordered in time and two folds got a different regime.',
+            ),
+            categorize(
+              'Sort each remedy by whether it mainly reduces bias or variance.',
+              ['Reduces bias', 'Reduces variance'],
+              [
+                { item: 'Add features or increase model capacity', category: 'Reduces bias' },
+                { item: 'Gradient boosting', category: 'Reduces bias' },
+                { item: 'Train on more data', category: 'Reduces variance' },
+                { item: 'Bagging / random forests', category: 'Reduces variance' },
+                { item: 'Stronger L2 regularization', category: 'Reduces variance' },
+              ],
+              ['sk-bias-variance', 'sk-expectation'],
+              'Capacity and boosting close the gap between the model and the truth. More data, averaging, and regularization all stop the model from chasing the particular noise in its sample.',
+            ),
+          ],
+        }),
+
+        lesson({
+          id: 'lesson-log-space',
+          title: 'Why Everything Happens in Log Space',
+          summary: 'Multiply a thousand probabilities and you get zero. Logs are the fix.',
+          level: 'intermediate',
+          domain: 'math',
+          steps: [
+            concept(
+              'Probabilities underflow',
+              'A language model assigns a probability to each token. The probability of a 1,000-token document is the product of a thousand numbers, each well below 1.\n\nTry it: `0.1¹⁰⁰⁰` is about `10⁻¹⁰⁰⁰`. The smallest positive number a 64-bit float can hold is around `10⁻³⁰⁸`. So the true answer is not small — it is **zero**, as far as the hardware is concerned, and every document scores identically.\n\nTake logs and the product becomes a sum: `log(a × b) = log a + log b`. A thousand log-probabilities, each around −2.3, sum to about −2,300. Perfectly representable, and order-preserving — because `log` is monotonic, whichever document had the higher probability still has the higher log-probability.\n\nThis is why you see `log_softmax`, `logsumexp`, and negative log-likelihood everywhere instead of the "obvious" versions. It is not mathematical taste. The obvious version returns zero.',
+              {
+                keyTerms: [
+                  { term: 'Log-probability', definition: 'The logarithm of a probability. Always ≤ 0; sums where probabilities would multiply.' },
+                  { term: 'Underflow', definition: 'A number too small for the float format, silently rounded to zero.' },
+                ],
+              },
+            ),
+            mcq(
+              'Why is the loss called *negative* log-likelihood?',
+              [
+                'Because the model is being penalised',
+                'Because log-probabilities are always ≤ 0, so negating turns "maximise likelihood" into "minimise a positive number"',
+                'Because gradients must be negative',
+                'Because the likelihood is subtracted from 1',
+              ],
+              1,
+              ['sk-log-probability'],
+              'Probabilities live in [0, 1], so their logs are ≤ 0. Negating gives a non-negative quantity that is zero for a perfect prediction and grows without bound as the model gets more confidently wrong — exactly the shape an optimizer wants to minimise.',
+            ),
+            numeric(
+              'A model assigns probability 0.5 to each of 3 tokens. What is the total log-probability, using log base 2?',
+              -3,
+              ['sk-log-probability'],
+              '`log₂(0.5) = −1` for each token, and logs add: `−1 + −1 + −1 = −3`. In base 2 the units are bits, so this sequence costs 3 bits to encode — which is exactly what cross-entropy measures.',
+              { tolerance: 0.01 },
+            ),
+            concept(
+              'Maximum likelihood is cross-entropy',
+              'Here is the connection that makes the whole training objective click.\n\nYou want parameters that make the observed data as likely as possible — **maximum likelihood**. Write that down, take the log so the product becomes a sum, and negate so it is a minimisation:\n\n`minimise −(1/N) Σ log P(yᵢ | xᵢ)`\n\nThat expression *is* the cross-entropy between the true distribution (all mass on the observed label) and the model\'s predicted distribution. They are not analogous. They are the same formula reached from two directions — one from statistics, one from information theory.\n\nSo when you train a classifier with cross-entropy loss, you are doing maximum likelihood estimation. When a language model reports **perplexity**, that is `e` raised to the same number. One quantity, three names, depending on who is talking.',
+            ),
+            interactive(
+              'Watch uncertainty become a number',
+              'entropy-explorer',
+              'Drag the predicted distribution away from the truth and watch cross-entropy climb. Put all the mass on the right answer and it falls to zero — that is a loss of nothing left to learn.',
+            ),
+            match(
+              'Match each name to the field it comes from.',
+              [
+                { left: 'Negative log-likelihood', right: 'Statistics' },
+                { left: 'Cross-entropy', right: 'Information theory' },
+                { left: 'Perplexity', right: 'Language modelling' },
+                { left: 'Log loss', right: 'Applied machine learning' },
+              ],
+              ['sk-log-probability', 'sk-entropy'],
+              'Four names, one quantity (perplexity being its exponential). Papers switch between them without comment, so it is worth being able to read all four as the same thing.',
+            ),
+            shortAnswer(
+              'Why can you not simply multiply token probabilities to score a long document?',
+              ['underflow', 'zero', 'small', 'float', 'log'],
+              'Each probability is below 1, so the product shrinks geometrically. After a few hundred tokens it falls below the smallest representable float and underflows to zero, making every document score the same. Summing log-probabilities gives the same ordering in a range the hardware can hold.',
+              ['sk-log-probability'],
+              'The failure is silent — you get zeros, not an error — which is what makes it worth recognising before you hit it.',
+            ),
+          ],
+        }),
+      ],
+      checkpoint: {
+        id: 'checkpoint-math-3',
+        title: 'Math Checkpoint II',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'What does the top principal component of a dataset represent?',
+            [
+              'The feature most correlated with the target',
+              'The direction in feature space along which the data varies most',
+              'The average of all features',
+              'The feature with the largest raw values',
+            ],
+            1,
+            ['sk-eigenvectors'],
+            'It is the top eigenvector of the covariance matrix — a direction, built from all features, chosen without ever seeing the label.',
+          ),
+          numeric(
+            'A prediction wins £8 when right and loses £2 when wrong, and is right 60% of the time. Expected value per prediction, in pounds?',
+            4,
+            ['sk-expectation'],
+            '`0.6 × 8 + 0.4 × (−2) = 4.8 − 0.8 = £4`.',
+            { unit: '£', tolerance: 0.01 },
+          ),
+          trueFalse(
+            'Minimising cross-entropy loss and maximising likelihood are two names for the same optimization.',
+            true,
+            ['sk-log-probability', 'sk-entropy'],
+            'True. Take the log of the likelihood, negate it, and you have written cross-entropy.',
           ),
         ],
       },

@@ -1,7 +1,7 @@
 /** Track 6 — Generative AI Beyond Text. Intermediate → expert. */
 
 import type { Track } from '../../domain/types';
-import { concept, interactive, lesson, match, mcq, multi, order, shortAnswer, trueFalse } from '../builders';
+import { concept, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const generativeAiTrack: Track = {
   id: 'track-generative-ai',
@@ -19,6 +19,9 @@ export const generativeAiTrack: Track = {
     'Describe the diffusion process forwards and backwards',
     'Explain how text conditions image generation',
     'Reason about deepfakes, provenance, and creative rights',
+    'Explain what a latent space is and why a VAE can sample from one',
+    'Say why diffusion displaced GANs despite comparable sample quality',
+    'Predict what guidance, seeds, and step count will change',
   ],
   units: [
     {
@@ -241,6 +244,268 @@ export const generativeAiTrack: Track = {
           ),
         ],
       },
+    },
+    // -----------------------------------------------------------------------
+    {
+      id: 'unit-gen-2',
+      title: 'Latent Space',
+      description: 'Compress to a code, then generate from it.',
+      lessons: [
+        lesson({
+          id: 'lesson-autoencoders',
+          title: 'Autoencoders and VAEs',
+          summary: 'Squeeze an image through a bottleneck and something useful happens.',
+          level: 'intermediate',
+          domain: 'generative-ai',
+          steps: [
+            concept(
+              'The bottleneck does the work',
+              'An **autoencoder** is two networks bolted together. The **encoder** compresses an input into a small vector; the **decoder** tries to rebuild the original from that vector alone. Train it to minimise reconstruction error and you are, on the face of it, teaching a network to copy its input — a pointless objective.\n\nExcept for the bottleneck. If the code is 64 numbers and the image is 65,536 pixels, copying is impossible. The only way to reconstruct well is to **discover what actually varies in the data** and spend the 64 numbers on that. Pose, lighting, identity — the factors that matter — rather than per-pixel noise.\n\nThe code is called the **latent vector** and the space it lives in is the **latent space**. This is the same idea as embeddings, arrived at from a different direction: a compressed representation where distance means something.\n\nPlain autoencoders are excellent at compression, denoising, and anomaly detection — reconstruct a fraud transaction with a model trained only on normal ones and the error spikes. What they are bad at is **generation**, and understanding why is the point of the next section.',
+              {
+                keyTerms: [
+                  { term: 'Latent vector', definition: 'The compressed code an encoder produces. Its dimensions are learned factors of variation.' },
+                  { term: 'Reconstruction error', definition: 'How far the decoded output is from the original input.' },
+                ],
+              },
+            ),
+            mcq(
+              'Why does a bottleneck force an autoencoder to learn something useful?',
+              [
+                'It makes training faster',
+                'The code is too small to copy the input, so the network must encode only what varies meaningfully',
+                'It prevents the gradients from vanishing',
+                'It adds noise that acts as regularization',
+              ],
+              1,
+              ['sk-latent-space'],
+              'Capacity is the constraint that creates the learning. Remove the bottleneck — make the code as large as the input — and the network learns the identity function, which is perfectly accurate and tells you nothing.',
+            ),
+            concept(
+              'Why a plain autoencoder cannot generate',
+              'The obvious next step is to pick a random latent vector, decode it, and get a new face. It does not work, and the reason is instructive.\n\nA plain autoencoder is only trained to decode the specific codes its encoder produced. Those codes cluster in isolated islands with **arbitrary gaps between them**. Sample a point in a gap and the decoder has never seen anything like it — you get noise. Interpolate between two faces and you pass through that same unmapped territory, producing a blurry mess rather than a plausible in-between face.\n\nA **variational autoencoder** fixes this by changing what the encoder outputs. Instead of a single point it produces a **distribution** — a mean and a variance — and the latent is sampled from it. Two terms in the loss then fight each other productively: reconstruction error pulls codes apart so they stay distinguishable, while a **KL divergence** term pulls the whole cloud toward a standard normal distribution.\n\nThe result is a latent space that is *continuous and densely covered*. Sampling from a standard normal now lands somewhere the decoder understands, and interpolation passes through valid faces the whole way.\n\nThe cost is the trade everyone notices: VAE samples are blurrier than GAN or diffusion samples, because averaging over a distribution smooths detail. Which is why modern image generators use a VAE not as the generator but as the **compressor** — Stable Diffusion runs its diffusion process in a VAE latent space, roughly 48× smaller than pixels, and that is most of why it runs on a consumer GPU.',
+              {
+                keyTerms: [
+                  { term: 'VAE', definition: 'An autoencoder whose encoder outputs a distribution, regularised toward a standard normal.' },
+                  { term: 'KL divergence', definition: 'A measure of how far one distribution is from another. Here, the regulariser that makes the latent space continuous.' },
+                ],
+              },
+            ),
+            mcq(
+              'What does the KL term in a VAE’s loss actually buy you?',
+              [
+                'Sharper reconstructions',
+                'A latent space with no gaps, so random samples and interpolations decode to plausible outputs',
+                'Faster convergence',
+                'Smaller model size',
+              ],
+              1,
+              ['sk-vae'],
+              'It shapes the latent distribution to match a standard normal, filling in the gaps a plain autoencoder leaves. It actively costs you sharpness — that is the trade — but without it you cannot sample at all.',
+            ),
+            match(
+              'Match each model to what it is best at.',
+              [
+                { left: 'Detecting transactions unlike anything in training', right: 'Plain autoencoder' },
+                { left: 'Sampling new faces from random noise', right: 'VAE' },
+                { left: 'Compressing images so diffusion can run cheaply', right: 'VAE encoder' },
+                { left: 'Removing sensor noise from a signal', right: 'Denoising autoencoder' },
+              ],
+              ['sk-vae', 'sk-latent-space'],
+              'The compression role is the one that actually ships at scale — nearly every latent diffusion model has a VAE doing exactly that job.',
+            ),
+            trueFalse(
+              'Interpolating between two latent vectors in a well-trained VAE produces a smooth sequence of plausible outputs.',
+              true,
+              ['sk-latent-space'],
+              'That is the property the KL term is there to create. The same interpolation in a plain autoencoder crosses unmapped regions and degenerates into noise part-way.',
+            ),
+          ],
+        }),
+
+        lesson({
+          id: 'lesson-gans',
+          title: 'GANs and Adversarial Training',
+          summary: 'Two networks in a contest — brilliant output, miserable training.',
+          level: 'expert',
+          domain: 'generative-ai',
+          steps: [
+            concept(
+              'A forger and a detective',
+              'A **generative adversarial network** is a game between two networks.\n\nThe **generator** turns random noise into a fake image. The **discriminator** is shown a mix of real and fake images and has to say which is which. The discriminator trains to classify correctly; the generator trains to make the discriminator wrong.\n\nNeither is told what a good image looks like. There is no reconstruction loss, no target to match. **The generator\'s only feedback is another network\'s opinion**, and that opinion gets sharper as it trains — so the bar rises continuously. At the theoretical optimum the generator matches the data distribution and the discriminator is reduced to guessing at 50%.\n\nThat design is why GAN output was, for years, dramatically sharper than anything else. A reconstruction loss averages over possibilities and produces blur. A discriminator does not average — it says *this specific image looks wrong*, and blurry images look very wrong indeed.',
+              { keyTerms: [{ term: 'Adversarial training', definition: 'Two networks optimising opposing objectives, each improving because the other does.' }] },
+            ),
+            mcq(
+              'Why is GAN output typically sharper than a VAE’s?',
+              [
+                'GANs use more parameters',
+                'A discriminator penalises implausible-looking images; a reconstruction loss averages over possibilities and produces blur',
+                'GANs train on higher-resolution data',
+                'VAEs cannot use convolutions',
+              ],
+              1,
+              ['sk-gan', 'sk-vae'],
+              'Averaging is what produces blur. Faced with several plausible completions, a pixel-wise loss splits the difference and gets a smear; a discriminator rejects the smear outright because no real image looks like it.',
+            ),
+            concept(
+              'Why GANs are so hard to train',
+              'The elegance has a price, and it is steep.\n\n**Mode collapse.** The generator finds one output that fools the discriminator and produces variations of it forever. Ask for a thousand faces, get a thousand near-identical faces. The loss looks fine — it genuinely is fooling the discriminator — while diversity has quietly gone to zero.\n\n**Non-convergence.** The two losses are coupled, so neither going down means progress. A falling generator loss might mean it improved, or it might mean the discriminator got worse. **You cannot read a GAN\'s training curve the way you read a normal one**, which removes the main instrument you use to tell whether training is working.\n\n**Imbalance.** If the discriminator gets too good too fast it rejects everything with near-total confidence, the gradient it passes back vanishes, and the generator stops learning. Too weak and it provides no useful signal. The balance has to be maintained throughout.\n\nA decade of fixes followed — Wasserstein loss, gradient penalties, spectral normalisation, progressive growing — and they help. But the honest summary is that GANs were displaced for image generation not because they produced worse images but because **diffusion models train with a stable, readable loss**. A method that reliably works beats a method that sometimes works better.',
+            ),
+            mcq(
+              'A GAN’s generator loss is falling steadily. What can you conclude?',
+              [
+                'The generated images are getting better',
+                'Very little — the loss is relative to a discriminator that is also changing',
+                'Training has converged',
+                'The discriminator has collapsed',
+              ],
+              1,
+              ['sk-gan'],
+              'Both losses are defined against a moving opponent, so neither is an absolute measure of quality. GAN progress has to be judged by looking at samples, or by a separate metric like FID computed against real data.',
+            ),
+            multi(
+              'Which are genuine GAN failure modes? (Select all)',
+              [
+                'Mode collapse: the generator produces near-identical outputs',
+                'Vanishing generator gradients when the discriminator becomes too strong',
+                'The generator memorising the training set and overfitting the reconstruction loss',
+                'Training oscillating indefinitely without converging',
+              ],
+              [0, 1, 3],
+              ['sk-gan'],
+              'The third is not a GAN failure — there is no reconstruction loss in a GAN at all. That absence is exactly what gives GANs their sharpness and costs them their stability.',
+            ),
+            shortAnswer(
+              'Why did diffusion models largely displace GANs for image generation despite GANs producing excellent samples?',
+              ['stable', 'training', 'loss', 'diversity', 'mode collapse', 'reliable'],
+              'Diffusion models train with a simple, stable denoising objective whose loss actually reflects progress, and they cover the data distribution rather than collapsing onto a few modes. GANs can match or beat them on sample quality but need careful balancing to train at all, and their loss curves cannot tell you whether it is working.',
+              ['sk-gan', 'sk-diffusion'],
+              'The lesson generalises well beyond GANs: in practice, a method that trains reliably usually wins over one with a higher ceiling and a worse floor.',
+            ),
+          ],
+        }),
+      ],
+    },
+
+    // -----------------------------------------------------------------------
+    {
+      id: 'unit-gen-3',
+      title: 'More Than One Modality',
+      description: 'Putting images and text in the same space, and steering what comes out.',
+      lessons: [
+        lesson({
+          id: 'lesson-clip',
+          title: 'CLIP and Shared Embedding Spaces',
+          summary: 'Train on 400 million captions and pictures start landing next to their descriptions.',
+          level: 'expert',
+          domain: 'generative-ai',
+          steps: [
+            concept(
+              'One space, two encoders',
+              '**CLIP** trains two encoders at once — one for images, one for text — with a single objective: *put an image and its real caption close together, and everything else far apart.*\n\nThe training signal is free. Scrape hundreds of millions of image–caption pairs from the web; no human ever labels a class. Each batch gives you N correct pairings and N² − N incorrect ones, and the **contrastive loss** pushes them apart. That is the whole idea.\n\nWhat falls out is a **shared embedding space** where a photo of a dog and the string "a photo of a dog" land near each other. Once you have that, several things become possible that previously needed dedicated models:\n\n- **Zero-shot classification.** Embed the image, embed `"a photo of a {label}"` for every candidate label, take the nearest. New classes cost a string, not a retraining run.\n- **Semantic image search.** Embed the query text, find the nearest image vectors.\n- **Conditioning generators.** Text-to-image models use CLIP-style text embeddings as the signal that tells the generator what to draw.\n\nThe limitations are worth knowing too: CLIP inherits the biases and the noise of web captions, it is weak on counting and spatial relations ("three cats to the left of a box"), and it can be fooled by text written inside the image — photograph an apple with a label reading "iPod" and it may well say iPod.',
+              {
+                keyTerms: [
+                  { term: 'Contrastive learning', definition: 'Training by pulling matched pairs together and pushing mismatched pairs apart.' },
+                  { term: 'Zero-shot classification', definition: 'Classifying into categories the model was never explicitly trained on.' },
+                ],
+              },
+            ),
+            mcq(
+              'How does CLIP classify an image into a category it was never trained on?',
+              [
+                'It fine-tunes on a few examples of the new category',
+                'It embeds candidate label sentences and returns whichever is nearest the image embedding',
+                'It searches the training set for a similar image',
+                'It uses a separate classifier head per category',
+              ],
+              1,
+              ['sk-clip-multimodal'],
+              'Both modalities live in one space, so a label becomes a point in that space just like an image does. Classification reduces to nearest-neighbour — and adding a category costs you one sentence, not a training run.',
+            ),
+            interactive(
+              'Move through a shared space',
+              'embedding-space',
+              'Drag a point and watch which neighbours it acquires. A multimodal space works the same way, except the neighbours can be images or text — which is precisely what makes search across modalities possible.',
+            ),
+            multi(
+              'Which are real weaknesses of CLIP-style models? (Select all)',
+              [
+                'Poor at counting objects and at spatial relations',
+                'Inherits biases present in web captions',
+                'Cannot be used without labelled training data',
+                'Can be misled by text rendered inside the image',
+              ],
+              [0, 1, 3],
+              ['sk-clip-multimodal'],
+              'The third is backwards — needing no labelled data is CLIP\'s defining advantage. The other three are well-documented failures, and the typographic attack in the last one is a genuinely striking demonstration of how shallow the grounding can be.',
+            ),
+            trueFalse(
+              'CLIP requires a human-labelled dataset of images and categories.',
+              false,
+              ['sk-clip-multimodal'],
+              'It trains on image–caption pairs harvested from the web. The caption someone already wrote is the supervision, which is what let the training set reach hundreds of millions of pairs.',
+            ),
+          ],
+        }),
+
+        lesson({
+          id: 'lesson-text-to-image',
+          title: 'Text to Image in Practice',
+          summary: 'How the prompt actually steers the noise — and what the knobs do.',
+          level: 'intermediate',
+          domain: 'generative-ai',
+          steps: [
+            concept(
+              'Four pieces, assembled',
+              'A modern text-to-image system is four components, and knowing which is which makes the failure modes legible.\n\n1. **A text encoder** turns the prompt into embeddings — usually CLIP-style, sometimes a full language model.\n2. **A VAE encoder/decoder** moves between pixels and a much smaller latent space. Diffusion runs in the latent, which is roughly 48× cheaper than running it in pixels.\n3. **A denoising network** (a U-Net or a transformer) predicts the noise to remove at each step, *conditioned on the text embedding* through cross-attention.\n4. **A scheduler** decides how many steps to take and how much noise to remove at each one.\n\nGeneration starts from pure random noise in latent space and runs the denoiser 20–50 times, each pass conditioned on the prompt, each one removing a little more noise. The VAE decoder turns the final latent into pixels.\n\nThe conditioning is the part worth dwelling on: **the prompt does not describe a target image, it biases every denoising step.** That is why prompts influence composition and style so pervasively, and why a single word can change an entire image rather than one region of it.',
+              { figure: 'diffusion-steps' },
+            ),
+            interactive(
+              'Run the denoiser',
+              'diffusion-denoise',
+              'Step from pure noise to a finished image one pass at a time. Notice that the early steps decide composition and the late ones decide detail — which is why prompt changes that affect layout have to be there from the start.',
+            ),
+            concept(
+              'Guidance: how hard to push',
+              '**Classifier-free guidance** is the main quality knob, and it works by running the denoiser twice per step — once with the prompt, once without — and then extrapolating *away* from the unconditioned prediction:\n\n`prediction = uncond + scale × (cond − uncond)`\n\nAt `scale = 1` you get the plain conditional model. Raise it and you amplify whatever the prompt contributed, pushing the image further toward the text and away from the model\'s generic tendencies.\n\nThe trade is sharp and visible. **Too low** (1–3) and the image ignores parts of the prompt and looks washed out. **Around 7–8** is the usual sweet spot for photographic models. **Too high** (15+) and images become oversaturated, high-contrast and weirdly rigid — the model is being pushed so far from its natural distribution that it exits the region of plausible images.\n\nThe other knobs are simpler. **Steps** trade compute for detail with sharply diminishing returns past ~30. **Seed** fixes the starting noise, which is what makes a generation reproducible — same seed, same prompt, same settings, same image. **Negative prompts** replace the empty unconditioned input with something you want to move away from, which is why "blurry, watermark" in a negative prompt does real work rather than being superstition.',
+              {
+                keyTerms: [
+                  { term: 'Classifier-free guidance', definition: 'Extrapolating away from the unconditioned prediction to strengthen the prompt’s influence.' },
+                  { term: 'Seed', definition: 'The random initial noise. Fixing it makes a generation reproducible.' },
+                ],
+              },
+            ),
+            mcq(
+              'Images come out oversaturated, over-contrasted, and rigid. Which setting is the likely cause?',
+              [
+                'Too few denoising steps',
+                'Guidance scale set far too high',
+                'The seed is fixed',
+                'The VAE decoder is mismatched',
+              ],
+              1,
+              ['sk-guidance'],
+              'High guidance extrapolates aggressively away from the unconditional prediction, which pushes the sample outside the distribution of real images. The signature is exactly this: blown-out colour, crushed contrast, and a strangely posed stiffness.',
+            ),
+            numeric(
+              'Classifier-free guidance requires how many forward passes of the denoising network per step?',
+              2,
+              ['sk-guidance'],
+              'Two — one conditioned on the prompt and one unconditioned — which is why enabling guidance roughly doubles generation cost. Some implementations batch the pair together, but the compute is still 2×.',
+            ),
+            match(
+              'Match each knob to what it controls.',
+              [
+                { left: 'How strongly the prompt overrides the model’s defaults', right: 'Guidance scale' },
+                { left: 'Reproducibility of a generation', right: 'Seed' },
+                { left: 'Detail versus generation time', right: 'Number of steps' },
+                { left: 'What the image should move away from', right: 'Negative prompt' },
+              ],
+              ['sk-text-to-image', 'sk-guidance'],
+              'Fixing the seed and varying one knob at a time is the only way to tell what a change actually did — otherwise you are comparing two different random draws.',
+            ),
+          ],
+        }),
+      ],
     },
   ],
 };

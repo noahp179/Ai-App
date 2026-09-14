@@ -25,6 +25,9 @@ export const dataEngineeringTrack: Track = {
     'Handle missing data based on why it is missing',
     'Detect and treat outliers appropriately',
     'Judge labelling quality and measure annotator agreement',
+    'Choose augmentations that preserve the label in your domain',
+    'Pick the right lever for class imbalance, starting with the threshold',
+    'Name the four kinds of leakage and catch each one',
   ],
   units: [
     {
@@ -442,6 +445,303 @@ print(cyclical(0), cyclical(23))`,
             -20,
             ['sk-outliers'],
             'IQR = 20. Lower fence = 10 − 1.5 × 20 = −20.',
+          ),
+        ],
+      },
+    },
+    // -----------------------------------------------------------------------
+    {
+      id: 'unit-data-2',
+      title: 'Getting Data At All',
+      description: 'Before you engineer a feature, something has to produce the rows.',
+      lessons: [
+        lesson({
+          id: 'lesson-data-sourcing',
+          title: 'Where Training Data Comes From',
+          summary: 'Five sources, each with a different failure mode attached.',
+          level: 'intro',
+          domain: 'data',
+          steps: [
+            concept(
+              'Five sources, five kinds of trouble',
+              'Almost every dataset comes from one of five places, and each carries a characteristic problem.\n\n**Product logs.** Free, huge, and exactly matched to your distribution — but only records what users did *given the product you already had*. A recommender trained on click logs learns what your current ranking showed people, not what they would have liked. This is the feedback loop problem and it is the most common one.\n\n**Human annotation.** Precise and expensive, and only as good as the guideline. Two annotators reading the same instruction differently is not noise you can average away; it is a specification bug.\n\n**Purchased or licensed data.** Fast, and someone else owns the provenance. If you cannot say where a row originated, you cannot answer a deletion request or a rights claim about it.\n\n**Public and scraped data.** Cheap and legally fraught. Robots.txt, terms of service, copyright, and personal data all apply, and "it was on the internet" is not a licence.\n\n**Synthetic data.** Unlimited and unreal, covered in the next lesson.\n\nThe unglamorous discipline that makes all of these workable is **provenance**: for every row, where it came from, when, under what licence, and with whose consent. Retrofit it after a year of collection and you will find you cannot.',
+              {
+                figure: 'feature-pipeline',
+                keyTerms: [
+                  { term: 'Provenance', definition: 'The recorded origin, licence, and consent basis of each piece of data.' },
+                  { term: 'Feedback loop', definition: 'When a model’s outputs shape the data used to train its successor.' },
+                ],
+              },
+            ),
+            mcq(
+              'A recommender is retrained on clicks it generated. What goes wrong over successive versions?',
+              [
+                'Nothing — click data is the most honest signal available',
+                'It narrows: items the model never showed get no clicks, so they look bad and stay hidden',
+                'The model overfits to the loss function',
+                'Latency grows with each retrain',
+              ],
+              1,
+              ['sk-data-sourcing'],
+              'The model only ever sees feedback on what it chose to show. Unshown items accumulate no evidence, look unpopular by omission, and stay unshown. The standard mitigations are explicit exploration — show some random or uncertain items on purpose — and logging the propensity of each impression so you can correct for it later.',
+            ),
+            categorize(
+              'Sort each dataset problem by the source it most characteristically comes from.',
+              ['Product logs', 'Human annotation', 'Scraped data'],
+              [
+                { item: 'Only reflects options the old system chose to show', category: 'Product logs' },
+                { item: 'Two labellers disagree because the guideline was ambiguous', category: 'Human annotation' },
+                { item: 'Unclear whether you have the right to use it commercially', category: 'Scraped data' },
+                { item: 'Contains personal data nobody consented to share', category: 'Scraped data' },
+                { item: 'Expensive enough that the set stays small', category: 'Human annotation' },
+              ],
+              ['sk-data-sourcing', 'sk-data-labelling'],
+              'Knowing the source tells you which failure to go looking for first — and which one your evaluation is least likely to reveal on its own.',
+            ),
+            trueFalse(
+              'Data that is publicly accessible on the web is legally free to use for training.',
+              false,
+              ['sk-data-sourcing'],
+              'Accessible is not the same as licensed. Copyright, site terms, database rights, and data-protection law all continue to apply, and they vary by jurisdiction. Record the licence at collection time — reconstructing it later across millions of rows is not realistic.',
+            ),
+            shortAnswer(
+              'Why must provenance be recorded at collection time rather than reconstructed later?',
+              ['deletion', 'licence', 'consent', 'origin', 'audit', 'cannot'],
+              'Because the information only exists at the moment of collection. Once rows are merged, deduplicated and transformed, there is no way to recover which source, licence or consent basis each one came under — so you cannot honour a deletion request, answer a rights claim, or prove your training set is clean.',
+              ['sk-data-sourcing'],
+              'This is the single cheapest thing to do early and the most expensive to fix late.',
+            ),
+          ],
+        }),
+
+        lesson({
+          id: 'lesson-synthetic-data',
+          title: 'Synthetic and Augmented Data',
+          summary: 'Manufacturing examples — and the trap of training on your own output.',
+          level: 'intermediate',
+          domain: 'data',
+          steps: [
+            concept(
+              'Augmentation teaches invariance',
+              'Augmentation is not "more data". It is a way of **telling the model which changes should not change the answer.**\n\nFlip a photo of a cat horizontally and it is still a cat, so a flipped copy teaches horizontal invariance. Crop it, shift the colours slightly, add noise — each transformation encodes a belief about what is irrelevant.\n\nWhich makes the choice a domain decision, not a default recipe. Flip a photo of a cat: fine. Flip a photo of a road sign: you have invented a mirrored sign that does not exist. Flip an X-ray: you have moved the heart to the wrong side, and a model trained that way will happily accept situs inversus as normal.\n\nThe same logic runs through every modality. Text augmentation by synonym swap assumes meaning survives the swap, which fails on legal and medical text where terms are precise. Time-series augmentation by jitter assumes small perturbations are plausible, which is false for step-change sensors.\n\n**The question is never "what augmentations are standard". It is "what changes leave the label intact in my domain".**',
+              { keyTerms: [{ term: 'Augmentation', definition: 'Transforming existing examples in ways that preserve the label, to teach invariance.' }] },
+            ),
+            multi(
+              'Which augmentations preserve the label? (Select all)',
+              [
+                'Horizontally flipping a photo for animal classification',
+                'Horizontally flipping a chest X-ray for pathology detection',
+                'Adding small Gaussian noise to an audio clip for speech recognition',
+                'Rotating a handwritten digit by 180° for digit recognition',
+              ],
+              [0, 2],
+              ['sk-data-augmentation'],
+              'Animals and background noise are genuinely invariant. A mirrored X-ray implies reversed organ placement, and a digit rotated 180° turns 6 into 9 — both change the correct answer, so both teach the model something false.',
+            ),
+            concept(
+              'Synthetic data and model collapse',
+              'Synthetic data — generated by a simulator or by another model — is genuinely useful where real data is scarce, dangerous to collect, or privacy-constrained. Autonomous-driving teams train on simulated crashes for obvious reasons. Fraud teams generate rare attack patterns because they cannot wait for enough real ones.\n\nIt has two characteristic failure modes.\n\n**The reality gap.** The simulator encodes your assumptions, so the model learns to solve the simulation. It excels on synthetic test data and fails on the real distribution in exactly the places your assumptions were wrong — which are, by construction, the places you did not think to check.\n\n**Model collapse.** Train a model on another model\'s output and you inherit its distribution, not the world\'s. Repeat over generations and the tails disappear first: rare phrasings, minority dialects, unusual cases. Each generation is trained on a slightly narrower sample than the last, and variance shrinks monotonically. The output stays fluent, which is what makes it hard to notice — it gets blander rather than obviously broken.\n\nThe practical rule: synthetic data is a supplement anchored to real data, never a replacement for it. Keep a real held-out set that no synthetic example ever touched, and judge everything on that.',
+              {
+                keyTerms: [
+                  { term: 'Reality gap', definition: 'The distance between a simulator’s distribution and the real world’s.' },
+                  { term: 'Model collapse', definition: 'Progressive loss of tail diversity when models train on model-generated data.' },
+                ],
+              },
+            ),
+            mcq(
+              'What is the first thing to disappear when successive models train on their predecessors’ output?',
+              [
+                'Fluency and grammar',
+                'The rare cases in the tails of the distribution',
+                'The ability to follow instructions',
+                'The most common patterns',
+              ],
+              1,
+              ['sk-synthetic-data'],
+              'Sampling under-represents the tails, and each generation samples from the last. Common patterns are reinforced while rare ones thin out and vanish. The output stays fluent throughout, which is precisely why collapse is easy to miss until the model fails on something unusual.',
+            ),
+            interactive(
+              'Skew the sample, watch the model follow',
+              'data-bias',
+              'Change the composition of the training sample and watch per-group accuracy pull apart. Synthetic data skews a sample the same way — it just does it invisibly, because the rows look real.',
+            ),
+            trueFalse(
+              'A held-out evaluation set may include synthetic examples as long as they were generated the same way as the training data.',
+              false,
+              ['sk-synthetic-data'],
+              'That would measure how well the model learned the generator, which is the one thing you already know it can do. The held-out set has to be real data, or it cannot detect the reality gap at all.',
+            ),
+          ],
+        }),
+      ],
+    },
+
+    // -----------------------------------------------------------------------
+    {
+      id: 'unit-data-3',
+      title: 'Data That Moves',
+      description: 'Imbalance and leakage — the two failures that make a good score meaningless.',
+      lessons: [
+        lesson({
+          id: 'lesson-class-imbalance',
+          title: 'Class Imbalance',
+          summary: '99.9% accuracy on a 1-in-1000 problem is what "always say no" scores.',
+          level: 'intermediate',
+          domain: 'data',
+          steps: [
+            concept(
+              'The majority-class baseline',
+              'Fraud is 0.1% of transactions. A model that predicts "not fraud" for every single transaction is **99.9% accurate** and completely worthless.\n\nThis is the first thing to compute on any imbalanced problem: the **majority-class baseline**. If your model is not comfortably beating it on a metric that cares about the rare class, it has learned nothing.\n\nAccuracy is the wrong metric here, and so is ROC-AUC — it can look excellent on severely imbalanced data because the enormous negative class makes the false-positive rate tiny almost by default. Use **precision-recall AUC**, which ignores true negatives entirely, or fix the operating point you actually need and report precision and recall there.\n\nThe deeper issue is that the loss function does not know the classes have different costs. Cross-entropy averaged over a 1000:1 dataset is dominated by the majority class, so the gradient that would improve fraud detection is a rounding error in the update.',
+              {
+                figure: 'confusion-matrix',
+                keyTerms: [
+                  { term: 'Majority-class baseline', definition: 'The score from always predicting the most common class. The floor any model must beat.' },
+                  { term: 'PR-AUC', definition: 'Area under the precision–recall curve. Unlike ROC-AUC it ignores true negatives.' },
+                ],
+              },
+            ),
+            numeric(
+              'In a dataset that is 2% positive, what accuracy does a model that always predicts "negative" achieve, as a percentage?',
+              98,
+              ['sk-class-imbalance'],
+              '98% — it is right on every negative, which is 98% of the data. Any reported accuracy below this is worse than a constant, and anything just above it is probably a constant with noise.',
+              { unit: '%' },
+            ),
+            concept(
+              'Four levers, and when each is right',
+              '**Resample the data.** Oversample the minority (SMOTE and friends synthesise new minority points between existing ones) or undersample the majority. Oversampling risks overfitting the few real positives; undersampling throws away real information. Both change the base rate, so the model\'s output probabilities are no longer calibrated to reality — fine for ranking, wrong for anything that consumes the probability.\n\n**Weight the loss.** Multiply the minority class\'s contribution by its inverse frequency. One line of config, keeps every row, and in practice usually the first thing to try.\n\n**Move the threshold.** Train normally, then pick the decision threshold from the precision–recall curve at the operating point the business actually wants. Vastly underused: the model was often fine and the default 0.5 was the problem.\n\n**Reframe it.** At extreme ratios — 1 in 100,000 — stop treating it as classification. Anomaly detection models the normal class and flags departures, which needs no positive examples at all.\n\nThe order matters: check the threshold before rebuilding the dataset. It is the cheapest lever and it is right more often than it should be.',
+            ),
+            interactive(
+              'Move the threshold, watch the trade',
+              'confusion-matrix',
+              'Slide the decision threshold and watch precision and recall move against each other. Then ask which errors your product can actually absorb — that question, not the curve, is what picks the point.',
+            ),
+            mcq(
+              'A fraud model has ROC-AUC of 0.97 but catches almost nothing in production. What is the likely explanation?',
+              [
+                'The model is overfitting',
+                'ROC-AUC flatters imbalanced problems; PR-AUC at the real operating point would look far worse',
+                'The training data was too small',
+                'The threshold is too low',
+              ],
+              1,
+              ['sk-class-imbalance', 'sk-roc-pr-curves'],
+              'ROC-AUC uses the false-positive *rate*, whose denominator is the huge negative class — so even thousands of false alarms barely move it. PR-AUC drops true negatives from the calculation and shows the precision you would really get, which on a 1-in-1000 problem is usually sobering.',
+            ),
+            categorize(
+              'Sort each lever by what it changes.',
+              ['Changes the training data', 'Changes the objective', 'Changes only the decision rule'],
+              [
+                { item: 'SMOTE oversampling of the minority class', category: 'Changes the training data' },
+                { item: 'Undersampling the majority class', category: 'Changes the training data' },
+                { item: 'Inverse-frequency class weights in the loss', category: 'Changes the objective' },
+                { item: 'Focal loss down-weighting easy examples', category: 'Changes the objective' },
+                { item: 'Picking the threshold from the PR curve', category: 'Changes only the decision rule' },
+              ],
+              ['sk-class-imbalance'],
+              'Only the last one leaves the trained model untouched, which is why it is both the cheapest to try and the easiest to revisit when the business cost of an error changes.',
+            ),
+          ],
+        }),
+
+        lesson({
+          id: 'lesson-leakage-in-the-wild',
+          title: 'Leakage in the Wild',
+          summary: 'Four ways the answer sneaks into the features, and how each is caught.',
+          level: 'intermediate',
+          domain: 'data',
+          steps: [
+            concept(
+              'Leakage is information from the future or the answer',
+              '**Data leakage** is any case where the model sees, at training time, information it will not have at prediction time. The symptom is always the same — validation performance that is too good — and the cause is always one of four things.\n\n**Target leakage.** A feature that is a consequence of the label. `days_in_intensive_care` predicts mortality superbly and is only populated for patients who were admitted to the ICU. In production, at the moment you need the prediction, it is empty.\n\n**Temporal leakage.** Training on rows from after the prediction point. Shuffling a time series before splitting is the classic: the model learns from Tuesday to predict Monday, which it will never get to do again.\n\n**Group leakage.** The same entity appearing in both train and test — the same patient, the same customer, the same document under a different id. The model memorises the entity rather than the pattern, and the test set applauds.\n\n**Preprocessing leakage.** Fitting the scaler, the imputer, or the feature selector on the full dataset before splitting. The training set has now been told the test set\'s mean. Subtle, common, and the reason `fit` belongs inside the fold and `transform` outside it.',
+              {
+                figure: 'train-val-test-split',
+                keyTerms: [
+                  { term: 'Target leakage', definition: 'A feature that is caused by the label rather than predictive of it.' },
+                  { term: 'Group leakage', definition: 'The same entity appearing on both sides of a split.' },
+                ],
+              },
+            ),
+            categorize(
+              'Sort each scenario by the kind of leakage it is.',
+              ['Target leakage', 'Temporal leakage', 'Group leakage', 'Preprocessing leakage'],
+              [
+                { item: 'Using total_refund_amount to predict whether an order will be refunded', category: 'Target leakage' },
+                { item: 'Randomly shuffling daily sales data before splitting', category: 'Temporal leakage' },
+                { item: 'The same patient contributing scans to both train and test', category: 'Group leakage' },
+                { item: 'Standardising all features before the train/test split', category: 'Preprocessing leakage' },
+                { item: 'Selecting the top 50 features by correlation on the full dataset', category: 'Preprocessing leakage' },
+              ],
+              ['sk-data-leakage'],
+              'The last one catches people who already know about scaler leakage: feature selection is a fit step too, and doing it on all the data leaks the test set into which columns you kept.',
+            ),
+            interactive(
+              'Split it yourself',
+              'train-test-split',
+              'Resize the splits and then deliberately peek at the test set. Watch the reported score climb while the model gets no better — that gap is exactly what leakage manufactures.',
+            ),
+            mcq(
+              'A churn model scores 0.99 AUC in validation and 0.61 in production. What should you check first?',
+              [
+                'Whether the model is too small',
+                'Whether any feature is only populated after churn has already happened',
+                'Whether the learning rate was too high',
+                'Whether the production data is corrupted',
+              ],
+              1,
+              ['sk-data-leakage'],
+              'A gap that large is leakage until proven otherwise, and target leakage is the most common form. Walk each feature and ask: at the moment of prediction, would this value exist yet? Cancellation reason codes and final invoice totals are the usual culprits.',
+            ),
+            order(
+              'Order the steps of a leakage-free cross-validation fold.',
+              [
+                'Split into train and validation, grouping by entity and respecting time order',
+                'Fit the imputer, scaler, and feature selector on the training portion only',
+                'Transform both portions with the fitted objects',
+                'Train the model and score it on the untouched validation portion',
+              ],
+              ['sk-data-leakage', 'sk-cross-validation'],
+              'Split first, always. Every `fit` happens inside the fold on training rows only; the validation portion is only ever transformed. Reverse any two of these and you have leaked.',
+            ),
+            shortAnswer(
+              'Why is validation accuracy that seems too good to be true a signal to investigate rather than celebrate?',
+              ['leakage', 'future', 'information', 'production', 'not available', 'label'],
+              'Because the most common cause is leakage — the model is seeing information at training time that it will not have in production, whether from the label, from the future, from a repeated entity, or from preprocessing fitted on the whole dataset. The score is real; it is just measuring an easier problem than the one you will deploy into.',
+              ['sk-data-leakage'],
+              'The instinct worth building: an unexpectedly good result is a hypothesis to test, not a result to ship.',
+            ),
+          ],
+        }),
+      ],
+      checkpoint: {
+        id: 'checkpoint-data-3',
+        title: 'Data Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'Which metric is least informative on a dataset that is 0.1% positive?',
+            ['Precision at the operating threshold', 'Recall', 'Overall accuracy', 'PR-AUC'],
+            2,
+            ['sk-class-imbalance'],
+            'Accuracy is dominated by the negative class — 99.9% is achievable by predicting "no" every time.',
+          ),
+          trueFalse(
+            'Fitting a StandardScaler on the full dataset before splitting is a form of leakage.',
+            true,
+            ['sk-data-leakage'],
+            'The scaler’s mean and variance carry information from the test rows into training. Fit inside the fold, transform outside it.',
+          ),
+          mcq(
+            'What is the main risk of training successive models on their predecessors’ generated data?',
+            [
+              'Training becomes slower',
+              'Tail diversity shrinks each generation while the output stays fluent',
+              'The model loses its grammar',
+              'Licences become unclear',
+            ],
+            1,
+            ['sk-synthetic-data'],
+            'Model collapse. The blandness arrives gradually and the fluency never breaks, which is what makes it hard to catch.',
           ),
         ],
       },

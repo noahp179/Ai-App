@@ -71,6 +71,8 @@ export const SKILLS: Skill[] = [
   s('sk-text-features', 'Text as features', 'data', 'intermediate', ['sk-tokenization']),
   s('sk-data-labelling', 'Labelling and annotation quality', 'data', 'intermediate', ['sk-features-labels']),
   s('sk-dataset-shift', 'Dataset shift in practice', 'data', 'expert', ['sk-model-monitoring']),
+  s('sk-data-sourcing', 'Where training data comes from', 'data', 'intro'),
+  s('sk-synthetic-data', 'Synthetic data and model collapse', 'data', 'expert', ['sk-data-augmentation']),
 
   // --- Machine learning ----------------------------------------------------
   s('sk-supervised-learning', 'Supervised learning', 'machine-learning', 'intro', ['sk-features-labels']),
@@ -100,6 +102,9 @@ export const SKILLS: Skill[] = [
   s('sk-bayes', 'Bayes’ theorem', 'math', 'intermediate', ['sk-probability-basics']),
   s('sk-entropy', 'Entropy and cross-entropy', 'math', 'expert', ['sk-probability-basics']),
   s('sk-cosine-similarity', 'Cosine similarity', 'math', 'intermediate', ['sk-vectors']),
+  s('sk-expectation', 'Expected value and variance', 'math', 'intermediate', ['sk-probability-basics']),
+  s('sk-log-probability', 'Why models work in log space', 'math', 'intermediate', ['sk-probability-basics']),
+  s('sk-eigenvectors', 'Eigenvectors and principal directions', 'math', 'expert', ['sk-matrices']),
 
   // --- Deep learning -------------------------------------------------------
   s('sk-perceptron', 'The artificial neuron', 'deep-learning', 'intro', ['sk-vectors']),
@@ -122,6 +127,8 @@ export const SKILLS: Skill[] = [
   s('sk-pooling', 'Pooling layers', 'computer-vision', 'intermediate', ['sk-convolution']),
   s('sk-cnn-architecture', 'CNN architectures', 'computer-vision', 'expert', ['sk-pooling']),
   s('sk-vision-transformers', 'Vision transformers', 'computer-vision', 'expert', ['sk-attention']),
+  s('sk-image-representation', 'Images as arrays of numbers', 'computer-vision', 'intro'),
+  s('sk-object-detection', 'Detection and segmentation', 'computer-vision', 'expert', ['sk-cnn-architecture']),
 
   // --- NLP -----------------------------------------------------------------
   s('sk-tokenization', 'Tokenization', 'nlp', 'intro'),
@@ -129,6 +136,8 @@ export const SKILLS: Skill[] = [
   s('sk-word-embeddings', 'Word2Vec and semantic space', 'nlp', 'intermediate', ['sk-embeddings']),
   s('sk-rnn-lstm', 'RNNs and LSTMs', 'nlp', 'expert', ['sk-mlp']),
   s('sk-seq2seq', 'Sequence-to-sequence models', 'nlp', 'expert', ['sk-rnn-lstm']),
+  s('sk-text-normalization', 'Normalising text before modelling', 'nlp', 'intro'),
+  s('sk-bag-of-words', 'Bag of words and TF-IDF', 'nlp', 'intro', ['sk-text-normalization']),
 
   // --- LLMs ----------------------------------------------------------------
   s('sk-language-modeling', 'Next-token prediction', 'llms', 'intro', ['sk-tokenization']),
@@ -155,6 +164,8 @@ export const SKILLS: Skill[] = [
   s('sk-system-prompts', 'System prompts and role setting', 'prompt-engineering', 'intro', ['sk-prompt-anatomy']),
   s('sk-structured-output', 'Getting structured output', 'prompt-engineering', 'intermediate', ['sk-prompt-anatomy']),
   s('sk-prompt-injection', 'Prompt injection', 'prompt-engineering', 'expert', ['sk-system-prompts']),
+  s('sk-prompt-decomposition', 'Decomposing a task into prompts', 'prompt-engineering', 'intermediate', ['sk-chain-of-thought']),
+  s('sk-prompt-evaluation', 'Testing prompts like code', 'prompt-engineering', 'intermediate', ['sk-prompt-anatomy']),
 
   // --- Generative AI -------------------------------------------------------
   s('sk-generative-vs-discriminative', 'Generative vs discriminative models', 'generative-ai', 'intermediate', ['sk-classification-regression']),
@@ -163,6 +174,8 @@ export const SKILLS: Skill[] = [
   s('sk-diffusion', 'Diffusion models', 'generative-ai', 'expert', ['sk-generative-vs-discriminative']),
   s('sk-clip-multimodal', 'Multimodal models and CLIP', 'generative-ai', 'expert', ['sk-embeddings']),
   s('sk-text-to-image', 'Text-to-image generation', 'generative-ai', 'intermediate', ['sk-diffusion']),
+  s('sk-latent-space', 'Latent spaces and reconstruction', 'generative-ai', 'intermediate', ['sk-embeddings']),
+  s('sk-guidance', 'Conditioning and guidance strength', 'generative-ai', 'expert', ['sk-diffusion']),
 
   // --- Agents --------------------------------------------------------------
   s('sk-agent-loop', 'The agent loop', 'agents', 'intermediate', ['sk-chain-of-thought']),
@@ -170,12 +183,15 @@ export const SKILLS: Skill[] = [
   s('sk-react-pattern', 'ReAct: reasoning and acting', 'agents', 'expert', ['sk-agent-loop']),
   s('sk-agent-memory', 'Agent memory', 'agents', 'expert', ['sk-rag']),
   s('sk-multi-agent', 'Multi-agent systems', 'agents', 'expert', ['sk-agent-loop']),
+  s('sk-agent-eval', 'Evaluating agent trajectories', 'agents', 'expert', ['sk-agent-loop']),
+  s('sk-human-in-the-loop', 'Human approval and containment', 'agents', 'intermediate', ['sk-agent-loop']),
 
   // --- Reinforcement learning ----------------------------------------------
   s('sk-rl-basics', 'Agents, states, actions, rewards', 'reinforcement-learning', 'intermediate'),
   s('sk-exploration-exploitation', 'Exploration vs exploitation', 'reinforcement-learning', 'intermediate', ['sk-rl-basics']),
   s('sk-q-learning', 'Q-learning', 'reinforcement-learning', 'expert', ['sk-rl-basics']),
   s('sk-policy-gradient', 'Policy gradients and PPO', 'reinforcement-learning', 'expert', ['sk-q-learning']),
+  s('sk-reward-design', 'Reward design and specification gaming', 'reinforcement-learning', 'expert', ['sk-rl-basics']),
 
   // --- MLOps ---------------------------------------------------------------
   s('sk-model-deployment', 'Serving a model', 'mlops', 'intermediate'),
@@ -183,6 +199,8 @@ export const SKILLS: Skill[] = [
   s('sk-experiment-tracking', 'Experiment tracking and reproducibility', 'mlops', 'intermediate'),
   s('sk-inference-cost', 'Latency, throughput, and cost', 'mlops', 'expert', ['sk-model-deployment']),
   s('sk-ab-testing', 'A/B testing models', 'mlops', 'expert', ['sk-model-deployment']),
+  s('sk-rollout-strategy', 'Shadow, canary, and staged rollout', 'mlops', 'intermediate', ['sk-model-deployment']),
+  s('sk-retraining', 'When and how to retrain', 'mlops', 'expert', ['sk-model-monitoring']),
 
   // --- Ethics & safety -----------------------------------------------------
   s('sk-algorithmic-bias', 'Algorithmic bias', 'ethics-safety', 'intro', ['sk-features-labels']),
@@ -192,6 +210,8 @@ export const SKILLS: Skill[] = [
   s('sk-alignment', 'The alignment problem', 'ethics-safety', 'expert', ['sk-rlhf']),
   s('sk-ai-governance', 'Regulation and governance', 'ethics-safety', 'intermediate'),
   s('sk-responsible-deployment', 'Deploying AI responsibly', 'ethics-safety', 'intermediate', ['sk-algorithmic-bias']),
+  s('sk-model-cards', 'Documenting a model’s limits', 'ethics-safety', 'intermediate', ['sk-responsible-deployment']),
+  s('sk-red-teaming', 'Red-teaming and abuse testing', 'ethics-safety', 'expert', ['sk-responsible-deployment']),
 ];
 
 export const SKILLS_BY_ID: ReadonlyMap<string, Skill> = new Map(SKILLS.map((sk) => [sk.id, sk]));

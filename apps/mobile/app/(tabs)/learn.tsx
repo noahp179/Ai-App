@@ -1,9 +1,9 @@
 /**
  * Learn — the catalog.
  *
- * The full curriculum, filterable by level and searchable. Recommended order is
- * the default sort, because a new learner faced with eleven tracks needs a
- * suggested path more than they need alphabetical order.
+ * Paths first, then the full curriculum filterable by level. Sixteen tracks is
+ * more than anyone can order for themselves on arrival, so the screen leads
+ * with routes through the catalog and offers the catalog itself second.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -14,11 +14,23 @@ import {
   TRACKS_BY_ID,
   catalogStats,
   filterTracks,
+  pathProgress,
+  pathStats,
+  recommendPaths,
   recommendTracks,
   trackCompletion,
   type Level,
 } from '@synapse/core';
-import { Badge, Card, Entrance, Screen, Text, TrackCard, useTheme } from '@synapse/ui';
+import {
+  Badge,
+  Card,
+  Entrance,
+  PathCard,
+  Screen,
+  Text,
+  TrackCard,
+  useTheme,
+} from '@synapse/ui';
 
 import { useProgress } from '../../src/store/useProgress';
 
@@ -29,6 +41,17 @@ export default function LearnScreen(): React.JSX.Element {
   const [levelFilter, setLevelFilter] = useState<Level | null>(null);
 
   const stats = useMemo(() => catalogStats(), []);
+
+  // Paths are curation over the same tracks, so a lesson finished anywhere
+  // moves every path containing it. Started paths sort to the front.
+  const completedLessonIds = useMemo(
+    () => new Set(Object.keys(progress.lessons)),
+    [progress.lessons],
+  );
+  const paths = useMemo(
+    () => recommendPaths(completedLessonIds, progress.profile.goals),
+    [completedLessonIds, progress.profile.goals],
+  );
 
   const tracks = useMemo(() => {
     const recommended = recommendTracks(
@@ -53,6 +76,44 @@ export default function LearnScreen(): React.JSX.Element {
       </Text>
       <Text variant="caption" tone="secondary" style={{ marginBottom: theme.spacing.lg }}>
         {stats.tracks} tracks · {stats.lessons} lessons · {stats.exercises} exercises
+      </Text>
+
+      {/* Paths — a route through the catalog, before the catalog itself.
+          Sixteen tracks is a list; someone arriving needs an order. */}
+      <Text variant="heading" style={{ marginBottom: theme.spacing.xs }}>
+        Where are you going?
+      </Text>
+      <Text variant="caption" tone="secondary" style={{ marginBottom: theme.spacing.md }}>
+        Pick a route and the order is decided for you.
+      </Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: theme.spacing.md, paddingBottom: theme.spacing.xxl }}
+      >
+        {paths.map((path) => {
+          const state = pathProgress(path, completedLessonIds);
+          const pStats = pathStats(path);
+          return (
+            <PathCard
+              key={path.id}
+              path={path}
+              progress={state.fraction}
+              tracksDone={state.trackProgress.filter((t) => t.fraction >= 1).length}
+              totalTracks={pStats.tracks}
+              totalMinutes={pStats.minutes}
+              width={286}
+              onPress={() => router.push(`/path/${path.id}`)}
+            />
+          );
+        })}
+      </ScrollView>
+
+      <Text variant="heading" style={{ marginBottom: theme.spacing.xs }}>
+        All tracks
+      </Text>
+      <Text variant="caption" tone="secondary" style={{ marginBottom: theme.spacing.md }}>
+        Or browse the whole curriculum and build your own order.
       </Text>
 
       {/* Level filter */}

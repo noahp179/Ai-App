@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   LESSON_INDEX,
+  PATHS,
   TRACKS,
   TRACKS_BY_ID,
   allExercises,
@@ -10,7 +11,12 @@ import {
   exercisesBySkill,
   filterTracks,
   getLesson,
+  getPath,
   getTrack,
+  pathProgress,
+  pathStats,
+  pathTracks,
+  recommendPaths,
   recommendTracks,
   skillsInTrack,
   validateCatalog,
@@ -162,6 +168,114 @@ describe('catalog integrity', () => {
   it('lists the skills each track teaches', () => {
     expect(skillsInTrack('track-foundations').length).toBeGreaterThan(5);
     expect(skillsInTrack('does-not-exist')).toEqual([]);
+  });
+});
+
+describe('learning paths', () => {
+  it('routes every track through at least one path', () => {
+    const routed = new Set(PATHS.flatMap((p) => p.trackIds));
+    const unrouted = TRACKS.filter((t) => !routed.has(t.id)).map((t) => t.id);
+    expect(unrouted).toEqual([]);
+  });
+
+  it('references only tracks that exist', () => {
+    const ids = new Set(TRACKS.map((t) => t.id));
+    const broken = PATHS.flatMap((p) =>
+      p.trackIds.filter((id) => !ids.has(id)).map((id) => `${p.id} -> ${id}`),
+    );
+    expect(broken).toEqual([]);
+  });
+
+  it('lists no track twice within a path', () => {
+    for (const path of PATHS) {
+      expect(new Set(path.trackIds).size, path.id).toBe(path.trackIds.length);
+    }
+  });
+
+  it('reports stats that match the tracks it contains', () => {
+    for (const path of PATHS) {
+      const stats = pathStats(path);
+      expect(stats.tracks, path.id).toBe(path.trackIds.length);
+      expect(stats.lessons, path.id).toBeGreaterThan(0);
+      expect(stats.minutes, path.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('starts at zero progress and points at the first lesson', () => {
+    const path = PATHS[0]!;
+    const progress = pathProgress(path, new Set());
+    expect(progress.completedLessons).toBe(0);
+    expect(progress.fraction).toBe(0);
+    expect(progress.next?.trackId).toBe(path.trackIds[0]);
+  });
+
+  it('completes fully when every lesson in it is done', () => {
+    const path = PATHS[0]!;
+    const done = new Set(
+      pathTracks(path).flatMap((t) => t.units.flatMap((u) => u.lessons.map((l) => l.id))),
+    );
+    const progress = pathProgress(path, done);
+    expect(progress.fraction).toBe(1);
+    expect(progress.next).toBeNull();
+    expect(progress.completedLessons).toBe(progress.totalLessons);
+  });
+
+  it('advances the next lesson as earlier ones are completed', () => {
+    const path = PATHS[0]!;
+    const first = pathProgress(path, new Set()).next!;
+    const after = pathProgress(path, new Set([first.lessonId])).next!;
+    expect(after.lessonId).not.toBe(first.lessonId);
+  });
+
+  it('ranks a started path above one with nothing completed in it', () => {
+    // Computer Vision belongs to exactly one path, so completing a lesson from
+    // it starts that path and no other.
+    const cv = getTrack('track-computer-vision')!;
+    const lessonId = cv.units[0]!.lessons[0]!.id;
+    const started = PATHS.filter((p) => p.trackIds.includes(cv.id));
+    expect(started).toHaveLength(1);
+
+    const ranked = recommendPaths(new Set([lessonId]));
+    expect(ranked[0]?.id).toBe(started[0]!.id);
+
+    const untouched = ranked.filter(
+      (p) => pathProgress(p, new Set([lessonId])).completedLessons === 0,
+    );
+    expect(untouched.length).toBeGreaterThan(0);
+    expect(ranked.indexOf(started[0]!)).toBeLessThan(ranked.indexOf(untouched[0]!));
+  });
+
+  it('sinks a finished path to the bottom', () => {
+    const finished = PATHS[0]!;
+    const done = new Set(
+      pathTracks(finished).flatMap((t) => t.units.flatMap((u) => u.lessons.map((l) => l.id))),
+    );
+    const ranked = recommendPaths(done);
+    expect(ranked[ranked.length - 1]?.id).toBe(finished.id);
+  });
+
+  it('promotes paths matching the learner’s stated goals', () => {
+    const forLeaders = recommendPaths(new Set(), ['lead-teams']);
+    expect(forLeaders[0]?.goals).toContain('lead-teams');
+
+    const forResearch = recommendPaths(new Set(), ['research']);
+    expect(forResearch[0]?.goals).toContain('research');
+  });
+
+  it('gives every path at least one goal so none is unreachable by intent', () => {
+    for (const path of PATHS) {
+      expect(path.goals.length, path.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('covers every onboarding goal with at least one path', () => {
+    const served = new Set(PATHS.flatMap((p) => p.goals));
+    const goals = ['curious', 'career-switch', 'build-products', 'research', 'lead-teams', 'exam-prep'];
+    expect(goals.filter((g) => !served.has(g as never))).toEqual([]);
+  });
+
+  it('returns undefined for an unknown path id', () => {
+    expect(getPath('does-not-exist')).toBeUndefined();
   });
 });
 

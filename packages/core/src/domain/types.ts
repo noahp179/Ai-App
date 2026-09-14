@@ -21,6 +21,7 @@ export type UnitId = string;
 export type LessonId = string;
 export type StepId = string;
 export type SkillId = string;
+export type PathId = string;
 export type AchievementId = string;
 
 // ---------------------------------------------------------------------------
@@ -379,6 +380,41 @@ export interface Track {
   prerequisites: TrackId[];
   /** Skills a learner will hold after completing the track. */
   outcomes: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Paths — curated routes through the catalog
+// ---------------------------------------------------------------------------
+
+/**
+ * A `Path` is an ordered sequence of tracks assembled around a goal.
+ *
+ * Tracks answer "what is this subject"; paths answer "what should I do, in what
+ * order, to get where I am going". Sixteen tracks is more than anyone can order
+ * for themselves on day one, and the catalog's own prerequisite graph only says
+ * what is *possible* next, never what is *worth* doing next for a given aim.
+ *
+ * Paths are pure curation over existing tracks — they own no content, so a
+ * lesson completed inside a track counts toward every path containing it.
+ */
+export interface Path {
+  id: PathId;
+  title: string;
+  /** One line, in the learner's terms, not the curriculum's. */
+  tagline: string;
+  description: string;
+  /** Who this is for. Shown on the card so people can rule it out quickly. */
+  audience: string;
+  icon: string;
+  gradient: [string, string];
+  /** Ordered. The order is the recommendation. */
+  trackIds: TrackId[];
+  /** What the learner can do at the end. */
+  outcomes: string[];
+  /** The level this path starts at — what a newcomer needs to already have. */
+  entryLevel: Level;
+  /** Onboarding goals this path serves. Used to rank paths for a learner. */
+  goals: LearnerGoal[];
 }
 
 // ---------------------------------------------------------------------------

@@ -28,6 +28,8 @@ export type { AnswerOptionProps, AnswerState } from './AnswerOption';
 export { FeedbackSheet } from './FeedbackSheet';
 export type { FeedbackSheetProps } from './FeedbackSheet';
 
+export { PathCard } from './PathCard';
+export type { PathCardProps } from './PathCard';
 export { TrackCard } from './TrackCard';
 export type { TrackCardProps } from './TrackCard';
 
