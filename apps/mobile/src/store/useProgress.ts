@@ -53,6 +53,7 @@ interface ProgressStore {
   finishLesson: (params: {
     lessonId?: string;
     checkpointId?: string;
+    checkpointPassed?: boolean;
     attempts: AttemptRecord[];
     level: Level;
     isReview?: boolean;
@@ -124,10 +125,11 @@ export const useProgress = create<ProgressStore>((set, get) => ({
     schedulePersist(next);
   },
 
-  finishLesson: ({ lessonId, checkpointId, attempts, level, isReview }) => {
+  finishLesson: ({ lessonId, checkpointId, checkpointPassed, attempts, level, isReview }) => {
     const result = completeSession(get().progress, {
       lessonId,
       checkpointId,
+      checkpointPassed,
       attempts,
       level,
       isReview,

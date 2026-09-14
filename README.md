@@ -22,6 +22,7 @@ a graduate course.
 | **578 exercises** | 10 exercise types, every one with a written explanation |
 | **177 skills** | Individually tracked with spaced-repetition scheduling |
 | **41 interactive widgets** | Every track has at least one hands-on step |
+| **70 knowledge tests** | A checkpoint on every unit, an exam on every track |
 
 Every track spans intro, intermediate, and expert material. The curriculum is
 data (`packages/core/src/content/`), validated on every test run — a typo in a
@@ -120,7 +121,7 @@ synapse/
 **The rule that shapes everything:** all learning rules live in `@synapse/core`
 as pure functions. Grading, scheduling, XP, entitlements, and session state are
 testable without mounting a component or booting a simulator — which is why there
-are 177 tests that run in under a second.
+are 194 tests that run in under a second.
 
 The apps are rendering layers over that core. `packages/ui` never imports from an
 app; apps never reimplement a rule.
@@ -131,7 +132,7 @@ app; apps never reimplement a rule.
 
 ```bash
 npm install
-npm test          # 177 tests, ~1s — if this passes, the app will run
+npm test          # 194 tests, ~1s — if this passes, the app will run
 npm run web       # open http://localhost:8081
 ```
 
@@ -156,6 +157,45 @@ device previews, the desktop build, and troubleshooting.
 
 ---
 
+## Knowledge tests
+
+Three kinds of assessment, answering three different questions.
+
+**Placement** (`engine/placement.ts`) — *where should I start?* Twelve adaptive
+questions on a difficulty ladder, taken once, spanning every domain.
+
+**Unit checkpoints** — *did that unit land?* Hand-written, three questions, at
+the end of all 53 units. Pass at 70%.
+
+**Track exams** (`engine/assessment.ts`) — *do I know this subject?* Fifteen
+questions assembled from the track's own exercises, round-robined across
+distinct skills so the paper covers the breadth of the track rather than
+drilling one corner. Deterministic per track and seed, so reloading gives you
+the same paper rather than an easier one.
+
+Exams are generated rather than authored on purpose. A separate hand-written
+exam per track would be another 250 exercises to keep in sync with the lessons,
+and it would drift; sampling the track's own questions cannot.
+
+A test is not a lesson, and the differences are deliberate:
+
+- **No hearts.** A wrong answer costs marks, not lives.
+- **No re-queuing.** Lessons re-ask a question until you get it right, which is
+  good teaching and would make a score meaningless.
+- **First answer only.** Retrying within the same sitting does not rescue it.
+- **No completion bonus on a fail.** The correct answers still earn their
+  points; finishing a test you failed is not an achievement.
+
+What comes back is a **per-skill breakdown**, worst first — the part you can act
+on. Every answer also feeds the spaced-repetition scheduler, so a test is never
+wasted time even when you fail it, and the skills you got wrong come back
+sooner.
+
+Exams double as a way to **test out**: sit one before starting a track and the
+breakdown tells you which units are worth your time.
+
+---
+
 ## How the learning engine works
 
 **Spaced repetition** (`engine/scheduler.ts`) — an SM-2 variant tuned so a lapse
@@ -172,6 +212,11 @@ result is always presented as a suggestion the learner can override.
 **Session rules** (`engine/session.ts`) — `SessionRunner` is a state machine
 handling hearts, mistake re-queuing, and attempt records. Not a React thing, so
 every rule is unit-testable in isolation.
+
+**Assessment** (`engine/assessment.ts`) — resolves any checkpoint or track exam
+by id, samples exam papers across skills, and grades a sitting into a per-skill
+breakdown. Pure functions over the catalog, so every one is unit-tested without
+mounting a screen.
 
 **Grading** (`engine/grading.ts`) — ten exercise kinds, all graded locally and
 synchronously with partial credit where it makes sense. Free-response answers get
@@ -273,16 +318,16 @@ what was deliberately *not* built — are in **[docs/MONETIZATION.md](docs/MONET
 npm test
 ```
 
-177 tests covering the grading engine, scheduler, XP and streak logic, session
+194 tests covering the grading engine, scheduler, XP and streak logic, session
 state machine, placement algorithm, entitlements, progress transitions, path
-curation, and catalog integrity.
+curation, assessment building and scoring, and catalog integrity.
 
 The catalog tests are load-bearing: they verify that every exercise's stated
 answer actually grades as correct, that every skill reference resolves, that no
 prerequisite graph has a cycle, that no declared skill goes unpractised, that
 every interactive widget is reachable from content, that every track has at
-least one hands-on step, and that every track is reachable from at least one
-learning path. Content is data written by hand, and data written by hand drifts
+least one hands-on step, that every unit has a checkpoint, and that every track
+is reachable from at least one learning path. Content is data written by hand, and data written by hand drifts
 — several of those checks caught real gaps while this was being built.
 
 ---

@@ -48,7 +48,16 @@ export interface SessionXp {
 export function scoreSession(
   attempts: AttemptRecord[],
   level: Level,
-  opts: { isReview?: boolean; xpMultiplier?: number } = {},
+  opts: {
+    isReview?: boolean;
+    xpMultiplier?: number;
+    /**
+     * Suppresses the completion bonus. Set for a knowledge test that was not
+     * passed: the answers still earn their points, but finishing a test you
+     * failed is not an achievement and should not be paid like one.
+     */
+    noCompletionBonus?: boolean;
+  } = {},
 ): SessionXp {
   const finalByStep = new Map<string, AttemptRecord>();
   const firstTryByStep = new Map<string, boolean>();
@@ -79,8 +88,9 @@ export function scoreSession(
   const accuracy = stepCount === 0 ? 0 : correctCount / stepCount;
   const perfect = stepCount > 0 && correctCount === stepCount;
 
-  let bonus = opts.isReview ? 0 : XP.lessonComplete;
-  if (perfect && !opts.isReview) bonus += XP.perfectLessonBonus;
+  const suppressBonus = opts.isReview || opts.noCompletionBonus;
+  let bonus = suppressBonus ? 0 : XP.lessonComplete;
+  if (perfect && !suppressBonus) bonus += XP.perfectLessonBonus;
 
   const multiplier = LEVEL_MULTIPLIER[level] * (opts.xpMultiplier ?? 1);
   const scaledBase = Math.round(base * multiplier);

@@ -144,6 +144,12 @@ export function completeSession(
   params: {
     lessonId?: string;
     checkpointId?: string;
+    /**
+     * Whether the checkpoint was actually passed. Required alongside
+     * `checkpointId` — without it the checkpoint is recorded as attempted but
+     * not passed, because sitting a test is not the same as passing one.
+     */
+    checkpointPassed?: boolean;
     attempts: AttemptRecord[];
     level: Level;
     isReview?: boolean;
@@ -154,8 +160,12 @@ export function completeSession(
   const tz = state.profile.timezoneOffsetMinutes;
   const today = dayKey(now, tz);
 
+  // A test that was sat and failed pays for its correct answers but not for
+  // being finished — see `noCompletionBonus`.
+  const failedAssessment = params.checkpointId !== undefined && params.checkpointPassed === false;
   const xp = scoreSession(params.attempts, params.level, {
     isReview: params.isReview ?? false,
+    noCompletionBonus: failedAssessment,
   });
 
   // --- skill scheduling ---------------------------------------------------
@@ -194,7 +204,11 @@ export function completeSession(
   // --- checkpoints --------------------------------------------------------
   const completedCheckpointIds = [...state.completedCheckpointIds];
   let checkpointDelta = 0;
-  if (params.checkpointId && !completedCheckpointIds.includes(params.checkpointId)) {
+  if (
+    params.checkpointId &&
+    params.checkpointPassed === true &&
+    !completedCheckpointIds.includes(params.checkpointId)
+  ) {
     completedCheckpointIds.push(params.checkpointId);
     checkpointDelta = 1;
   }

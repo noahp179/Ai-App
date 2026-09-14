@@ -11,10 +11,12 @@ import { Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   TRACKS_BY_ID,
+  buildTrackExam,
   canAccessLesson,
   pathsForTrack,
   trackCompletion,
   trackMastery,
+  trackExamId,
 } from '@synapse/core';
 import { Badge, Card, ProgressBar, Screen, Text, useTheme } from '@synapse/ui';
 
@@ -41,6 +43,8 @@ export default function TrackScreen(): React.JSX.Element {
   const completion = trackCompletion(progress, track.id);
   const mastery = trackMastery(progress, track.id);
   const paths = pathsForTrack(track.id);
+  const exam = buildTrackExam(track.id);
+  const examPassed = progress.completedCheckpointIds.includes(trackExamId(track.id));
 
   return (
     <Screen scroll>
@@ -226,6 +230,7 @@ export default function TrackScreen(): React.JSX.Element {
 
             {unit.checkpoint ? (
               <Card
+                onPress={() => router.push(`/assessment/${unit.checkpoint!.id}`)}
                 outlined
                 borderColor={
                   progress.completedCheckpointIds.includes(unit.checkpoint.id)
@@ -244,12 +249,38 @@ export default function TrackScreen(): React.JSX.Element {
                       {Math.round(unit.checkpoint.passingScore * 100)}%
                     </Text>
                   </View>
+                  <Text variant="subheading" tone="primary">
+                    →
+                  </Text>
                 </View>
               </Card>
             ) : null}
           </View>
         </View>
       ))}
+
+      {/* The whole-track test. Sampled from the track's own questions across
+          every unit, so it stays in sync with the curriculum by construction. */}
+      {exam ? (
+        <Card
+          onPress={() => router.push(`/assessment/${exam.id}`)}
+          outlined
+          borderColor={examPassed ? theme.colors.success : theme.colors.primary}
+          elevated="sm"
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: theme.spacing.md }}>
+            <Badge label={examPassed ? 'Passed' : 'Final exam'} tone={examPassed ? 'success' : 'primary'} filled />
+          </View>
+          <Text variant="heading">{exam.title}</Text>
+          <Text variant="caption" tone="secondary" style={{ marginTop: theme.spacing.xs }}>
+            {exam.subtitle}
+          </Text>
+          <Text variant="caption" tone="tertiary" style={{ marginTop: theme.spacing.md }}>
+            Sit it at the end to check what stuck — or sit it first to find out whether you need the
+            track at all.
+          </Text>
+        </Card>
+      ) : null}
     </Screen>
   );
 }

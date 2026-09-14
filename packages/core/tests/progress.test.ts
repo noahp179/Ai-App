@@ -105,6 +105,7 @@ describe('completeSession', () => {
   it('records a checkpoint pass exactly once', () => {
     const first = completeSession(base(), {
       checkpointId: 'checkpoint-foundations-1',
+      checkpointPassed: true,
       attempts: [attempt('a', 'correct')],
       level: 'intro',
       now: NOW,
@@ -113,11 +114,56 @@ describe('completeSession', () => {
 
     const second = completeSession(first.state, {
       checkpointId: 'checkpoint-foundations-1',
+      checkpointPassed: true,
       attempts: [attempt('a', 'correct')],
       level: 'intro',
       now: NOW + 1000,
     });
     expect(second.state.stats.checkpointsPassed).toBe(1);
+  });
+
+  it('does not record a checkpoint that was sat but not passed', () => {
+    const failed = completeSession(base(), {
+      checkpointId: 'checkpoint-foundations-1',
+      checkpointPassed: false,
+      attempts: [attempt('a', 'incorrect')],
+      level: 'intro',
+      now: NOW,
+    });
+    expect(failed.state.stats.checkpointsPassed).toBe(0);
+    expect(failed.state.completedCheckpointIds).toEqual([]);
+
+    // …and a later pass still counts.
+    const passed = completeSession(failed.state, {
+      checkpointId: 'checkpoint-foundations-1',
+      checkpointPassed: true,
+      attempts: [attempt('a', 'correct')],
+      level: 'intro',
+      now: NOW + 1000,
+    });
+    expect(passed.state.stats.checkpointsPassed).toBe(1);
+  });
+
+  it('pays for correct answers but not for finishing a failed test', () => {
+    const failed = completeSession(base(), {
+      checkpointId: 'checkpoint-foundations-1',
+      checkpointPassed: false,
+      attempts: [attempt('a', 'correct'), attempt('b', 'incorrect')],
+      level: 'intro',
+      now: NOW,
+    });
+    expect(failed.xp.bonus).toBe(0);
+    expect(failed.xp.total).toBeGreaterThan(0);
+
+    const passed = completeSession(base(), {
+      checkpointId: 'checkpoint-foundations-1',
+      checkpointPassed: true,
+      attempts: [attempt('a', 'correct'), attempt('b', 'incorrect')],
+      level: 'intro',
+      now: NOW,
+    });
+    expect(passed.xp.bonus).toBeGreaterThan(0);
+    expect(passed.xp.total).toBeGreaterThan(failed.xp.total);
   });
 
   it('counts review sessions separately and skips the completion bonus', () => {

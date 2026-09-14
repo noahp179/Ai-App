@@ -574,6 +574,43 @@ print(cyclical(0), cyclical(23))`,
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-data-2',
+        title: 'Data Sourcing Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'A recommender is retrained on the clicks it generated. What happens over successive versions?',
+            [
+              'Nothing — clicks are the most honest signal',
+              'The catalogue narrows: unshown items gather no evidence and stay unshown',
+              'It overfits the loss function',
+              'Latency grows',
+            ],
+            1,
+            ['sk-data-sourcing'],
+            'The feedback loop closes on itself. Deliberate exploration and logged propensities are the standard mitigations.',
+          ),
+          trueFalse(
+            'Flipping an X-ray horizontally is a safe augmentation for pathology detection.',
+            false,
+            ['sk-data-augmentation'],
+            'It implies reversed organ placement. Augmentation encodes a claim about what should not change the label, and that claim is domain-specific.',
+          ),
+          mcq(
+            'What disappears first when models are repeatedly trained on model-generated data?',
+            [
+              'Fluency and grammar',
+              'The rare cases in the tails of the distribution',
+              'Instruction following',
+              'The most common patterns',
+            ],
+            1,
+            ['sk-synthetic-data'],
+            'Model collapse thins the tails while fluency holds throughout — which is exactly what makes it hard to notice.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------

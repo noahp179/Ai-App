@@ -384,6 +384,43 @@ export const generativeAiTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-gen-2',
+        title: 'Latent Space Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'What does the KL term in a VAE’s loss buy?',
+            [
+              'Sharper reconstructions',
+              'A latent space with no gaps, so random samples and interpolations decode to plausible outputs',
+              'Faster convergence',
+              'A smaller model',
+            ],
+            1,
+            ['sk-vae'],
+            'It shapes the latent distribution toward a standard normal. It costs sharpness — that is the trade — but without it you cannot sample at all.',
+          ),
+          mcq(
+            'A GAN’s generator loss falls steadily. What can you conclude?',
+            [
+              'Images are improving',
+              'Very little — the loss is measured against a discriminator that is also changing',
+              'Training has converged',
+              'The discriminator collapsed',
+            ],
+            1,
+            ['sk-gan'],
+            'Both losses are relative to a moving opponent. GAN progress has to be judged from samples or a metric like FID.',
+          ),
+          trueFalse(
+            'A plain autoencoder can generate new samples by decoding random latent vectors.',
+            false,
+            ['sk-latent-space'],
+            'Its codes cluster in islands with unmapped gaps between them. Sampling a gap produces noise, which is the problem the VAE’s regulariser solves.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------
@@ -506,6 +543,38 @@ export const generativeAiTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-gen-3',
+        title: 'Multimodal Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'How does CLIP classify an image into a category it never trained on?',
+            [
+              'It fine-tunes on a few examples',
+              'It embeds candidate label sentences and returns whichever lands nearest the image embedding',
+              'It searches the training set for a similar image',
+              'It uses one classifier head per category',
+            ],
+            1,
+            ['sk-clip-multimodal'],
+            'Both modalities share one space, so a label is a point in it and classification becomes nearest-neighbour. A new category costs a sentence.',
+          ),
+          numeric(
+            'How many forward passes of the denoising network does classifier-free guidance need per step?',
+            2,
+            ['sk-guidance'],
+            'One conditioned and one unconditioned — which is why enabling guidance roughly doubles generation cost.',
+          ),
+          mcq(
+            'Images come out oversaturated, over-contrasted and rigid. Which setting is the likely cause?',
+            ['Too few steps', 'Guidance scale far too high', 'A fixed seed', 'A mismatched VAE'],
+            1,
+            ['sk-guidance'],
+            'High guidance extrapolates so far from the unconditional prediction that the sample leaves the distribution of real images. Blown-out colour is the signature.',
+          ),
+        ],
+      },
     },
   ],
 };

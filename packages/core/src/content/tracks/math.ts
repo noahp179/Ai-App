@@ -364,6 +364,38 @@ export const mathTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-math-2',
+        title: 'Matrices Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'What does the top principal component of a dataset represent?',
+            [
+              'The feature most correlated with the target',
+              'The direction in feature space along which the data varies most',
+              'The mean of all features',
+              'The feature with the largest values',
+            ],
+            1,
+            ['sk-eigenvectors'],
+            'It is the top eigenvector of the covariance matrix — a direction built from every feature, chosen without seeing the label.',
+          ),
+          numeric(
+            'What is the cosine similarity of [2, 0] and [5, 0]?',
+            1,
+            ['sk-cosine-similarity'],
+            'Same direction, different magnitude: cosine 1. Their Euclidean distance is 3, which is why the choice of measure changes the answer.',
+            { tolerance: 0.01 },
+          ),
+          trueFalse(
+            'Matrix multiplication is commutative.',
+            false,
+            ['sk-matrices'],
+            'Rotating then stretching lands somewhere different from stretching then rotating. Order is meaning — which is why layer order in a network is not arbitrary.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------

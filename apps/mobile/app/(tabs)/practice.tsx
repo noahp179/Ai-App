@@ -11,12 +11,16 @@ import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   SKILLS_BY_ID,
+  TRACKS,
   buildReviewSession,
+  buildTrackExam,
   dueSkills,
   exercisesBySkill,
   formatRelativeDue,
   plural,
   retention,
+  trackCompletion,
+  trackExamId,
 } from '@synapse/core';
 import { Badge, Button, Card, EmptyState, ProgressBar, Screen, Text, useTheme } from '@synapse/ui';
 
@@ -66,6 +70,22 @@ export default function PracticeScreen(): React.JSX.Element {
 
   const totalTracked = Object.values(progress.skills).filter((s) => s.totalReviews > 0).length;
 
+  // Review strengthens what you know; a test tells you what you do not. The
+  // one worth offering is the track furthest along that has not been passed.
+  const examCandidate = useMemo(() => {
+    const scored = TRACKS.map((track) => ({
+      track,
+      completion: trackCompletion(progress, track.id),
+      passed: progress.completedCheckpointIds.includes(trackExamId(track.id)),
+    }))
+      .filter((entry) => entry.completion > 0 && !entry.passed)
+      .sort((a, b) => b.completion - a.completion);
+    const best = scored[0];
+    if (!best) return null;
+    const exam = buildTrackExam(best.track.id);
+    return exam ? { exam, ...best } : null;
+  }, [progress]);
+
   return (
     <Screen scroll>
       <Text variant="title" style={{ marginBottom: theme.spacing.xs }}>
@@ -108,6 +128,25 @@ export default function PracticeScreen(): React.JSX.Element {
           onAction={() => router.push('/learn')}
         />
       )}
+
+      {examCandidate ? (
+        <Card
+          onPress={() => router.push(`/assessment/${examCandidate.exam.id}`)}
+          outlined
+          borderColor={theme.colors.warning}
+          style={{ marginBottom: theme.spacing.xl }}
+        >
+          <Badge label="Knowledge test" tone="warning" style={{ marginBottom: theme.spacing.md }} />
+          <Text variant="bodyStrong">{examCandidate.exam.title}</Text>
+          <Text variant="caption" tone="secondary" style={{ marginTop: theme.spacing.xxs }}>
+            {examCandidate.exam.exercises.length} questions across the whole track ·{' '}
+            {Math.round(examCandidate.completion * 100)}% of it done
+          </Text>
+          <Text variant="caption" tone="tertiary" style={{ marginTop: theme.spacing.md }}>
+            Review tells you what is fading. A test tells you what never landed.
+          </Text>
+        </Card>
+      ) : null}
 
       {weakest.length > 0 ? (
         <View>

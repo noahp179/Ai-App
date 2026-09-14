@@ -175,6 +175,43 @@ export const nlpTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-nlp-1',
+        title: 'Text Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'For which task is stop-word removal most destructive?',
+            [
+              'Topic classification of news',
+              'Detecting negation in clinical notes',
+              'Keyword search over product titles',
+              'Clustering documents by subject',
+            ],
+            1,
+            ['sk-text-normalization'],
+            '"No" and "not" are standard stop words, and removing them inverts the meaning of "no evidence of fracture".',
+          ),
+          mcq(
+            'What does TF-IDF fundamentally fail to represent?',
+            [
+              'Document length',
+              'That two different words can mean similar things',
+              'Term frequency',
+              'Rare terms',
+            ],
+            1,
+            ['sk-bag-of-words'],
+            'Every word is its own orthogonal column, so "car" and "automobile" share nothing at all. Embeddings exist to fix exactly this.',
+          ),
+          trueFalse(
+            'A model’s tokenizer can be swapped without retraining the model.',
+            false,
+            ['sk-bpe'],
+            'Token ids index the embedding table. A different tokenizer resolves every id to the wrong vector, and the model produces fluent nonsense rather than an error.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------
@@ -249,6 +286,43 @@ export const nlpTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-nlp-2',
+        title: 'Word Vectors Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'In Word2Vec, which part of the trained network is kept?',
+            [
+              'The output layer that predicts context words',
+              'The hidden-layer weight matrix — one row per word, and those rows are the embeddings',
+              'The whole network, for inference',
+              'The vocabulary counts',
+            ],
+            1,
+            ['sk-word-embeddings'],
+            'The prediction task is scaffolding. The representation learned along the way is the product — the same pattern as all self-supervised learning.',
+          ),
+          trueFalse(
+            'Averaging a sentence’s word vectors produces a representation that preserves word order.',
+            false,
+            ['sk-word-embeddings'],
+            'Addition is commutative, so every permutation gives the identical vector. Recovering order is what recurrence, and later positional encoding, were for.',
+          ),
+          mcq(
+            'What is the key difference between a Word2Vec and a BERT embedding of the same word?',
+            [
+              'BERT vectors are shorter',
+              'Word2Vec gives one fixed vector per word; BERT computes a different one per context',
+              'Word2Vec needs labelled data',
+              'BERT embeddings cannot be compared with cosine similarity',
+            ],
+            1,
+            ['sk-word-embeddings'],
+            'Static versus contextual — which is why BERT can separate the two senses of "bank" and Word2Vec structurally cannot.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------

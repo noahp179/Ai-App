@@ -13,15 +13,19 @@
  *    real options, not a dead end.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   LESSON_INDEX,
   canAccessLesson,
+  getAssessment,
+  gradeAssessment,
   limitsFor,
   suggestFollowUps,
+  type Assessment,
+  type AssessmentResult,
   type Step,
 } from '@synapse/core';
 import {
@@ -68,13 +72,41 @@ export default function LessonScreen(): React.JSX.Element {
     leveledUp: boolean;
     newAchievements: number;
   }>(null);
+  const [examResult, setExamResult] = useState<AssessmentResult | null>(null);
 
   const location = id && id !== 'review' ? LESSON_INDEX.get(id) : undefined;
   const isReview = id === 'review';
+  // The same player runs lessons, review, and knowledge tests. What differs is
+  // how the session is configured and what the end screen has to say.
+  const assessment: Assessment | undefined = useMemo(
+    () => (id && id !== 'review' && !location ? getAssessment(id) : undefined),
+    [id, location],
+  );
 
   // --- start the session ---------------------------------------------------
   useEffect(() => {
     if (isReview) return; // Practice screen already started it.
+
+    // A test is not a lesson: no hearts to run out of, and no re-queuing
+    // mistakes until they are answered right — that is good teaching and it
+    // would make the score meaningless.
+    if (assessment) {
+      if (session.context?.checkpointId === assessment.id) return;
+      session.start({
+        steps: assessment.exercises.map((exercise) => ({
+          id: exercise.id,
+          type: 'exercise' as const,
+          exercise,
+        })),
+        level: 'intermediate',
+        mode: 'checkpoint',
+        hearts: null,
+        requeueMistakes: false,
+        checkpointId: assessment.id,
+      });
+      return;
+    }
+
     if (!location) return;
     if (session.context?.lessonId === location.lesson.id) return;
 
@@ -99,7 +131,7 @@ export default function LessonScreen(): React.JSX.Element {
     // `session` is a store object whose identity changes every update; depending
     // on it here would restart the session on every answer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location, isReview, progress.entitlement]);
+  }, [location, assessment, isReview, progress.entitlement]);
 
   const snapshot = session.snapshot;
   const step: Step | null = snapshot?.currentStep ?? null;
@@ -109,14 +141,19 @@ export default function LessonScreen(): React.JSX.Element {
     if (!snapshot || snapshot.status !== 'complete' || summary) return;
     if (!session.context) return;
 
+    const attempts = session.runner?.getAttempts() ?? [];
+    const graded = assessment ? gradeAssessment(assessment, attempts) : null;
+
     const result = finishLesson({
       lessonId: session.context.lessonId,
       checkpointId: session.context.checkpointId,
-      attempts: session.runner?.getAttempts() ?? [],
+      checkpointPassed: graded?.passed,
+      attempts,
       level: session.context.level,
       isReview: session.context.mode === 'review',
     });
 
+    if (graded) setExamResult(graded);
     setSummary({
       xpEarned: result.xpEarned,
       accuracy: result.accuracy,
@@ -144,6 +181,7 @@ export default function LessonScreen(): React.JSX.Element {
   const exit = useCallback(() => {
     session.end();
     setSummary(null);
+    setExamResult(null);
     router.back();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
@@ -164,6 +202,23 @@ export default function LessonScreen(): React.JSX.Element {
   }, [snapshot?.heartsRemaining]);
 
   // --- render --------------------------------------------------------------
+
+  if (examResult && assessment) {
+    return (
+      <AssessmentResultView
+        assessment={assessment}
+        result={examResult}
+        xpEarned={summary?.xpEarned ?? 0}
+        onDone={exit}
+        onRetake={() => {
+          setExamResult(null);
+          setSummary(null);
+          session.end();
+          router.replace(`/assessment/${assessment.id}`);
+        }}
+      />
+    );
+  }
 
   if (summary) {
     return <CompletionView summary={summary} onDone={exit} />;
@@ -474,6 +529,162 @@ function CompletionView({
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * The end of a knowledge test.
+ *
+ * A lesson's completion screen celebrates. A test's has a different job: say
+ * whether you passed, and then say *what you got wrong* at the granularity you
+ * can act on. So the per-skill breakdown is the largest thing below the score,
+ * worst first, and the primary action when you fail is to go and review those
+ * skills rather than to immediately retake the same paper.
+ */
+function AssessmentResultView({
+  assessment,
+  result,
+  xpEarned,
+  onDone,
+  onRetake,
+}: {
+  assessment: Assessment;
+  result: AssessmentResult;
+  xpEarned: number;
+  onDone: () => void;
+  onRetake: () => void;
+}): React.JSX.Element {
+  const theme = useTheme();
+  const router = useRouter();
+  const percent = useCountUp(Math.round(result.score * 100), { duration: 900 });
+  const accent = result.passed ? theme.colors.success : theme.colors.warning;
+
+  return (
+    <Screen scroll>
+      <Entrance index={0} distance={0}>
+        <View style={{ alignItems: 'center', marginTop: theme.spacing.xl }}>
+          {result.passed ? (
+            <Burst
+              trigger={1}
+              radius={120}
+              particleCount={14}
+              colors={[theme.colors.success, theme.colors.primary]}
+            />
+          ) : null}
+          <ProgressRing value={result.score} size={112} thickness={9} color={accent}>
+            <Text variant="title" style={{ color: accent }}>
+              {percent}%
+            </Text>
+          </ProgressRing>
+
+          <Text variant="title" align="center" style={{ marginTop: theme.spacing.xl }}>
+            {result.passed ? 'Passed' : 'Not yet'}
+          </Text>
+          <Text variant="caption" tone="secondary" align="center" style={{ marginTop: theme.spacing.xs }}>
+            {result.correct} of {result.total} correct · pass mark{' '}
+            {Math.round(result.passingScore * 100)}%
+          </Text>
+        </View>
+      </Entrance>
+
+      <Entrance index={1}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: theme.spacing.sm,
+            marginTop: theme.spacing.lg,
+            marginBottom: theme.spacing.xxl,
+          }}
+        >
+          <Badge
+            label={assessment.kind === 'exam' ? 'Track exam' : 'Unit checkpoint'}
+            tone="primary"
+          />
+          {xpEarned > 0 ? <Badge label={`+${xpEarned} XP`} tone="success" /> : null}
+        </View>
+      </Entrance>
+
+      {/* The part worth reading. */}
+      <Entrance index={2}>
+        <Card outlined>
+          <Text variant="label" tone="tertiary" caps style={{ marginBottom: theme.spacing.md }}>
+            {result.weakest.length > 0 ? 'Where you lost marks' : 'Every skill clean'}
+          </Text>
+
+          {result.bySkill.slice(0, 10).map((skill) => (
+            <View key={skill.skillId} style={{ marginBottom: theme.spacing.md }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: theme.spacing.xs,
+                }}
+              >
+                <Text variant="caption" style={{ flex: 1, marginRight: theme.spacing.sm }}>
+                  {skill.name}
+                </Text>
+                <Text
+                  variant="label"
+                  tone={skill.fraction >= 1 ? 'success' : skill.fraction === 0 ? 'danger' : 'warning'}
+                >
+                  {skill.correct}/{skill.total}
+                </Text>
+              </View>
+              <ProgressBar
+                value={skill.fraction}
+                height={5}
+                color={
+                  skill.fraction >= 1
+                    ? theme.colors.success
+                    : skill.fraction === 0
+                      ? theme.colors.danger
+                      : theme.colors.warning
+                }
+              />
+            </View>
+          ))}
+
+          {result.bySkill.length > 10 ? (
+            <Text variant="label" tone="tertiary" caps>
+              and {result.bySkill.length - 10} more
+            </Text>
+          ) : null}
+
+          <Text variant="caption" tone="tertiary" style={{ marginTop: theme.spacing.sm }}>
+            {result.weakest.length > 0
+              ? 'These skills are now scheduled for review sooner than the rest.'
+              : 'Nothing to re-schedule — the whole set held up.'}
+          </Text>
+        </Card>
+      </Entrance>
+
+      <Entrance index={3}>
+        <View style={{ gap: theme.spacing.md, marginTop: theme.spacing.xxl }}>
+          {result.weakest.length > 0 ? (
+            <Button
+              label="Practise the weak spots"
+              size="lg"
+              fullWidth
+              onPress={() => {
+                onDone();
+                router.push('/practice');
+              }}
+            />
+          ) : null}
+          {!result.passed ? (
+            <Button label="Retake" variant="secondary" size="lg" fullWidth onPress={onRetake} />
+          ) : null}
+          <Button
+            label="Done"
+            variant={result.weakest.length > 0 ? 'ghost' : 'primary'}
+            size="lg"
+            fullWidth
+            onPress={onDone}
+          />
+        </View>
+      </Entrance>
+    </Screen>
+  );
+}
 
 /**
  * Out of hearts.

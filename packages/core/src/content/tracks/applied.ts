@@ -331,6 +331,33 @@ export const mlopsTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-mlops-2',
+        title: 'Serving Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'Users say a service hangs, but its mean latency is 180ms. What should you look at?',
+            ['Throughput', 'The p95 and p99 latencies', 'Model accuracy', 'Monthly cost'],
+            1,
+            ['sk-inference-cost'],
+            'A long tail barely moves the mean. If p99 is several seconds, one request in a hundred is a visible hang.',
+          ),
+          mcq(
+            'Which rollout stage exposes a new model to real production inputs with no user risk?',
+            ['Canary', 'Shadow mode', 'A/B test', 'Full rollout'],
+            1,
+            ['sk-rollout-strategy'],
+            'Shadow mode mirrors live traffic and logs the new model’s predictions while still serving the old one’s.',
+          ),
+          trueFalse(
+            'Batching requests trades per-request latency for throughput.',
+            true,
+            ['sk-inference-cost'],
+            'Every request waits out the batch window while the hardware does far more work per second. Whether that is a win depends entirely on the product.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------
@@ -598,6 +625,43 @@ export const ethicsTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-ethics-1',
+        title: 'Interpretability Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'What does a feature-importance explanation actually tell you?',
+            [
+              'Why the model is correct',
+              'Which inputs moved this model’s output, not whether the reasoning is sound',
+              'The causal effect of each feature',
+              'That the model is unbiased',
+            ],
+            1,
+            ['sk-explainability'],
+            'Attribution describes the model, not the world. A confident explanation of a wrong prediction is still a wrong prediction.',
+          ),
+          trueFalse(
+            'A model that scores well on its objective is aligned with what its designers wanted.',
+            false,
+            ['sk-alignment'],
+            'Only if the objective captured the intent. The gap between the two is the alignment problem, and optimisation finds that gap reliably.',
+          ),
+          mcq(
+            'Which model is inherently easier to interpret?',
+            [
+              'A gradient-boosted ensemble of 500 trees',
+              'A shallow decision tree',
+              'A deep neural network with attention',
+              'A random forest',
+            ],
+            1,
+            ['sk-explainability'],
+            'A shallow tree is a readable set of rules. Everything else on the list needs post-hoc attribution, which is an approximation of the model rather than the model itself.',
+          ),
+        ],
+      },
     },
     // -----------------------------------------------------------------------
     {
@@ -724,6 +788,43 @@ export const ethicsTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-ethics-2',
+        title: 'Fairness Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'Two groups have different base rates. Which pair of fairness criteria cannot both hold?',
+            [
+              'Demographic parity and equalised odds',
+              'Calibration and equalised odds',
+              'Calibration and demographic parity',
+              'All three can hold simultaneously',
+            ],
+            1,
+            ['sk-fairness-metrics'],
+            'The Kleinberg and Chouldechova impossibility result: with unequal base rates, only a perfect classifier satisfies both. It is arithmetic, not an engineering gap.',
+          ),
+          trueFalse(
+            'Anonymising a dataset by removing names and ID numbers makes re-identification impractical.',
+            false,
+            ['sk-privacy'],
+            'The remaining fields act as a fingerprint. Postcode, birth date and sex alone identify most of a population, and the Netflix Prize data was re-identified against public reviews.',
+          ),
+          mcq(
+            'What does differential privacy actually guarantee?',
+            [
+              'No personal data exists anywhere in the system',
+              'The output is nearly unchanged whether or not any single individual was in the dataset',
+              'The model cannot be reverse-engineered',
+              'Training data is encrypted',
+            ],
+            1,
+            ['sk-privacy'],
+            'It bounds one record’s influence on the output. It says nothing about raw data sitting in your logs or a vendor’s systems.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------
@@ -1178,6 +1279,38 @@ export const reinforcementLearningTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-rl-2',
+        title: 'Value Methods Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          numeric(
+            'With α = 0.5, γ = 1.0, Q(s, a) = 4, reward = 2, and max Q(s′, a′) = 6, what is the updated Q(s, a)?',
+            6,
+            ['sk-q-learning'],
+            'Target is 2 + 6 = 8; the TD error is 8 − 4 = 4; move half of it: 4 + 2 = 6.',
+            { tolerance: 0.01 },
+          ),
+          mcq(
+            'Why does UCB explore more efficiently than ε-greedy?',
+            [
+              'It explores more often',
+              'It directs exploration at the actions it is least certain about rather than choosing at random',
+              'It stops exploring sooner',
+              'It needs fewer samples per action',
+            ],
+            1,
+            ['sk-exploration-exploitation'],
+            'ε-greedy spends its exploration budget uniformly, including on actions already known to be bad. UCB sends it where information remains.',
+          ),
+          trueFalse(
+            'Q-learning requires the agent to follow the policy it is learning about.',
+            false,
+            ['sk-q-learning'],
+            'It is off-policy: the max in the update refers to the best available action, not the one taken. That is why it can explore randomly and still converge on the optimal policy.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------

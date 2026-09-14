@@ -383,6 +383,39 @@ export const dsaTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-dsa-2',
+        title: 'Structures Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'Linked lists offer O(1) insertion. Why are dynamic arrays still the default?',
+            [
+              'Linked lists use more total memory',
+              'Cache locality — arrays are sequential and prefetchable, pointer-chasing is not',
+              'Linked lists cannot hold objects',
+              'Insertion is rarely needed',
+            ],
+            1,
+            ['sk-arrays-lists'],
+            'The O(1) assumes you already hold the insertion point, and the constant factor from cache misses routinely outweighs the asymptotic advantage.',
+          ),
+          numeric(
+            'A hash table has 32 buckets and 24 entries. What is its load factor, to two decimal places?',
+            0.75,
+            ['sk-hash-tables'],
+            '24 / 32 = 0.75 — the threshold where most implementations resize, because probe counts climb steeply beyond it.',
+            { tolerance: 0.01 },
+          ),
+          mcq(
+            'You need the smallest element of a collection that keeps growing. Which structure?',
+            ['A sorted array re-sorted on each insert', 'A min-heap', 'A hash table', 'A queue'],
+            1,
+            ['sk-heaps'],
+            'O(log n) insert and O(1) peek. Re-sorting is O(n log n) per insert and a hash table has no order at all.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------
@@ -528,6 +561,38 @@ export const dsaTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-dsa-3',
+        title: 'Trees and Graphs Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          numeric(
+            'How many comparisons does binary search need, at worst, over 4,096 sorted items?',
+            12,
+            ['sk-binary-search'],
+            'log₂(4096) = 12. Each comparison halves the remaining candidates.',
+          ),
+          mcq(
+            'You insert already-sorted data into an unbalanced BST. What have you built?',
+            ['A balanced tree', 'Effectively a linked list, with O(n) search', 'A heap', 'A trie'],
+            1,
+            ['sk-trees'],
+            'Every value exceeds the last, so every node becomes a right child. Sorted input is common, which is why self-balancing trees exist.',
+          ),
+          mcq(
+            'Why does BFS find a shortest path in an unweighted graph when DFS does not?',
+            [
+              'BFS visits fewer nodes',
+              'It finishes every node at distance d before touching d + 1, so first arrival is by a shortest route',
+              'DFS cannot reach every node',
+              'BFS uses a stack',
+            ],
+            1,
+            ['sk-graph-traversal'],
+            'The queue enforces exploration in order of distance. BFS often visits more nodes — that is the price of the guarantee.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------

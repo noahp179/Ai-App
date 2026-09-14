@@ -450,6 +450,43 @@ export const promptEngineeringTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-pe-3',
+        title: 'Reasoning Prompts Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'On which task should chain-of-thought prompting help least?',
+            [
+              'A three-step arithmetic word problem',
+              'Recalling the boiling point of water',
+              'A constraint-satisfaction puzzle',
+              'Ordering events from a paragraph of clues',
+            ],
+            1,
+            ['sk-chain-of-thought'],
+            'Recall is a single lookup with no intermediate state, so extra reasoning tokens have nothing to hold.',
+          ),
+          mcq(
+            'Which instruction belongs in the system prompt rather than the user turn?',
+            [
+              'Summarise this thread',
+              'Never give legal advice',
+              'Keep it under 100 words this time',
+              'Translate the pasted section',
+            ],
+            1,
+            ['sk-system-prompts'],
+            'It is constant across every request and needs to outrank the user — both signs of a system-prompt instruction.',
+          ),
+          trueFalse(
+            'A system prompt is a reliable way to stop a model revealing information.',
+            false,
+            ['sk-system-prompts', 'sk-prompt-injection'],
+            'It is text in the same context as untrusted input, with no mechanism separating instruction from data. It shapes default behaviour; it enforces nothing.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------

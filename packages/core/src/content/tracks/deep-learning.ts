@@ -595,6 +595,37 @@ print(h.shape)`,
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-dl-3',
+        title: 'Convolution Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          numeric(
+            'A 3×3 kernel with stride 1 and no padding is applied to a 28×28 input. What is the output width?',
+            26,
+            ['sk-convolution'],
+            '(28 − 3)/1 + 1 = 26. Each unpadded convolution shrinks the map by kernel − 1, which is why deep stacks pad.',
+          ),
+          mcq(
+            'What is a 1×1 convolution for?',
+            [
+              'Detecting single pixels',
+              'Mixing across channels and changing channel depth without touching spatial structure',
+              'Downsampling',
+              'Adding nonlinearity only',
+            ],
+            1,
+            ['sk-cnn-architecture'],
+            'A per-position linear combination across channels — the cheap way to cut depth before an expensive 3×3.',
+          ),
+          trueFalse(
+            'Max pooling makes a network’s output insensitive to small shifts in the input.',
+            true,
+            ['sk-pooling'],
+            'It returns the same value wherever in the window the strong activation sat. That converts some of convolution’s equivariance into the invariance classification wants.',
+          ),
+        ],
+      },
     },
   ],
 };

@@ -608,6 +608,43 @@ print(round(sigmoid(z), 2))`,
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-ml-3',
+        title: 'Unsupervised Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'You run k-means twice on identical data and get different clusters. Why?',
+            [
+              'The algorithm is broken',
+              'It converges to a local optimum that depends on the random initial centroids',
+              'The data changed',
+              'k was too large',
+            ],
+            1,
+            ['sk-clustering'],
+            'k-means guarantees convergence, not optimality. Running it several times and keeping the best inertia is the standard defence, and k-means++ picks better starting points.',
+          ),
+          trueFalse(
+            'PCA chooses its components using the target label.',
+            false,
+            ['sk-dimensionality-reduction'],
+            'PCA never sees the label — it maximises variance. That is exactly how it can discard a low-variance direction that happened to be the predictive one.',
+          ),
+          mcq(
+            'What must you do before running k-means on features measured in different units?',
+            [
+              'Nothing — k-means is scale-invariant',
+              'Scale the features, or the largest-range feature dominates the distance',
+              'Remove the labels',
+              'Sort the data',
+            ],
+            1,
+            ['sk-clustering', 'sk-feature-scaling'],
+            'Distance-based methods are ruled by whichever feature has the widest numeric range. Income in pounds against age in years is not a fair contest.',
+          ),
+        ],
+      },
     },
   ],
 };

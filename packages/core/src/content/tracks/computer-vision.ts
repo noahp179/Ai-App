@@ -158,6 +158,37 @@ export const computerVisionTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-cv-1',
+        title: 'Seeing Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          numeric(
+            'How many numbers are in a 64×64 RGB image?',
+            12288,
+            ['sk-image-representation'],
+            '64 × 64 × 3 = 12,288. Small by modern standards, and still far too many for a dense first layer to handle sensibly.',
+          ),
+          mcq(
+            'What does weight sharing in a convolution buy?',
+            [
+              'Faster convergence through better initialisation',
+              'A pattern learned once works at every position, with a tiny fraction of the parameters',
+              'Protection against overfitting through noise',
+              'Support for variable-size inputs only',
+            ],
+            1,
+            ['sk-convolution'],
+            'One kernel applied everywhere gives both the parameter saving and translation equivariance — the two reasons convolution beat dense layers on images.',
+          ),
+          trueFalse(
+            'A convolution kernel spans only one channel of its input.',
+            false,
+            ['sk-convolution'],
+            'It spans the full input depth. A 3×3 kernel over 64 channels holds 3 × 3 × 64 = 576 weights — it is a block, not a flat square.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------
@@ -291,6 +322,43 @@ export const computerVisionTrack: Track = {
           ],
         }),
       ],
+      checkpoint: {
+        id: 'checkpoint-cv-2',
+        title: 'Deep Vision Checkpoint',
+        passingScore: 0.7,
+        exercises: [
+          mcq(
+            'Why does pooling appear between convolution blocks?',
+            [
+              'To add nonlinearity',
+              'To grow the receptive field so later layers see larger regions of the original image',
+              'To prevent vanishing gradients',
+              'To normalise activations',
+            ],
+            1,
+            ['sk-pooling'],
+            'Downsampling is what lets a stack of small kernels eventually cover the whole image. Invariance and cheaper compute are bonuses.',
+          ),
+          numeric(
+            'A 128×128 feature map passes through four 2×2 pooling layers. What is the resulting width?',
+            8,
+            ['sk-pooling'],
+            '128 → 64 → 32 → 16 → 8. Spatial resolution falls while channel depth rises.',
+          ),
+          mcq(
+            'Very deep plain CNNs had worse training error than shallower ones. What fixed it?',
+            [
+              'More data',
+              'Residual connections giving gradients a path around each block',
+              'Batch normalization alone',
+              'Smaller kernels',
+            ],
+            1,
+            ['sk-cnn-architecture'],
+            'Worse training error rules out overfitting — the gradient could not reach the early layers. ResNet’s parameter-free F(x) + x fixed it.',
+          ),
+        ],
+      },
     },
 
     // -----------------------------------------------------------------------
