@@ -14,7 +14,26 @@ You need **Node 20 or newer**. Check with `node --version`.
 git clone https://github.com/noahp179/Ai-App.git
 cd Ai-App
 git checkout claude/ai-education-app-t3trrh
-npm install
+npm install --include-workspace-root \
+  --workspace @synapse/core --workspace @synapse/ui --workspace @synapse/mobile
+```
+
+That installs everything the tests, the browser and your phone need, in about
+half a minute.
+
+**`--include-workspace-root` is not optional.** Without it npm skips the root
+package's own devDependencies, and the web build then fails with
+`Cannot find module 'resolve-from'` — `babel-preset-expo` requires that module
+without declaring it, and only finds it because something in the root
+dependencies happens to hoist it.
+
+A plain `npm install` also pulls the macOS packaging toolchain — `electron` and
+`electron-builder`, a few hundred megabytes of platform binaries fetched from
+GitHub. It is the slowest and by far the least reliable part of the install,
+and it is only needed for section 4. Run it when you want the desktop app:
+
+```bash
+npm install                     # adds the desktop toolchain
 ```
 
 Then open the folder in VS Code:
@@ -206,6 +225,50 @@ To start over from scratch: **Profile → Reset all progress**.
 
 **`npm install` fails.** Check `node --version` is 20+. If it is older, install
 a current Node from nodejs.org or via `nvm install 20`.
+
+**`npm install` hangs after the deprecation warnings.** It is usually still
+working. npm prints its warnings early, then goes quiet while `electron`
+downloads its ~100 MB binary, and that download has no progress output — so a
+slow connection looks identical to a freeze. To see what it is actually doing:
+
+```bash
+npm install --foreground-scripts
+```
+
+To skip it entirely, install only the workspaces you need (see setup above,
+and note the `--include-workspace-root` flag there), or keep the full install
+and skip just the binary download:
+
+```bash
+ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install
+```
+
+**`npm install` fails with `ENOTEMPTY ... rename node_modules/...`.** A previous
+install was interrupted and left `node_modules` half-written; npm cannot move
+the stale directory aside. It is entirely generated and gitignored, so delete it
+and start again:
+
+```bash
+rm -rf node_modules packages/*/node_modules apps/*/node_modules
+npm cache clean --force
+npm install --include-workspace-root \
+  --workspace @synapse/core --workspace @synapse/ui --workspace @synapse/mobile
+```
+
+If it recurs, check the repo is not inside iCloud Drive or Dropbox — a sync
+daemon holding file handles produces exactly this error.
+
+**`vitest: command not found` from `npm test`.** The install did not finish, so
+nothing was linked into `node_modules/.bin`. Fix the install above; the test
+script itself is fine.
+
+**`Cannot find module 'resolve-from'` when the browser loads.** The install
+omitted the root package's devDependencies. Reinstall with
+`--include-workspace-root`, as in the setup section.
+
+**`npm warn deprecated eslint@8.57.1`.** Cosmetic. ESLint 8 is out of support
+and the move to 9 means migrating to flat config; it does not affect running
+the app, and `npm run lint` works.
 
 **Metro says "Unable to resolve module".** Clear the cache:
 
