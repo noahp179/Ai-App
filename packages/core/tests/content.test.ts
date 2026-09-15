@@ -143,6 +143,7 @@ describe('catalog integrity', () => {
       'cache-locality', 'race-condition', 'float-precision', 'cpu-scheduler', 'virtual-memory',
       'query-plan', 'latency-budget', 'finite-automaton', 'truth-table', 'hash-avalanche',
       'bisect-debug',
+      'code-tracer', 'type-coercion', 'box-model', 'event-loop', 'cloud-cost',
     ]);
 
     const unused = [...declared].filter((w) => !used.has(w));

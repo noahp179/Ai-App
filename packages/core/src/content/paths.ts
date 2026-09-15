@@ -514,6 +514,82 @@ export const PATHS: Path[] = [
     entryLevel: 'intermediate',
     goals: ['build-products', 'career-switch', 'research'] as LearnerGoal[],
   },
+
+  {
+    id: 'path-learn-to-code',
+    title: 'Learn to Code',
+    tagline: 'From never having programmed to writing real things',
+    description:
+      'The route for someone starting at zero. Variables through functions to collections, written and run in the app; then Python, because that is where the data and AI work is; then how to organise code once there is enough of it to need organising; and finally what things cost.',
+    audience: 'Complete beginners, and people who learned by copying and want the foundations',
+    icon: '🌱',
+    gradient: ['#22C55E', '#06B6D4'],
+    trackIds: ['track-programming', 'track-python', 'track-paradigms', 'track-dsa'],
+    outcomes: [
+      'Write, run and debug a program from an empty file',
+      'Choose a data structure from how you will access it',
+      'Read unfamiliar code without needing to understand all of it',
+      'Write Python that a Python programmer would recognise as Python',
+      'State what your code costs as the input grows',
+    ],
+    entryLevel: 'intro',
+    goals: ['curious', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-fullstack',
+    title: 'Full-Stack Engineer',
+    tagline: 'Browser to database, and everything in between',
+    description:
+      'The whole request path, owned end to end. Markup and layout, the event loop that decides whether a page responds, the API in the middle, the schema underneath, and the infrastructure it all runs on — plus the engineering practices that keep it changeable.',
+    audience: 'Engineers who want to own a feature from the pixel to the row',
+    icon: '🧱',
+    gradient: ['#F59E0B', '#8B5CF6'],
+    trackIds: [
+      'track-programming',
+      'track-web',
+      'track-databases',
+      'track-networking',
+      'track-cloud',
+      'track-swe',
+    ],
+    outcomes: [
+      'Build an interface that works with a keyboard and a screen reader',
+      'Explain why a page freezes and fix it',
+      'Design an API surface you can live with a year later',
+      'Read a query plan instead of guessing at an index',
+      'Deploy it, watch it, and know what to do when it breaks',
+    ],
+    entryLevel: 'intro',
+    goals: ['build-products', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-platform',
+    title: 'Platform & Reliability',
+    tagline: 'Run it, watch it, and survive the incident',
+    description:
+      'The operational half of software engineering. What the operating system is doing underneath, where code actually runs and what it costs, how a distributed system fails, and the practices — infrastructure as code, observability, incident response — that turn an outage from a mystery into a procedure.',
+    audience: 'Engineers moving toward platform, SRE or DevOps work',
+    icon: '🔧',
+    gradient: ['#0EA5E9', '#EF4444'],
+    trackIds: [
+      'track-os',
+      'track-cloud',
+      'track-networking',
+      'track-security',
+      'track-swe',
+    ],
+    outcomes: [
+      'Diagnose a slow machine from thrashing, syscall cost or I/O wait',
+      'Describe infrastructure in code and detect drift from it',
+      'Alert on symptoms users feel, not on causes that are usually fine',
+      'Set an RPO and an RTO and design backwards from them',
+      'Keep secrets, dependencies and access scoped to what is needed',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['build-products', 'lead-teams', 'career-switch'] as LearnerGoal[],
+  },
 ];
 
 export const PATHS_BY_ID: ReadonlyMap<PathId, Path> = new Map(PATHS.map((p) => [p.id, p]));

@@ -335,6 +335,66 @@ export const SKILLS: Skill[] = [
   s('sk-graph-theory', 'Graph theory and its vocabulary', 'computer-science', 'intermediate', ['sk-graphs']),
   s('sk-modular-arithmetic', 'Modular arithmetic', 'computer-science', 'intermediate'),
   s('sk-recurrence-relations', 'Recurrence relations', 'computer-science', 'expert', ['sk-induction']),
+
+  // --- Programming fundamentals --------------------------------------------
+  s('sk-variables-types', 'Variables, values, and types', 'programming', 'intro'),
+  s('sk-control-flow', 'Conditionals and branching', 'programming', 'intro', ['sk-variables-types']),
+  s('sk-loops', 'Loops and iteration', 'programming', 'intro', ['sk-control-flow']),
+  s('sk-functions', 'Functions and return values', 'programming', 'intro', ['sk-variables-types']),
+  s('sk-scope-closures', 'Scope, shadowing, and closures', 'programming', 'intermediate', ['sk-functions']),
+  s('sk-collections', 'Lists, maps, and sets in practice', 'programming', 'intro', ['sk-variables-types']),
+  s('sk-mutability', 'Mutation, copying, and aliasing', 'programming', 'intermediate', ['sk-collections']),
+  s('sk-strings-text', 'Strings, encoding, and Unicode', 'programming', 'intermediate', ['sk-variables-types']),
+  s('sk-errors-exceptions', 'Errors, exceptions, and failing well', 'programming', 'intermediate', ['sk-functions']),
+  s('sk-off-by-one', 'Boundaries and off-by-one errors', 'programming', 'intro', ['sk-loops']),
+  s('sk-reading-code', 'Reading code you did not write', 'programming', 'intermediate', ['sk-functions']),
+  s('sk-pseudocode', 'From problem statement to algorithm', 'programming', 'intro'),
+
+  // --- Python ---------------------------------------------------------------
+  s('sk-python-syntax', 'Python syntax and idiom', 'programming', 'intro', ['sk-variables-types']),
+  s('sk-comprehensions', 'Comprehensions and generators', 'programming', 'intermediate', ['sk-python-syntax']),
+  s('sk-python-data-model', 'Dunder methods and the data model', 'programming', 'expert', ['sk-python-syntax']),
+  s('sk-python-gotchas', 'Mutable defaults and late binding', 'programming', 'intermediate', ['sk-python-syntax']),
+  s('sk-numpy', 'NumPy arrays and broadcasting', 'programming', 'intermediate', ['sk-python-syntax']),
+  s('sk-pandas', 'DataFrames and split-apply-combine', 'programming', 'intermediate', ['sk-numpy']),
+  s('sk-environments', 'Virtual environments and dependency pinning', 'programming', 'intermediate'),
+  s('sk-notebooks', 'Notebooks and their hidden state', 'programming', 'intermediate', ['sk-python-syntax']),
+
+  // --- Programming paradigms ------------------------------------------------
+  s('sk-encapsulation', 'Objects, state, and encapsulation', 'programming', 'intermediate', ['sk-functions']),
+  s('sk-inheritance-composition', 'Inheritance versus composition', 'programming', 'intermediate', ['sk-encapsulation']),
+  s('sk-polymorphism', 'Polymorphism and interfaces', 'programming', 'intermediate', ['sk-encapsulation']),
+  s('sk-pure-functions', 'Pure functions and side effects', 'programming', 'intermediate', ['sk-functions']),
+  s('sk-immutability', 'Immutability as a design choice', 'programming', 'intermediate', ['sk-pure-functions']),
+  s('sk-higher-order', 'Map, filter, reduce, and functions as values', 'programming', 'intermediate', ['sk-functions']),
+  s('sk-static-dynamic-typing', 'Static and dynamic typing', 'programming', 'intermediate', ['sk-variables-types']),
+  s('sk-generics', 'Generics and parametric polymorphism', 'programming', 'expert', ['sk-static-dynamic-typing']),
+  s('sk-null-safety', 'Null, optionals, and the billion-dollar mistake', 'programming', 'intermediate', ['sk-static-dynamic-typing']),
+  s('sk-declarative-imperative', 'Declarative versus imperative style', 'programming', 'intermediate', ['sk-higher-order']),
+
+  // --- The web --------------------------------------------------------------
+  s('sk-html-semantics', 'HTML as structure and meaning', 'web', 'intro'),
+  s('sk-css-layout', 'CSS layout: box model, flex, grid', 'web', 'intro', ['sk-html-semantics']),
+  s('sk-dom', 'The DOM as a live tree', 'web', 'intermediate', ['sk-html-semantics']),
+  s('sk-event-loop', 'The event loop, tasks, and microtasks', 'web', 'expert', ['sk-dom']),
+  s('sk-browser-rendering', 'Parse, layout, paint, composite', 'web', 'intermediate', ['sk-dom']),
+  s('sk-responsive-design', 'Responsive and mobile-first layout', 'web', 'intermediate', ['sk-css-layout']),
+  s('sk-web-accessibility', 'Accessible interfaces by default', 'web', 'intermediate', ['sk-html-semantics']),
+  s('sk-frontend-state', 'Client state and rendering models', 'web', 'expert', ['sk-dom']),
+  s('sk-web-performance', 'Core web vitals and what moves them', 'web', 'expert', ['sk-browser-rendering']),
+  s('sk-web-storage', 'Cookies, storage, and sessions in a browser', 'web', 'intermediate', ['sk-dom']),
+
+  // --- Cloud & infrastructure -----------------------------------------------
+  s('sk-service-models', 'IaaS, PaaS, SaaS, and what you still own', 'cloud', 'intro'),
+  s('sk-virtual-machines', 'Virtual machines and hypervisors', 'cloud', 'intermediate', ['sk-service-models']),
+  s('sk-orchestration', 'Container orchestration and Kubernetes', 'cloud', 'expert', ['sk-containers']),
+  s('sk-serverless', 'Serverless and cold starts', 'cloud', 'intermediate', ['sk-service-models']),
+  s('sk-iac', 'Infrastructure as code', 'cloud', 'intermediate', ['sk-service-models']),
+  s('sk-observability', 'Logs, metrics, traces, and alerts', 'cloud', 'intermediate', ['sk-service-models']),
+  s('sk-cloud-cost', 'Cost as an engineering constraint', 'cloud', 'intermediate', ['sk-service-models']),
+  s('sk-resilience', 'Redundancy, failover, and recovery objectives', 'cloud', 'expert', ['sk-observability']),
+  s('sk-autoscaling', 'Autoscaling and capacity planning', 'cloud', 'intermediate', ['sk-orchestration']),
+
 ];
 
 export const SKILLS_BY_ID: ReadonlyMap<string, Skill> = new Map(SKILLS.map((sk) => [sk.id, sk]));

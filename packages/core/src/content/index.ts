@@ -42,6 +42,11 @@ import { softwareEngineeringTrack } from './tracks/software-engineering';
 import { securityTrack } from './tracks/security';
 import { theoryTrack } from './tracks/theory';
 import { discreteMathTrack } from './tracks/discrete-math';
+import { programmingTrack } from './tracks/programming';
+import { pythonTrack } from './tracks/python';
+import { paradigmsTrack } from './tracks/paradigms';
+import { webTrack } from './tracks/web';
+import { cloudTrack } from './tracks/cloud';
 import { PATHS } from './paths';
 
 export const TRACKS: Track[] = [
@@ -71,6 +76,11 @@ export const TRACKS: Track[] = [
   securityTrack,
   discreteMathTrack,
   theoryTrack,
+  programmingTrack,
+  pythonTrack,
+  paradigmsTrack,
+  webTrack,
+  cloudTrack,
 ];
 
 // ---------------------------------------------------------------------------

@@ -387,7 +387,12 @@ export type InteractiveWidget =
   | 'finite-automaton'
   | 'truth-table'
   | 'hash-avalanche'
-  | 'bisect-debug';
+  | 'bisect-debug'
+  | 'code-tracer'
+  | 'type-coercion'
+  | 'box-model'
+  | 'event-loop'
+  | 'cloud-cost';
 
 export type FigureName =
   | 'ai-ml-dl-venn'

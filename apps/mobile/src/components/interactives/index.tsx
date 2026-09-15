@@ -67,6 +67,7 @@ import {
   QueryPlan,
   TruthTable,
 } from './applied-cs';
+import { BoxModel, CloudCost, CodeTracer, EventLoop, TypeCoercion } from './programming';
 
 export function Interactive({ widget }: { widget: InteractiveWidget }): React.JSX.Element {
   switch (widget) {
@@ -187,6 +188,17 @@ export function Interactive({ widget }: { widget: InteractiveWidget }): React.JS
       return <TruthTable />;
     case 'hash-avalanche':
       return <HashAvalanche />;
+    case 'code-tracer':
+      return <CodeTracer />;
+    case 'type-coercion':
+      return <TypeCoercion />;
+    case 'box-model':
+      return <BoxModel />;
+    case 'event-loop':
+      return <EventLoop />;
+    case 'cloud-cost':
+      return <CloudCost />;
+
     case 'bisect-debug':
       return <BisectDebug />;
 

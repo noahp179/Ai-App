@@ -30,7 +30,9 @@ type LabGroup =
   | 'Computer science'
   | 'Systems'
   | 'Data & networks'
-  | 'Practice & security';
+  | 'Practice & security'
+  | 'Programming'
+  | 'The web & cloud';
 
 const GROUPS: LabGroup[] = [
   'Foundations',
@@ -42,6 +44,8 @@ const GROUPS: LabGroup[] = [
   'Systems',
   'Data & networks',
   'Practice & security',
+  'Programming',
+  'The web & cloud',
 ];
 
 const LAB_ENTRIES: LabEntry[] = [
@@ -114,6 +118,15 @@ const LAB_ENTRIES: LabEntry[] = [
   // --- Practice & security ---
   { widget: 'bisect-debug', title: 'Bisect a regression', blurb: 'Ten questions to find one bad commit among a thousand.', icon: '🔎', group: 'Practice & security' },
   { widget: 'hash-avalanche', title: 'Hash avalanche', blurb: 'Change one character and count how many output bits flip.', icon: '🔐', group: 'Practice & security' },
+
+  // --- Programming ---
+  { widget: 'code-tracer', title: 'Trace a program', blurb: 'Step a program line by line and watch every variable change.', icon: '👣', group: 'Programming' },
+  { widget: 'type-coercion', title: 'Type coercion', blurb: 'Guess the result, then find out why `[] + []` is an empty string.', icon: '🔀', group: 'Programming' },
+
+  // --- The web & cloud ---
+  { widget: 'box-model', title: 'The box model', blurb: 'Watch padding and border add to a width — then switch to border-box.', icon: '📦', group: 'The web & cloud' },
+  { widget: 'event-loop', title: 'The event loop', blurb: 'Why the order is A D C B and not the order you wrote.', icon: '🔁', group: 'The web & cloud' },
+  { widget: 'cloud-cost', title: 'Cloud bill', blurb: 'Drop utilisation to 10% and see how much you pay for idle machines.', icon: '💸', group: 'The web & cloud' },
 ];
 
 export default function PlaygroundScreen(): React.JSX.Element {
