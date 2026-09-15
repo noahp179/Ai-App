@@ -68,6 +68,16 @@ import {
   TruthTable,
 } from './applied-cs';
 import { BoxModel, CloudCost, CodeTracer, EventLoop, TypeCoercion } from './programming';
+import {
+  AbTestSim,
+  AstExplorer,
+  BinaryAdder,
+  ConfidenceIntervalWidget,
+  GcSimulator,
+  HuffmanTree,
+  LexerTokens,
+  LogicGates,
+} from './foundations-cs';
 
 export function Interactive({ widget }: { widget: InteractiveWidget }): React.JSX.Element {
   switch (widget) {
@@ -198,6 +208,22 @@ export function Interactive({ widget }: { widget: InteractiveWidget }): React.JS
       return <EventLoop />;
     case 'cloud-cost':
       return <CloudCost />;
+    case 'logic-gates':
+      return <LogicGates />;
+    case 'binary-adder':
+      return <BinaryAdder />;
+    case 'lexer-tokens':
+      return <LexerTokens />;
+    case 'ast-explorer':
+      return <AstExplorer />;
+    case 'gc-simulator':
+      return <GcSimulator />;
+    case 'huffman-tree':
+      return <HuffmanTree />;
+    case 'ab-test-sim':
+      return <AbTestSim />;
+    case 'confidence-interval':
+      return <ConfidenceIntervalWidget />;
 
     case 'bisect-debug':
       return <BisectDebug />;

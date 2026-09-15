@@ -395,6 +395,62 @@ export const SKILLS: Skill[] = [
   s('sk-resilience', 'Redundancy, failover, and recovery objectives', 'cloud', 'expert', ['sk-observability']),
   s('sk-autoscaling', 'Autoscaling and capacity planning', 'cloud', 'intermediate', ['sk-orchestration']),
 
+  // --- Digital logic & hardware ---------------------------------------------
+  s('sk-transistors', 'Transistors as switches', 'hardware', 'intro'),
+  s('sk-logic-gates', 'Logic gates and their truth tables', 'hardware', 'intro', ['sk-transistors']),
+  s('sk-boolean-circuits', 'Boolean algebra and circuit simplification', 'hardware', 'intermediate', ['sk-logic-gates']),
+  s('sk-combinational', 'Adders, multiplexers, and decoders', 'hardware', 'intermediate', ['sk-boolean-circuits']),
+  s('sk-sequential-logic', 'Flip-flops, state, and the clock', 'hardware', 'intermediate', ['sk-combinational']),
+  s('sk-memory-cells', 'How a bit is physically stored', 'hardware', 'intermediate', ['sk-sequential-logic']),
+  s('sk-datapath', 'Building a CPU from gates', 'hardware', 'expert', ['sk-sequential-logic']),
+  s('sk-abstraction-layers', 'The abstraction stack from sand to software', 'hardware', 'intro', ['sk-logic-gates']),
+  s('sk-moores-law', 'Moore’s law, Dennard scaling, and what ended', 'hardware', 'intermediate', ['sk-transistors']),
+
+  // --- Compilers ------------------------------------------------------------
+  s('sk-lexing', 'Lexing: text to tokens', 'computer-science', 'intermediate', ['sk-finite-automata']),
+  s('sk-parsing-ast', 'Parsing into a syntax tree', 'computer-science', 'expert', ['sk-context-free']),
+  s('sk-semantic-analysis', 'Names, scopes, and type checking', 'computer-science', 'expert', ['sk-parsing-ast']),
+  s('sk-ir', 'Intermediate representations', 'computer-science', 'expert', ['sk-semantic-analysis']),
+  s('sk-optimisation-passes', 'What an optimiser actually does', 'computer-science', 'expert', ['sk-ir']),
+  s('sk-codegen', 'Code generation and register allocation', 'computer-science', 'expert', ['sk-ir']),
+  s('sk-garbage-collection', 'Garbage collection strategies', 'computer-science', 'expert', ['sk-stack-vs-heap']),
+  s('sk-runtime-systems', 'What a language runtime provides', 'computer-science', 'intermediate', ['sk-compilation-interpretation']),
+
+  // --- Information theory ---------------------------------------------------
+  s('sk-information-content', 'Surprise, bits, and self-information', 'math', 'intermediate'),
+  s('sk-shannon-entropy', 'Entropy as average surprise', 'math', 'intermediate', ['sk-information-content']),
+  s('sk-cross-entropy-loss', 'Cross-entropy as a loss function', 'math', 'expert', ['sk-shannon-entropy']),
+  s('sk-mutual-information', 'Mutual information and dependence', 'math', 'expert', ['sk-shannon-entropy']),
+  s('sk-source-coding', 'Compression and the source coding theorem', 'math', 'expert', ['sk-shannon-entropy']),
+  s('sk-huffman', 'Huffman codes and prefix-free encoding', 'math', 'intermediate', ['sk-source-coding']),
+  s('sk-channel-capacity', 'Noisy channels and capacity', 'math', 'expert', ['sk-shannon-entropy']),
+  s('sk-error-correction', 'Error-detecting and error-correcting codes', 'math', 'intermediate', ['sk-channel-capacity']),
+  s('sk-perplexity', 'Perplexity and why language models report it', 'math', 'expert', ['sk-cross-entropy-loss']),
+
+  // --- Cryptography ---------------------------------------------------------
+  s('sk-kerckhoffs', 'Kerckhoffs’s principle and why secrecy is the key', 'security', 'intro'),
+  s('sk-symmetric-ciphers', 'Symmetric encryption and AES', 'security', 'intermediate', ['sk-kerckhoffs']),
+  s('sk-block-modes', 'Block cipher modes and why ECB fails', 'security', 'expert', ['sk-symmetric-ciphers']),
+  s('sk-key-exchange', 'Diffie–Hellman and shared secrets', 'security', 'expert', ['sk-symmetric-ciphers']),
+  s('sk-public-key', 'Public-key cryptography', 'security', 'intermediate', ['sk-key-exchange']),
+  s('sk-signatures', 'Digital signatures and non-repudiation', 'security', 'intermediate', ['sk-public-key']),
+  s('sk-mac-aead', 'Message authentication and authenticated encryption', 'security', 'expert', ['sk-block-modes']),
+  s('sk-randomness', 'Randomness, seeds, and why it matters', 'security', 'intermediate', ['sk-kerckhoffs']),
+  s('sk-post-quantum', 'What quantum computing breaks', 'security', 'expert', ['sk-public-key']),
+  s('sk-crypto-practice', 'Why you should not implement it yourself', 'security', 'intro', ['sk-kerckhoffs']),
+
+  // --- Statistics & experimentation -----------------------------------------
+  s('sk-sampling', 'Samples, populations, and sampling error', 'math', 'intro'),
+  s('sk-sampling-distribution', 'Sampling distributions and the CLT', 'math', 'intermediate', ['sk-sampling']),
+  s('sk-confidence-intervals', 'Confidence intervals and what they mean', 'math', 'intermediate', ['sk-sampling-distribution']),
+  s('sk-hypothesis-testing', 'Hypothesis tests and p-values', 'math', 'intermediate', ['sk-sampling-distribution']),
+  s('sk-p-value-misuse', 'What a p-value is not', 'math', 'intermediate', ['sk-hypothesis-testing']),
+  s('sk-statistical-power', 'Power, effect size, and sample size', 'math', 'expert', ['sk-hypothesis-testing']),
+  s('sk-ab-testing', 'Running an A/B test that answers something', 'math', 'intermediate', ['sk-hypothesis-testing']),
+  s('sk-multiple-comparisons', 'Multiple comparisons and p-hacking', 'math', 'expert', ['sk-hypothesis-testing']),
+  s('sk-causal-inference', 'Correlation, causation, and confounding', 'math', 'expert', ['sk-ab-testing']),
+  s('sk-selection-bias', 'Selection and survivorship bias', 'math', 'intermediate', ['sk-sampling']),
+
 ];
 
 export const SKILLS_BY_ID: ReadonlyMap<string, Skill> = new Map(SKILLS.map((sk) => [sk.id, sk]));

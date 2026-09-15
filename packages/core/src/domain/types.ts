@@ -392,7 +392,15 @@ export type InteractiveWidget =
   | 'type-coercion'
   | 'box-model'
   | 'event-loop'
-  | 'cloud-cost';
+  | 'cloud-cost'
+  | 'logic-gates'
+  | 'binary-adder'
+  | 'lexer-tokens'
+  | 'ast-explorer'
+  | 'gc-simulator'
+  | 'huffman-tree'
+  | 'ab-test-sim'
+  | 'confidence-interval';
 
 export type FigureName =
   | 'ai-ml-dl-venn'

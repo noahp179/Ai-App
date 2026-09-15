@@ -32,7 +32,9 @@ type LabGroup =
   | 'Data & networks'
   | 'Practice & security'
   | 'Programming'
-  | 'The web & cloud';
+  | 'The web & cloud'
+  | 'Hardware & compilers'
+  | 'Information & statistics';
 
 const GROUPS: LabGroup[] = [
   'Foundations',
@@ -46,6 +48,8 @@ const GROUPS: LabGroup[] = [
   'Practice & security',
   'Programming',
   'The web & cloud',
+  'Hardware & compilers',
+  'Information & statistics',
 ];
 
 const LAB_ENTRIES: LabEntry[] = [
@@ -127,6 +131,18 @@ const LAB_ENTRIES: LabEntry[] = [
   { widget: 'box-model', title: 'The box model', blurb: 'Watch padding and border add to a width — then switch to border-box.', icon: '📦', group: 'The web & cloud' },
   { widget: 'event-loop', title: 'The event loop', blurb: 'Why the order is A D C B and not the order you wrote.', icon: '🔁', group: 'The web & cloud' },
   { widget: 'cloud-cost', title: 'Cloud bill', blurb: 'Drop utilisation to 10% and see how much you pay for idle machines.', icon: '💸', group: 'The web & cloud' },
+
+  // --- Hardware & compilers ---
+  { widget: 'logic-gates', title: 'Logic gates', blurb: 'Toggle inputs, then build NOT and AND from nothing but NAND.', icon: '🔌', group: 'Hardware & compilers' },
+  { widget: 'binary-adder', title: 'Ripple-carry adder', blurb: 'Watch the carry travel column by column, then overflow off the end.', icon: '➕', group: 'Hardware & compilers' },
+  { widget: 'lexer-tokens', title: 'Lex a line', blurb: 'Source text into tokens, with the whitespace thrown away.', icon: '🔠', group: 'Hardware & compilers' },
+  { widget: 'ast-explorer', title: 'Syntax trees', blurb: 'Where operator precedence actually lives.', icon: '🌳', group: 'Hardware & compilers' },
+  { widget: 'gc-simulator', title: 'Garbage collection', blurb: 'Build a reference cycle and watch reference counting fail to free it.', icon: '🗑️', group: 'Hardware & compilers' },
+
+  // --- Information & statistics ---
+  { widget: 'huffman-tree', title: 'Huffman codes', blurb: 'Watch the average code length meet the entropy exactly.', icon: '📉', group: 'Information & statistics' },
+  { widget: 'ab-test-sim', title: 'A/B test', blurb: 'Set the true effect to zero, then run it twenty times and count the false positives.', icon: '🧪', group: 'Information & statistics' },
+  { widget: 'confidence-interval', title: 'Confidence intervals', blurb: 'Draw twenty and count how many miss. It should be about one.', icon: '📏', group: 'Information & statistics' },
 ];
 
 export default function PlaygroundScreen(): React.JSX.Element {

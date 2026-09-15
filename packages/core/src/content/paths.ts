@@ -590,6 +590,107 @@ export const PATHS: Path[] = [
     entryLevel: 'intermediate',
     goals: ['build-products', 'lead-teams', 'career-switch'] as LearnerGoal[],
   },
+
+  {
+    id: 'path-cs-theory',
+    title: 'The Theory Underneath',
+    tagline: 'Logic, information, computation, and the limits of each',
+    description:
+      'For people who want the why rather than the how. Discrete maths and proof, the information theory that turns out to define every loss function, the theory of computation and its impossibility results, and the compiler that puts the grammar to work.',
+    audience: 'Students, and engineers who want the foundations properly',
+    icon: '🔭',
+    gradient: ['#A78BFA', '#06B6D4'],
+    trackIds: [
+      'track-discrete-math',
+      'track-theory',
+      'track-information-theory',
+      'track-compilers',
+    ],
+    outcomes: [
+      'Write an induction proof and a proof by contradiction',
+      'Compute entropy and connect it to compression and to cross-entropy loss',
+      'Recognise an undecidable question and solve a decidable neighbour instead',
+      'Explain how source text becomes a tree and then machine code',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['research', 'exam-prep', 'curious'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-from-sand',
+    title: 'From Sand to Software',
+    tagline: 'The whole stack, bottom to top',
+    description:
+      'Start at a transistor and climb. Gates, adders and memory; the instruction cycle and the memory hierarchy; the operating system that shares it out; and the compiler that turns your source into something the whole apparatus can execute. Nothing is a black box by the end.',
+    audience: 'Anyone who has wondered what is actually happening down there',
+    icon: '⛰️',
+    gradient: ['#64748B', '#8B5CF6'],
+    trackIds: [
+      'track-hardware',
+      'track-architecture',
+      'track-systems',
+      'track-os',
+      'track-compilers',
+    ],
+    outcomes: [
+      'Build arithmetic from logic gates and explain how a circuit remembers',
+      'Trace source code down to a signal on a wire',
+      'Say why a program is slow at the level of caches, pages and syscalls',
+      'Explain what an optimiser is allowed to do and what it is not',
+    ],
+    entryLevel: 'intro',
+    goals: ['curious', 'career-switch', 'research'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-measure-it',
+    title: 'Measure It Properly',
+    tagline: 'Experiments and evidence that survive scrutiny',
+    description:
+      'For anyone whose job involves claiming something works. Sampling and intervals, what a p-value actually says, how to size an experiment before running it, and the confounding that makes most observational claims unsafe — then the data and evaluation work that makes a model claim credible.',
+    audience: 'Analysts, PMs, researchers, and engineers who ship changes',
+    icon: '🧪',
+    gradient: ['#10B981', '#6366F1'],
+    trackIds: [
+      'track-statistics',
+      'track-math',
+      'track-data',
+      'track-classic-ml',
+    ],
+    outcomes: [
+      'Report an effect size with an interval instead of a bare p-value',
+      'Size an experiment from the smallest effect worth acting on',
+      'Spot peeking, p-hacking and multiple comparisons in a result',
+      'Build an evaluation that survives class imbalance and leakage',
+    ],
+    entryLevel: 'intro',
+    goals: ['research', 'lead-teams', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-applied-crypto',
+    title: 'Security & Cryptography',
+    tagline: 'Why the padlock means anything, and where systems actually fail',
+    description:
+      'Defensive security end to end. Threat modelling and the failures behind most breaches, then the primitives underneath them — symmetric and public-key encryption, key exchange, signatures — and the network layer they run over. Ends knowing why you should not implement any of it yourself.',
+    audience: 'Engineers who want secure defaults to be obvious',
+    icon: '🔒',
+    gradient: ['#F43F5E', '#0EA5E9'],
+    trackIds: [
+      'track-security',
+      'track-cryptography',
+      'track-networking',
+      'track-information-theory',
+    ],
+    outcomes: [
+      'Threat model a feature and scope access to the minimum it needs',
+      'Explain what a certificate proves and what a signature proves',
+      'Recognise ECB, IV reuse and a non-cryptographic random source on sight',
+      'Say precisely what quantum computing breaks and what it does not',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['build-products', 'research', 'lead-teams'] as LearnerGoal[],
+  },
 ];
 
 export const PATHS_BY_ID: ReadonlyMap<PathId, Path> = new Map(PATHS.map((p) => [p.id, p]));
