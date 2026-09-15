@@ -17,7 +17,7 @@ import type {
   TrackId,
   UnitId,
 } from '../domain/types';
-import { SKILLS_BY_ID } from './skills';
+import { SKILLS, SKILLS_BY_ID } from './skills';
 import { foundationsTrack } from './tracks/foundations';
 import { machineLearningTrack } from './tracks/machine-learning';
 import { deepLearningTrack } from './tracks/deep-learning';
@@ -281,6 +281,21 @@ export function validateCatalog(): ValidationIssue[] {
   const warn = (location: string, message: string): void => {
     issues.push({ severity: 'warning', location, message });
   };
+
+  // Duplicate skill ids are silently destructive: SKILLS_BY_ID is a Map, so the
+  // second definition wins and the first skill's name, domain and prerequisites
+  // vanish without any error. This was a real bug, found only because the skill
+  // graph counted fewer nodes than there were skills.
+  const seenSkillIds = new Set<string>();
+  for (const skill of SKILLS) {
+    if (seenSkillIds.has(skill.id)) err(skill.id, 'Duplicate skill id');
+    seenSkillIds.add(skill.id);
+    for (const prereq of skill.prerequisites ?? []) {
+      if (!SKILLS_BY_ID.has(prereq)) {
+        err(skill.id, `Unknown prerequisite skill "${prereq}"`);
+      }
+    }
+  }
 
   for (const track of TRACKS) {
     if (seenTrackIds.has(track.id)) err(track.id, 'Duplicate track id');

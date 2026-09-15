@@ -62,13 +62,13 @@ export const statisticsTrack: Track = {
                 'Nothing; 2 million is plenty',
               ],
               1,
-              ['sk-sampling', 'sk-selection-bias'],
+              ['sk-statistical-sampling', 'sk-selection-bias'],
               'Size reduces random error and does nothing about systematic error. The Literary Digest had 2.4 million and got it spectacularly wrong.',
             ),
             numeric(
               'To halve the sampling error of a sample of 400, how many observations do you need in total?',
               1600,
-              ['sk-sampling'],
+              ['sk-statistical-sampling'],
               'Error scales with 1/√n, so halving it needs 4× the data. This is why precision gets expensive fast.',
             ),
             multi(
@@ -209,7 +209,7 @@ export const statisticsTrack: Track = {
             'More data fixes which problem?',
             ['Sampling bias', 'Sampling error', 'Both', 'Neither'],
             1,
-            ['sk-sampling'],
+            ['sk-statistical-sampling'],
             'Random error shrinks with √n; systematic error does not shrink at all.',
           ),
           mcq(
@@ -265,7 +265,7 @@ export const statisticsTrack: Track = {
                 'Lower variance',
               ],
               1,
-              ['sk-ab-testing'],
+              ['sk-experiment-design'],
               'Adjustment can only handle variables you have. Randomisation handles all of them.',
             ),
             mcq(
@@ -277,7 +277,7 @@ export const statisticsTrack: Track = {
                 'Extend the test',
               ],
               1,
-              ['sk-ab-testing'],
+              ['sk-experiment-design'],
               'At that sample size the deviation is far outside chance. Something is filtering users differently between arms, which biases everything.',
             ),
             concept(
@@ -322,7 +322,7 @@ export const statisticsTrack: Track = {
                 'Run until that sample is reached',
                 'Analyse once, and report the effect with an interval',
               ],
-              ['sk-ab-testing', 'sk-statistical-power'],
+              ['sk-experiment-design', 'sk-statistical-power'],
               'Every one of these before the test starts. Deciding any of them afterwards is where the trouble comes from.',
             ),
           ],
@@ -413,7 +413,7 @@ export const statisticsTrack: Track = {
               'A colleague reports: "Users who use our new AI assistant retain 40% better — we should promote it everywhere." What would you ask?',
               ['confound', 'random', 'selection', 'causal', 'experiment'],
               'Whether users were randomly assigned to the assistant or chose it themselves. If they chose it, the comparison is between people who were already more engaged and everyone else, and engagement plausibly caused both the choice and the retention — so the 40% is confounded and may be entirely selection. I would ask for a randomised rollout, or failing that a difference-in-differences against a comparable untreated cohort, and I would want to see the effect size with an interval rather than a single headline number.',
-              ['sk-causal-inference', 'sk-ab-testing'],
+              ['sk-causal-inference', 'sk-experiment-design'],
               'Self-selection is the default explanation for this shape of result, and it has to be ruled out before the causal reading is available.',
             ),
             fill(

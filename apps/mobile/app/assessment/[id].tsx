@@ -26,7 +26,20 @@ export default function AssessmentScreen(): React.JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
   const progress = useProgress((s) => s.progress);
 
-  const assessment = useMemo(() => (id ? getAssessment(id) : undefined), [id]);
+  // Same adaptation as the player: the preview should describe the paper the
+  // learner will actually be given.
+  const masteryBySkill = useMemo(
+    () =>
+      new Map(
+        Object.values(progress.skills).map((skill) => [skill.skillId, skill.mastery] as const),
+      ),
+    [progress.skills],
+  );
+
+  const assessment = useMemo(
+    () => (id ? getAssessment(id, undefined, masteryBySkill) : undefined),
+    [id, masteryBySkill],
+  );
 
   if (!assessment) {
     return (

@@ -238,6 +238,20 @@ export default function ProfileScreen(): React.JSX.Element {
         </View>
       </Card>
 
+      {/* The prerequisite graph is the clearest answer to "what is in here",
+          and its Ready view is the shortest answer to "what next". */}
+      <Card outlined style={{ marginBottom: theme.spacing.md }}>
+        <Text variant="caption" tone="secondary" style={{ marginBottom: theme.spacing.md }}>
+          Every skill in the catalog, what each one needs first, and what you are ready for now.
+        </Text>
+        <Button
+          label="Open the skill map"
+          variant="secondary"
+          size="sm"
+          onPress={() => router.push('/skills')}
+        />
+      </Card>
+
       <Card outlined style={{ marginBottom: theme.spacing.md }}>
         <Text variant="caption" tone="secondary" style={{ marginBottom: theme.spacing.md }}>
           Daily goal · {progress.dailyGoal.targetXp} XP

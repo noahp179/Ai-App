@@ -20,6 +20,8 @@ export * from './engine/runner';
 
 // Content
 export * from './content/index';
+export * from './content/search';
+export * from './content/skill-graph';
 export { achievementProgress, ACHIEVEMENTS_BY_ID } from './content/achievements';
 export type { AchievementStats, AchievementProgress } from './content/achievements';
 

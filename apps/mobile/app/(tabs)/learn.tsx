@@ -1,9 +1,10 @@
 /**
  * Learn — the catalog.
  *
- * Paths first, then the full curriculum filterable by level. Sixteen tracks is
- * more than anyone can order for themselves on arrival, so the screen leads
- * with routes through the catalog and offers the catalog itself second.
+ * Paths first, then the full curriculum filterable by level. Forty tracks is
+ * far more than anyone can order for themselves on arrival, so the screen leads
+ * with routes through the catalog, offers the catalog itself second, and puts
+ * search in reach for people who already know what they are looking for.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -71,15 +72,39 @@ export default function LearnScreen(): React.JSX.Element {
 
   return (
     <Screen scroll>
-      <Text variant="title" style={{ marginBottom: theme.spacing.xs }}>
-        Learn
-      </Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: theme.spacing.xs,
+        }}
+      >
+        <Text variant="title">Learn</Text>
+        {/* Forty tracks is past the point where browsing finds things. */}
+        <Pressable
+          onPress={() => router.push('/search')}
+          accessibilityRole="button"
+          accessibilityLabel="Search the catalog"
+          hitSlop={12}
+          style={{
+            paddingHorizontal: theme.spacing.lg,
+            paddingVertical: theme.spacing.sm,
+            borderRadius: theme.radii.pill,
+            backgroundColor: theme.colors.surfaceMuted,
+          }}
+        >
+          <Text variant="caption" tone="secondary">
+            🔍 Search
+          </Text>
+        </Pressable>
+      </View>
       <Text variant="caption" tone="secondary" style={{ marginBottom: theme.spacing.lg }}>
         {stats.tracks} tracks · {stats.lessons} lessons · {stats.exercises} exercises
       </Text>
 
       {/* Paths — a route through the catalog, before the catalog itself.
-          Sixteen tracks is a list; someone arriving needs an order. */}
+          Forty tracks is a list; someone arriving needs an order. */}
       <Text variant="heading" style={{ marginBottom: theme.spacing.xs }}>
         Where are you going?
       </Text>

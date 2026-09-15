@@ -440,16 +440,16 @@ export const SKILLS: Skill[] = [
   s('sk-crypto-practice', 'Why you should not implement it yourself', 'security', 'intro', ['sk-kerckhoffs']),
 
   // --- Statistics & experimentation -----------------------------------------
-  s('sk-sampling', 'Samples, populations, and sampling error', 'math', 'intro'),
-  s('sk-sampling-distribution', 'Sampling distributions and the CLT', 'math', 'intermediate', ['sk-sampling']),
+  s('sk-statistical-sampling', 'Samples, populations, and sampling error', 'math', 'intro'),
+  s('sk-sampling-distribution', 'Sampling distributions and the CLT', 'math', 'intermediate', ['sk-statistical-sampling']),
   s('sk-confidence-intervals', 'Confidence intervals and what they mean', 'math', 'intermediate', ['sk-sampling-distribution']),
   s('sk-hypothesis-testing', 'Hypothesis tests and p-values', 'math', 'intermediate', ['sk-sampling-distribution']),
   s('sk-p-value-misuse', 'What a p-value is not', 'math', 'intermediate', ['sk-hypothesis-testing']),
   s('sk-statistical-power', 'Power, effect size, and sample size', 'math', 'expert', ['sk-hypothesis-testing']),
-  s('sk-ab-testing', 'Running an A/B test that answers something', 'math', 'intermediate', ['sk-hypothesis-testing']),
+  s('sk-experiment-design', 'Running an A/B test that answers something', 'math', 'intermediate', ['sk-hypothesis-testing']),
   s('sk-multiple-comparisons', 'Multiple comparisons and p-hacking', 'math', 'expert', ['sk-hypothesis-testing']),
-  s('sk-causal-inference', 'Correlation, causation, and confounding', 'math', 'expert', ['sk-ab-testing']),
-  s('sk-selection-bias', 'Selection and survivorship bias', 'math', 'intermediate', ['sk-sampling']),
+  s('sk-causal-inference', 'Correlation, causation, and confounding', 'math', 'expert', ['sk-experiment-design']),
+  s('sk-selection-bias', 'Selection and survivorship bias', 'math', 'intermediate', ['sk-statistical-sampling']),
 
   // --- Quantum computing ----------------------------------------------------
   s('sk-qubits', 'Qubits and superposition', 'quantum', 'intermediate'),
@@ -490,7 +490,7 @@ export const SKILLS: Skill[] = [
   s('sk-user-research', 'Asking users the right question', 'product', 'intermediate', ['sk-mental-models']),
   s('sk-information-architecture', 'Structure, navigation, and findability', 'product', 'intermediate', ['sk-mental-models']),
   s('sk-inclusive-design', 'Designing for the range of human ability', 'product', 'intermediate', ['sk-affordances']),
-  s('sk-product-metrics', 'Metrics that measure the thing you care about', 'product', 'intermediate', ['sk-ab-testing']),
+  s('sk-product-metrics', 'Metrics that measure the thing you care about', 'product', 'intermediate', ['sk-experiment-design']),
   s('sk-dark-patterns', 'Persuasion, manipulation, and where the line is', 'product', 'intermediate', ['sk-product-metrics']),
 
   // --- Working as an engineer -----------------------------------------------

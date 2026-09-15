@@ -78,9 +78,22 @@ export default function LessonScreen(): React.JSX.Element {
   const isReview = id === 'review';
   // The same player runs lessons, review, and knowledge tests. What differs is
   // how the session is configured and what the end screen has to say.
+  // Weak skills first: a fixed-length exam should spend its questions where
+  // the learner is least certain rather than confirming what they know.
+  const masteryBySkill = useMemo(
+    () =>
+      new Map(
+        Object.values(progress.skills).map((skill) => [skill.skillId, skill.mastery] as const),
+      ),
+    [progress.skills],
+  );
+
   const assessment: Assessment | undefined = useMemo(
-    () => (id && id !== 'review' && !location ? getAssessment(id) : undefined),
-    [id, location],
+    () =>
+      id && id !== 'review' && !location
+        ? getAssessment(id, undefined, masteryBySkill)
+        : undefined,
+    [id, location, masteryBySkill],
   );
 
   // --- start the session ---------------------------------------------------

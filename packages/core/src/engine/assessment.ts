@@ -16,6 +16,11 @@
  * Exams are generated rather than hand-written on purpose. A separate authored
  * exam per track would be another 250 exercises to keep in sync with the
  * lessons, and it would drift; sampling the track's own questions cannot.
+ *
+ * Generation also makes the paper **adaptive** where mastery is known: the
+ * sampler visits weak skills first, so a fixed-length exam spends its questions
+ * where the learner is least certain rather than confirming what they already
+ * know. A uniform paper is a worse measurement of the same length.
  */
 
 import type { AttemptRecord, Exercise, SkillId, TrackId, Unit } from '../domain/types';
@@ -73,7 +78,16 @@ function unitExercises(unit: Unit): Exercise[] {
  */
 export function buildTrackExam(
   trackId: TrackId,
-  options: { questions?: number; seed?: number } = {},
+  options: {
+    questions?: number;
+    seed?: number;
+    /**
+     * Per-skill mastery, 0–1. When supplied, weak skills are sampled first, so
+     * a capped paper covers what the learner is least sure of. Absent skills
+     * are treated as unknown (mastery 0) and therefore prioritised.
+     */
+    masteryBySkill?: ReadonlyMap<SkillId, number>;
+  } = {},
 ): Assessment | undefined {
   const track = TRACKS_BY_ID.get(trackId);
   if (!track) return undefined;
@@ -96,8 +110,15 @@ export function buildTrackExam(
   }
 
   // Shuffle within each skill so repeat attempts vary, and shuffle the skill
-  // order so the paper is not always grouped the same way.
-  const skillIds = seededShuffle([...bySkill.keys()], seed);
+  // order so the paper is not always grouped the same way. With mastery
+  // available, sort ascending afterwards so weak skills are visited first —
+  // the shuffle still breaks ties between skills of equal mastery, which keeps
+  // repeat attempts from being identical.
+  const shuffledSkills = seededShuffle([...bySkill.keys()], seed);
+  const mastery = options.masteryBySkill;
+  const skillIds = mastery
+    ? [...shuffledSkills].sort((a, b) => (mastery.get(a) ?? 0) - (mastery.get(b) ?? 0))
+    : shuffledSkills;
   const queues = new Map<SkillId, Exercise[]>(
     skillIds.map((id) => [id, seededShuffle(bySkill.get(id) ?? [], seed + hashString(id))]),
   );
@@ -125,7 +146,9 @@ export function buildTrackExam(
     id: trackExamId(trackId),
     kind: 'exam',
     title: `${track.title} exam`,
-    subtitle: `${chosen.length} questions spanning every unit. Pass at ${Math.round(EXAM_PASSING_SCORE * 100)}%.`,
+    subtitle: mastery
+      ? `${chosen.length} questions, weighted toward what you are least sure of. Pass at ${Math.round(EXAM_PASSING_SCORE * 100)}%.`
+      : `${chosen.length} questions spanning every unit. Pass at ${Math.round(EXAM_PASSING_SCORE * 100)}%.`,
     passingScore: EXAM_PASSING_SCORE,
     exercises: seededShuffle(chosen, seed + 1),
     trackId: track.id,
@@ -152,10 +175,22 @@ export function getCheckpoint(checkpointId: string): Assessment | undefined {
   return undefined;
 }
 
-/** Resolves any assessment id — a checkpoint id or `exam-<trackId>`. */
-export function getAssessment(id: string, seed?: number): Assessment | undefined {
+/**
+ * Resolves any assessment id — a checkpoint id or `exam-<trackId>`.
+ *
+ * `masteryBySkill` is optional so the catalog can be enumerated without a
+ * learner; when the caller has one, the exam adapts to it.
+ */
+export function getAssessment(
+  id: string,
+  seed?: number,
+  masteryBySkill?: ReadonlyMap<SkillId, number>,
+): Assessment | undefined {
   if (id.startsWith('exam-')) {
-    return buildTrackExam(id.slice('exam-'.length), seed === undefined ? {} : { seed });
+    return buildTrackExam(id.slice('exam-'.length), {
+      ...(seed === undefined ? {} : { seed }),
+      ...(masteryBySkill ? { masteryBySkill } : {}),
+    });
   }
   return getCheckpoint(id);
 }
