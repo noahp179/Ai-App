@@ -58,7 +58,7 @@ export function LogicGates(): React.JSX.Element {
     <Pressable
       onPress={onToggle}
       accessibilityRole="switch"
-      accessibilityState={{ checked: value }}
+      aria-checked={value}
       accessibilityLabel={`Input ${label}, currently ${value ? '1' : '0'}`}
       style={{
         flex: 1,

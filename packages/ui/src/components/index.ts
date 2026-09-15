@@ -23,7 +23,7 @@ export { Screen } from './Screen';
 export type { ScreenProps } from './Screen';
 
 export { AnswerOption } from './AnswerOption';
-export type { AnswerOptionProps, AnswerState } from './AnswerOption';
+export type { AnswerOptionProps, AnswerRole, AnswerState } from './AnswerOption';
 
 export { FeedbackSheet } from './FeedbackSheet';
 export type { FeedbackSheetProps } from './FeedbackSheet';

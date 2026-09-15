@@ -255,7 +255,7 @@ function PeriodOption({
     <Pressable
       onPress={onPress}
       accessibilityRole="radio"
-      accessibilityState={{ selected: active }}
+      aria-selected={active}
       style={{
         flex: 1,
         padding: theme.spacing.lg,

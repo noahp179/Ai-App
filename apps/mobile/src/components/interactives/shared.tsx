@@ -367,7 +367,7 @@ export function SegmentedControl<T extends string>({
               key={option}
               onPress={() => onChange(option)}
               accessibilityRole="radio"
-              accessibilityState={{ selected: active }}
+              aria-selected={active}
               accessibilityLabel={label ? `${label}: ${option}` : option}
               style={{
                 paddingHorizontal: theme.spacing.md,
@@ -405,7 +405,7 @@ export function ActionRow({
           disabled={action.disabled}
           accessibilityRole="button"
           accessibilityLabel={action.label}
-          accessibilityState={{ disabled: Boolean(action.disabled) }}
+          aria-disabled={Boolean(action.disabled)}
           style={{
             flex: 1,
             paddingVertical: theme.spacing.md,

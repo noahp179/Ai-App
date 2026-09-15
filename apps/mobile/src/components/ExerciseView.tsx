@@ -139,7 +139,11 @@ function ChoiceExercise({
       <Prompt>{prompt}</Prompt>
       {code ? <CodeBlock code={code} /> : null}
 
-      <View style={{ gap: theme.spacing.md }}>
+      <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel={prompt}
+        style={{ gap: theme.spacing.md }}
+      >
         {shuffled.map(({ label, originalIndex }, position) => {
           let state: 'idle' | 'selected' | 'correct' | 'incorrect' | 'revealed' = 'idle';
 
@@ -189,7 +193,11 @@ function TrueFalseExercise({
       </Text>
       <Prompt>{exercise.statement}</Prompt>
 
-      <View style={{ gap: theme.spacing.md }}>
+      <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel={`True or false: ${exercise.statement}`}
+        style={{ gap: theme.spacing.md }}
+      >
         {[true, false].map((value) => {
           let state: 'idle' | 'selected' | 'correct' | 'incorrect' = 'idle';
           if (result) {
@@ -265,6 +273,7 @@ function MultiSelectExercise({
             <AnswerOption
               key={`${exercise.id}-${originalIndex}`}
               label={label}
+              role="checkbox"
               state={state}
               disabled={result !== null}
               onPress={() => toggle(originalIndex)}
@@ -494,6 +503,7 @@ function OrderExercise({
             <AnswerOption
               key={`pool-${item}`}
               label={item}
+              role="button"
               onPress={() => {
                 tapFeedback();
                 onDraftChange({ kind: 'order', items: [...ordered, item] });
@@ -607,6 +617,7 @@ function MatchExercise({
                 <AnswerOption
                   key={`left-${pair.left}`}
                   label={pair.left}
+                  role="radio"
                   state={activeLeft === pair.left ? 'selected' : 'idle'}
                   onPress={() => {
                     tapFeedback();
@@ -623,6 +634,7 @@ function MatchExercise({
                 <AnswerOption
                   key={right.key}
                   label={right.value}
+                  role="button"
                   disabled={activeLeft === null}
                   onPress={() => pairUp(right.value)}
                 />
@@ -1016,7 +1028,7 @@ function CategorizeExercise({
                     setSelected(active ? null : item);
                   }}
                   accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
+                  aria-selected={active}
                   style={{
                     paddingHorizontal: theme.spacing.md,
                     paddingVertical: theme.spacing.sm,

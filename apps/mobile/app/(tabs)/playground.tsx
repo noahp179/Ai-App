@@ -267,7 +267,7 @@ function FilterChip({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityState={{ selected: active }}
+      aria-selected={active}
       style={{
         paddingHorizontal: theme.spacing.md,
         paddingVertical: theme.spacing.sm,

@@ -16,6 +16,17 @@ import { Text } from './Text';
 
 export type AnswerState = 'idle' | 'selected' | 'correct' | 'incorrect' | 'revealed';
 
+/**
+ * What kind of control this option is, which decides how a screen reader
+ * announces it and which ARIA state it carries.
+ *
+ * It matters more than it looks. `radio` and `checkbox` are announced with a
+ * checked state and are meaningless without one; `button` has no such state,
+ * and claiming it does leaves the reader saying "not selected" about a tile
+ * that is simply waiting to be tapped.
+ */
+export type AnswerRole = 'radio' | 'checkbox' | 'button';
+
 export interface AnswerOptionProps {
   label: string;
   state?: AnswerState;
@@ -23,6 +34,12 @@ export interface AnswerOptionProps {
   disabled?: boolean;
   /** Shows a keyboard shortcut hint. Desktop only. */
   shortcut?: string;
+  /**
+   * Defaults to `radio` — one answer out of several, which is the common case.
+   * Use `checkbox` where several may be chosen and `button` where the option
+   * is an item being placed rather than a choice being made.
+   */
+  role?: AnswerRole;
   /** Renders the label in monospace — for code and token answers. */
   mono?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -35,6 +52,7 @@ export function AnswerOption({
   onPress,
   disabled = false,
   shortcut,
+  role = 'radio',
   mono = false,
   style,
   testID,
@@ -93,6 +111,17 @@ export function AnswerOption({
 
   const current = styling[state];
 
+  // A radio or checkbox is required to report `checked`; `selected` maps to
+  // `aria-selected`, which is not a state either role defines. Getting this
+  // wrong is silent — the control looks right and announces no state at all.
+  //
+  // These are the flat `aria-*` props rather than `accessibilityState`, which
+  // react-native-web 0.19 drops on the floor. React Native accepts both and
+  // gives `aria-*` precedence, so this is the spelling that works on every
+  // platform rather than only on the phone.
+  const ariaState =
+    role === 'button' ? {} : ({ 'aria-checked': state !== 'idle' } as const);
+
   return (
     <Animated.View style={[popStyle, shakeStyle]}>
       {state === 'correct' ? (
@@ -105,8 +134,9 @@ export function AnswerOption({
       ) : null}
     <Pressable
       testID={testID}
-      accessibilityRole="radio"
-      accessibilityState={{ selected: state !== 'idle', disabled }}
+      accessibilityRole={role}
+      {...ariaState}
+      aria-disabled={disabled || !onPress}
       accessibilityLabel={label}
       disabled={disabled || !onPress}
       onPress={onPress}

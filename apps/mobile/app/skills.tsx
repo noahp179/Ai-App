@@ -10,10 +10,11 @@
  *  - **Map** — every skill by domain and depth, with mastery shown, so the
  *    shape of the subject and your progress through it are visible at once.
  *
- * The map lays each layer out as a wrapping grid sized from the measured
- * width, rather than a horizontal rail. A rail hid most of every layer off the
- * right edge with a clipped card as the only hint that anything was there, and
- * gave a mouse nothing to drag.
+ * Each layer flows as a wrapping row of chips rather than a horizontal rail.
+ * A rail hid most of every layer off the right edge, with a clipped card as the
+ * only hint that anything was there, and gave a mouse nothing to drag. Letting
+ * the chips size to their own names and wrap keeps every skill readable at any
+ * width, and packs a 15-skill layer into three lines on a laptop.
  */
 
 import React, { useCallback, useMemo, useState } from 'react';
@@ -39,9 +40,6 @@ import { useProgress } from '../src/store/useProgress';
 type MapView = 'Ready' | 'Map';
 
 type Router = ReturnType<typeof useRouter>;
-
-/** The narrowest a chip may be before the grid drops to fewer columns. */
-const MIN_CHIP_WIDTH = 200;
 
 function colourFor(theme: Theme, mastery: number): string {
   if (mastery >= 0.8) return theme.colors.success;
@@ -84,7 +82,7 @@ const SkillChip = React.memo(function SkillChip({
     <Pressable
       onPress={() => onToggle(skill.id)}
       accessibilityRole="button"
-      accessibilityState={{ expanded: open }}
+      aria-expanded={open}
       accessibilityLabel={`${skill.name}. Mastery ${Math.round(mastery * 100)} percent. ${
         node?.prerequisites.length ?? 0
       } prerequisites, unlocks ${node?.unlocks.length ?? 0}.`}
@@ -171,7 +169,6 @@ export default function SkillsScreen(): React.JSX.Element {
   const progress = useProgress((s) => s.progress);
   const [view, setView] = useState<MapView>('Ready');
   const [openSkill, setOpenSkill] = useState<string | null>(null);
-  const [gridWidth, setGridWidth] = useState(0);
 
   const mastery = useMemo(
     () =>
@@ -195,15 +192,7 @@ export default function SkillsScreen(): React.JSX.Element {
     setOpenSkill((current) => (current === skillId ? null : skillId));
   }, []);
 
-  // Chip width from the measured row, so nothing is ever cut off: as many
-  // columns as fit at the minimum width, then share the remainder evenly.
   const gap = theme.spacing.sm;
-  const chipColumns =
-    gridWidth > 0 ? Math.max(1, Math.floor((gridWidth + gap) / (MIN_CHIP_WIDTH + gap))) : 1;
-  const chipWidth =
-    gridWidth > 0
-      ? Math.floor((gridWidth - gap * (chipColumns - 1)) / chipColumns)
-      : undefined;
 
   const chipFor = (node: GraphNode): React.JSX.Element => (
     <SkillChip
@@ -275,7 +264,7 @@ export default function SkillsScreen(): React.JSX.Element {
             key={option}
             onPress={() => setView(option)}
             accessibilityRole="tab"
-            accessibilityState={{ selected: view === option }}
+            aria-selected={view === option}
             accessibilityLabel={`${option} view`}
             style={{
               flex: 1,
@@ -329,7 +318,7 @@ export default function SkillsScreen(): React.JSX.Element {
           )}
         </View>
       ) : (
-        <View onLayout={(e) => setGridWidth(e.nativeEvent.layout.width)}>
+        <View>
           <Text variant="heading" style={{ marginBottom: theme.spacing.xs }}>
             The whole map
           </Text>
@@ -365,8 +354,10 @@ export default function SkillsScreen(): React.JSX.Element {
                       Layer {depth} · {layer.length}
                     </Text>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap }}>
+                      {/* maxWidth keeps the longest skill name from pushing a
+                          chip wider than the screen on a phone. */}
                       {layer.map((node) => (
-                        <View key={node.skill.id} style={{ width: chipWidth }}>
+                        <View key={node.skill.id} style={{ maxWidth: '100%' }}>
                           {chipFor(node)}
                         </View>
                       ))}

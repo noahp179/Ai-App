@@ -764,7 +764,7 @@ export function UsabilityAudit(): React.JSX.Element {
               key={item.id}
               onPress={() => !revealed && toggle(item.id)}
               accessibilityRole="checkbox"
-              accessibilityState={{ checked: isFlagged }}
+              aria-checked={isFlagged}
               accessibilityLabel={`${item.description}${revealed ? `. ${item.violation ?? 'No violation'}` : ''}`}
               style={{
                 borderWidth: 1,

@@ -100,17 +100,31 @@ describe('interactive widget accessibility', () => {
   });
 
   it('marks toggles and selections with an accessibility state', () => {
+    // The state must be spelled as a flat `aria-*` prop, not as React Native's
+    // `accessibilityState` object. react-native-web 0.19 forwards the former
+    // and silently drops the latter, so a widget using `accessibilityState`
+    // looks correct in the source, passes review, and ships to the web build
+    // announcing no state whatsoever. React Native accepts both and gives
+    // `aria-*` precedence, so this spelling is right on every platform.
     const missing: string[] = [];
     for (const file of sources) {
       for (const tag of openingTags(file.text, 'Pressable')) {
         const role = /accessibilityRole="(\w+)"/.exec(tag)?.[1];
         if (role !== 'switch' && role !== 'radio' && role !== 'checkbox' && role !== 'tab') continue;
-        if (!tag.includes('accessibilityState')) {
-          missing.push(`${file.name}: role=${role} has no accessibilityState`);
-        }
+        const hasAria = /aria-(checked|selected|expanded|pressed)=/.test(tag);
+        if (!hasAria) missing.push(`${file.name}: role=${role} carries no aria-* state`);
       }
     }
     expect(missing).toEqual([]);
+  });
+
+  it('never uses accessibilityState, which the web build ignores', () => {
+    // A blanket ban rather than a per-role check: every use of it is a state
+    // that does not reach the browser, whatever the role.
+    const offenders = sources
+      .filter((file) => file.text.includes('accessibilityState'))
+      .map((file) => file.name);
+    expect(offenders).toEqual([]);
   });
 
   it('announces a changing result somewhere in every widget file', () => {

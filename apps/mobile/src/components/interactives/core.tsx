@@ -432,7 +432,7 @@ export function AttentionWidget(): React.JSX.Element {
               key={`${token}-${index}`}
               onPress={() => setSelected(index)}
               accessibilityRole="radio"
-              accessibilityState={{ selected: isSelected }}
+              aria-selected={isSelected}
               accessibilityLabel={`Token "${token}". Attention weight ${(weight * 100).toFixed(0)} percent.`}
               style={{
                 paddingHorizontal: theme.spacing.sm,
@@ -678,7 +678,7 @@ export function EmbeddingWidget(): React.JSX.Element {
             key={word.word}
             onPress={() => setSelected(word.word)}
             accessibilityRole="radio"
-            accessibilityState={{ selected: word.word === selected }}
+            aria-selected={word.word === selected}
             accessibilityLabel={`${word.word}, in the ${word.group} group`}
             style={{
               position: 'absolute',
@@ -779,7 +779,7 @@ export function PromptLabWidget(): React.JSX.Element {
               key={part.key}
               onPress={() => toggle(part.key)}
               accessibilityRole="checkbox"
-              accessibilityState={{ checked: active }}
+              aria-checked={active}
               accessibilityLabel={`Prompt component: ${part.key}`}
               style={{
                 paddingHorizontal: theme.spacing.md,
