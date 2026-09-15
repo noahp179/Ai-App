@@ -700,6 +700,13 @@ function correctResponseFor(exercise: Exercise): Response {
     case 'multiple-choice':
     case 'code-output':
       return { kind: 'choice', index: exercise.answer };
+    case 'code-write':
+      return {
+        kind: 'code',
+        source: exercise.solution,
+        passed: exercise.tests.length + (exercise.hiddenTests?.length ?? 0),
+        total: exercise.tests.length + (exercise.hiddenTests?.length ?? 0),
+      };
     case 'multi-select':
       return { kind: 'choices', indices: exercise.answers };
     case 'true-false':

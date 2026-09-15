@@ -13,7 +13,7 @@
  */
 
 import type { Track } from '../../domain/types';
-import { categorize, codeOutput, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
+import { categorize, codeOutput, codeWrite, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const dsaTrack: Track = {
   id: 'track-dsa',
@@ -487,6 +487,31 @@ export const dsaTrack: Track = {
               ['sk-binary-search'],
               'It requires the array to be sorted on the key you are searching. Without that invariant, discarding half the range on each comparison discards the answer as often as not.',
             ),
+            codeWrite({
+              prompt:
+                'Write binary search. Return the index of `target` in the sorted array `xs`, or −1 if it is not there.',
+              functionName: 'binarySearch',
+              starter:
+                'function binarySearch(xs, target) {\n  let lo = 0;\n  let hi = xs.length - 1;\n\n  // Narrow the range until it is empty.\n\n  return -1;\n}',
+              tests: [
+                { args: [[1, 3, 5, 7, 9], 7], expected: 3 },
+                { args: [[1, 3, 5, 7, 9], 1], expected: 0 },
+                { args: [[1, 3, 5, 7, 9], 4], expected: -1 },
+                { args: [[], 1], expected: -1 },
+              ],
+              hiddenTests: [
+                { args: [[2], 2], expected: 0 },
+                { args: [[2], 3], expected: -1 },
+                { args: [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 10], expected: 9 },
+                { args: [[-9, -4, 0, 3, 11], -4], expected: 1 },
+              ],
+              solution:
+                'function binarySearch(xs, target) {\n  let lo = 0;\n  let hi = xs.length - 1;\n  while (lo <= hi) {\n    const mid = Math.floor((lo + hi) / 2);\n    if (xs[mid] === target) return mid;\n    if (xs[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return -1;\n}',
+              skillIds: ['sk-binary-search'],
+              explanation:
+                'The three things that break implementations: the loop condition must be `lo <= hi` rather than `<`, or a single-element range is never examined; `mid` must be recomputed each pass; and both branches must move past `mid`, not to it, or the range stops shrinking and the loop never ends.',
+              hint: 'Compare against the middle element, then discard the half that cannot contain the target.',
+            }),
           ],
         }),
 
@@ -738,6 +763,30 @@ export const dsaTrack: Track = {
               ['sk-dynamic-programming', 'sk-space-complexity'],
               'The same trade as hash tables, database indexes and precomputed embeddings: memory bought time, deliberately.',
             ),
+            codeWrite({
+              prompt:
+                'Write `fib(n)` so it returns the nth Fibonacci number — fib(0) = 0, fib(1) = 1 — and is fast enough for n = 60. A plain recursion will time out; memoise it.',
+              functionName: 'fib',
+              starter:
+                'function fib(n, memo = {}) {\n  // Base cases first, then check the memo\n  // before doing any work.\n\n  return 0;\n}',
+              tests: [
+                { args: [0], expected: 0 },
+                { args: [1], expected: 1 },
+                { args: [10], expected: 55 },
+                { args: [60], expected: 1548008755920, label: 'fib(60) → 1548008755920 (fast)' },
+              ],
+              hiddenTests: [
+                { args: [2], expected: 1 },
+                { args: [7], expected: 13 },
+                { args: [50], expected: 12586269025 },
+              ],
+              solution:
+                'function fib(n, memo = {}) {\n  if (n <= 1) return n;\n  if (memo[n] !== undefined) return memo[n];\n  memo[n] = fib(n - 1, memo) + fib(n - 2, memo);\n  return memo[n];\n}',
+              skillIds: ['sk-dynamic-programming', 'sk-recursion'],
+              explanation:
+                'The naive version recomputes fib(50) tens of millions of times; the memo makes each of the n subproblems cost O(1) after the first, which is the whole of dynamic programming in four lines. Note that fib(60) finishing instantly is itself the test — correctness alone would pass without the memo, eventually, some time next week.',
+              hint: 'Check the memo before recursing, and write to it before returning.',
+            }),
           ],
         }),
       ],

@@ -9,6 +9,8 @@
 
 import type {
   CategorizeExercise,
+  CodeCase,
+  CodeWriteExercise,
   CodeOutputExercise,
   ConceptStep,
   Exercise,
@@ -180,6 +182,40 @@ export function codeOutput(
     answer,
     skillIds,
     explanation,
+  };
+}
+
+/**
+ * A write-and-run exercise.
+ *
+ * `hiddenTests` are optional but strongly encouraged: without them a learner
+ * can pass by special-casing the visible inputs, which teaches the wrong
+ * lesson about what a passing test suite means.
+ */
+export function codeWrite(config: {
+  prompt: string;
+  functionName: string;
+  starter: string;
+  tests: CodeCase[];
+  hiddenTests?: CodeCase[];
+  solution: string;
+  skillIds: string[];
+  explanation: string;
+  hint?: string;
+}): CodeWriteExercise {
+  return {
+    id: nextId('cw'),
+    kind: 'code-write',
+    language: 'javascript',
+    prompt: config.prompt,
+    functionName: config.functionName,
+    starter: config.starter,
+    tests: config.tests,
+    ...(config.hiddenTests ? { hiddenTests: config.hiddenTests } : {}),
+    solution: config.solution,
+    skillIds: config.skillIds,
+    explanation: config.explanation,
+    ...(config.hint ? { hint: config.hint } : {}),
   };
 }
 

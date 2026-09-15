@@ -63,6 +63,14 @@ export const DOMAINS = [
   'networking',
   'software-engineering',
   'security',
+  'programming',
+  'web',
+  'cloud',
+  'hardware',
+  'graphics',
+  'robotics',
+  'quantum',
+  'product',
 ] as const;
 export type Domain = (typeof DOMAINS)[number];
 
@@ -87,6 +95,14 @@ export const DOMAIN_LABELS: Record<Domain, string> = {
   networking: 'Networking & Distributed',
   'software-engineering': 'Software Engineering',
   security: 'Security',
+  programming: 'Programming',
+  web: 'The Web',
+  cloud: 'Cloud & Infrastructure',
+  hardware: 'Hardware & Logic',
+  graphics: 'Computer Graphics',
+  robotics: 'Robotics & Embedded',
+  quantum: 'Quantum Computing',
+  product: 'Product & Practice',
 };
 
 // ---------------------------------------------------------------------------
@@ -120,6 +136,7 @@ export type ExerciseKind =
   | 'match-pairs'
   | 'numeric'
   | 'code-output'
+  | 'code-write'
   | 'short-answer'
   | 'categorize';
 
@@ -197,6 +214,40 @@ export interface CodeOutputExercise extends ExerciseBase {
 }
 
 /**
+ * Write code and have it run against test cases.
+ *
+ * The only exercise kind whose correctness is decided by execution rather than
+ * by comparison against a stored answer. Cases are split into visible ones —
+ * shown up front, so the prompt is unambiguous — and hidden ones that run only
+ * after the visible cases pass, which is what stops a lookup table from
+ * counting as a solution.
+ */
+export interface CodeWriteExercise extends ExerciseBase {
+  kind: 'code-write';
+  prompt: string;
+  /** JavaScript is the only language the in-app runner executes. */
+  language: 'javascript';
+  /** Pre-filled in the editor: the signature plus a comment, never the answer. */
+  starter: string;
+  /** The function the test harness calls. Must be declared by the learner. */
+  functionName: string;
+  /** Shown before the learner writes anything. At least one is required. */
+  tests: CodeCase[];
+  /** Run only once every visible case passes. */
+  hiddenTests?: CodeCase[];
+  /** Shown after a correct submission, or on request after several failures. */
+  solution: string;
+}
+
+/** One call against a `code-write` submission. */
+export interface CodeCase {
+  args: unknown[];
+  expected: unknown;
+  /** Overrides the generated `fn(args) === expected` label. */
+  label?: string;
+}
+
+/**
  * Sort items into named buckets.
  *
  * The natural shape for taxonomy questions — "is this supervised, unsupervised,
@@ -236,6 +287,7 @@ export type Exercise =
   | MatchPairsExercise
   | NumericExercise
   | CodeOutputExercise
+  | CodeWriteExercise
   | ShortAnswerExercise
   | CategorizeExercise;
 

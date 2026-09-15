@@ -19,6 +19,14 @@ export type Response =
   | { kind: 'pairs'; pairs: Array<{ left: string; right: string }> }
   | { kind: 'number'; value: number }
   | { kind: 'buckets'; assignments: Array<{ item: string; category: string }> }
+  /**
+   * A `code-write` submission, already executed.
+   *
+   * The run happens in the UI because only the platform can sandbox it, so
+   * what reaches the grader is the tally rather than the source. That is the
+   * same trust model as every other kind here — all grading is local.
+   */
+  | { kind: 'code'; source: string; passed: number; total: number }
   | { kind: 'skipped' };
 
 export interface GradeResult {
@@ -126,6 +134,20 @@ export function grade(exercise: Exercise, response: Response): GradeResult {
       const tolerance = exercise.tolerance ?? 0;
       const correct = Math.abs(response.value - exercise.answer) <= tolerance;
       return { correct, score: correct ? 1 : 0 };
+    }
+
+    case 'code-write': {
+      if (response.kind !== 'code') return miss();
+      if (response.total <= 0) return miss();
+      const score = Math.max(0, Math.min(1, response.passed / response.total));
+      return {
+        correct: response.passed >= response.total,
+        score,
+        feedback:
+          response.passed >= response.total
+            ? undefined
+            : `${response.passed} of ${response.total} cases passing`,
+      };
     }
 
     case 'short-answer': {

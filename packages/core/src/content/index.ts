@@ -322,6 +322,24 @@ export function validateCatalog(): ValidationIssue[] {
               err(location, `Exercise "${exercise.id}" needs at least 2 items`);
             }
             break;
+          case 'code-write': {
+            if (exercise.tests.length === 0) {
+              err(location, `Exercise "${exercise.id}" has no visible test cases`);
+            }
+            if (!exercise.starter.includes(exercise.functionName)) {
+              err(
+                location,
+                `Exercise "${exercise.id}" starter does not mention ${exercise.functionName}`,
+              );
+            }
+            if (!exercise.solution.includes(exercise.functionName)) {
+              err(
+                location,
+                `Exercise "${exercise.id}" solution does not define ${exercise.functionName}`,
+              );
+            }
+            break;
+          }
           case 'short-answer':
             if (exercise.rubricKeywords.length === 0) {
               err(location, `Exercise "${exercise.id}" has no rubric keywords`);

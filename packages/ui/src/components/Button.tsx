@@ -37,6 +37,8 @@ export interface ButtonProps {
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  /** Overrides the label for assistive technology — say what pressing it does. */
+  accessibilityLabel?: string;
   accessibilityHint?: string;
   testID?: string;
 }
@@ -52,6 +54,7 @@ export function Button({
   leading,
   trailing,
   style,
+  accessibilityLabel,
   accessibilityHint,
   testID,
 }: ButtonProps): React.JSX.Element {
@@ -105,7 +108,7 @@ export function Button({
       <Pressable
         testID={testID}
         accessibilityRole="button"
-        accessibilityLabel={label}
+        accessibilityLabel={accessibilityLabel ?? label}
         accessibilityHint={accessibilityHint}
         accessibilityState={{ disabled: inactive, busy: loading }}
         disabled={inactive}

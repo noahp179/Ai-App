@@ -16,6 +16,7 @@ export * from './engine/progression';
 export * from './engine/placement';
 export * from './engine/session';
 export * from './engine/assessment';
+export * from './engine/runner';
 
 // Content
 export * from './content/index';

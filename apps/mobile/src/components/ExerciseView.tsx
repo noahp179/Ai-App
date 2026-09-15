@@ -6,17 +6,21 @@
  * TypeScript's exhaustiveness check flags the second if you forget.
  */
 
-import React, { useMemo, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import {
   hashString,
+  runCodeExercise,
   seededShuffle,
+  totalCases,
+  type CodeRunResult,
   type Exercise,
   type GradeResult,
   type Response,
 } from '@synapse/core';
-import { AnswerOption, Badge, Card, Text, useTheme } from '@synapse/ui';
+import { AnswerOption, Badge, Button, Card, Text, monoFontFamily, useTheme } from '@synapse/ui';
 
+import { canEnforceDeadline, canRunCode, evaluate } from '../lib/code-runner';
 import { tapFeedback } from '../lib/haptics';
 
 export interface ExerciseViewProps {
@@ -55,6 +59,8 @@ export function ExerciseView(props: ExerciseViewProps): React.JSX.Element {
       return <OrderExercise {...props} />;
     case 'match-pairs':
       return <MatchExercise {...props} />;
+    case 'code-write':
+      return <CodeWriteExercise {...props} />;
     case 'short-answer':
       return <ShortAnswerExercise {...props} />;
     case 'categorize':
@@ -673,6 +679,252 @@ function ShortAnswerExercise({
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * Write code, run it against cases, submit when they pass.
+ *
+ * The interaction is deliberately two-stage. "Run tests" is the primary
+ * action and can be pressed as often as the learner likes with no cost; only
+ * once something has run does the lesson's Check button become available. That
+ * matches how the work actually goes — you iterate against the tests, and
+ * submitting is the last step rather than a guess.
+ *
+ * Failures show the call, what was expected, and what came back. A failing
+ * test that does not tell you the actual value is a worse teacher than no test
+ * at all, because it sends you back to reading your own code with no new
+ * information.
+ */
+function CodeWriteExercise({
+  exercise,
+  onDraftChange,
+  result,
+}: ExerciseViewProps): React.JSX.Element {
+  const theme = useTheme();
+  const [source, setSource] = useState<string | null>(null);
+  const [run, setRun] = useState<CodeRunResult | null>(null);
+  const [running, setRunning] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+
+  const isCode = exercise.kind === 'code-write';
+  const text = source ?? (isCode ? exercise.starter : '');
+
+  const onRun = useCallback(async () => {
+    if (!isCode || running) return;
+    setRunning(true);
+    tapFeedback();
+    try {
+      const outcome = await runCodeExercise(exercise, text, evaluate);
+      setRun(outcome);
+      setAttempts((n) => n + 1);
+      onDraftChange({
+        kind: 'code',
+        source: text,
+        passed: outcome.passed,
+        total: totalCases(exercise),
+      });
+    } finally {
+      setRunning(false);
+    }
+  }, [exercise, isCode, onDraftChange, running, text]);
+
+  if (!isCode) return <View />;
+
+  const total = totalCases(exercise);
+  const executable = canRunCode();
+
+  return (
+    <View>
+      <Prompt>{exercise.prompt}</Prompt>
+
+      {!executable ? (
+        <Card background={theme.colors.warningSubtle} style={{ marginBottom: theme.spacing.lg }}>
+          <Text variant="caption" tone="secondary">
+            This build cannot execute code, so the cases below cannot be run here. Write your
+            answer, then compare it against the worked solution.
+          </Text>
+        </Card>
+      ) : null}
+
+      <TextInput
+        value={text}
+        onChangeText={setSource}
+        editable={result === null && executable}
+        multiline
+        textAlignVertical="top"
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+        accessibilityLabel="Code editor"
+        accessibilityHint={`Write a function named ${exercise.functionName}`}
+        style={{
+          minHeight: 190,
+          padding: theme.spacing.lg,
+          borderRadius: theme.radii.lg,
+          borderWidth: 2,
+          borderColor: run?.allPassed ? theme.colors.success : theme.colors.border,
+          backgroundColor: theme.colors.surfaceMuted,
+          color: theme.colors.text,
+          ...theme.typography.mono,
+          fontFamily: Platform.select(monoFontFamily),
+        }}
+      />
+
+      {result === null && executable ? (
+        <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <Button
+              label={running ? 'Running…' : 'Run tests'}
+              onPress={() => {
+                void onRun();
+              }}
+              disabled={running}
+              accessibilityLabel="Run the test cases against your code"
+            />
+          </View>
+          <Button
+            label="Reset"
+            variant="ghost"
+            onPress={() => {
+              setSource(exercise.starter);
+              setRun(null);
+            }}
+            accessibilityLabel="Reset the editor to the starting code"
+          />
+        </View>
+      ) : null}
+
+      {running ? (
+        <View style={{ paddingVertical: theme.spacing.lg, alignItems: 'center' }}>
+          <ActivityIndicator color={theme.colors.primary} />
+        </View>
+      ) : null}
+
+      <View
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={
+          run ? `${run.passed} of ${total} test cases passing` : `${total} test cases to pass`
+        }
+      >
+        <Card
+          background={theme.colors.surface}
+          style={{ marginTop: theme.spacing.lg }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: theme.spacing.md,
+            }}
+          >
+            <Text variant="label" tone="tertiary" caps>
+              Test cases
+            </Text>
+            <Badge
+              label={run ? `${run.passed} / ${total}` : `0 / ${total}`}
+              tone={run?.allPassed ? 'success' : run ? 'warning' : 'neutral'}
+            />
+          </View>
+
+          <View style={{ gap: theme.spacing.sm }}>
+            {(run
+              ? run.results
+              : exercise.tests.map((t, i) => ({
+                  label: t.label ?? `Case ${i + 1}`,
+                  passed: false,
+                  expected: '',
+                  hidden: false,
+                }))
+            ).map((caseResult, index) => (
+              <CaseRow key={index} result={caseResult} pending={!run} />
+            ))}
+
+            {run && !run.allPassed && (exercise.hiddenTests?.length ?? 0) > 0 ? (
+              <Text variant="caption" tone="tertiary">
+                {exercise.hiddenTests?.length} hidden case
+                {exercise.hiddenTests?.length === 1 ? '' : 's'} run once these pass.
+              </Text>
+            ) : null}
+          </View>
+
+          {!canEnforceDeadline() && executable ? (
+            <Text variant="caption" tone="tertiary" style={{ marginTop: theme.spacing.md }}>
+              Note: this platform cannot interrupt a loop that never ends.
+            </Text>
+          ) : null}
+        </Card>
+      </View>
+
+      {(attempts >= 3 || result) && !showSolution ? (
+        <Pressable
+          onPress={() => setShowSolution(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Show the worked solution"
+          style={{ paddingVertical: theme.spacing.md, alignItems: 'center' }}
+        >
+          <Text variant="caption" tone="primary">
+            Show the worked solution
+          </Text>
+        </Pressable>
+      ) : null}
+
+      {showSolution ? (
+        <Card background={theme.colors.surfaceMuted} style={{ marginTop: theme.spacing.md }}>
+          <Text variant="label" tone="tertiary" caps style={{ marginBottom: theme.spacing.sm }}>
+            One way to write it
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <Text variant="mono" mono>
+              {exercise.solution}
+            </Text>
+          </ScrollView>
+        </Card>
+      ) : null}
+    </View>
+  );
+}
+
+/** One row of the results table. */
+function CaseRow({
+  result,
+  pending,
+}: {
+  result: { label: string; passed: boolean; actual?: string; expected: string; error?: string; hidden: boolean };
+  pending: boolean;
+}): React.JSX.Element {
+  const theme = useTheme();
+  const mark = pending ? '·' : result.passed ? '✓' : '✕';
+  const markColor = pending
+    ? theme.colors.textTertiary
+    : result.passed
+      ? theme.colors.success
+      : theme.colors.danger;
+
+  return (
+    <View
+      accessibilityLabel={`${result.label}. ${pending ? 'Not run yet' : result.passed ? 'Passed' : 'Failed'}`}
+    >
+      <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+        <Text variant="bodyStrong" style={{ color: markColor }}>
+          {mark}
+        </Text>
+        <Text variant="mono" mono tone="secondary" style={{ flex: 1 }}>
+          {result.label}
+        </Text>
+      </View>
+      {!pending && !result.passed ? (
+        <Text
+          variant="caption"
+          tone="tertiary"
+          style={{ marginLeft: theme.spacing.xl, marginTop: theme.spacing.xxs }}
+        >
+          {result.error ? result.error : `got ${result.actual}, expected ${result.expected}`}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
 
 /**
  * Sort items into buckets.
