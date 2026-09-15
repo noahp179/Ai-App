@@ -68,7 +68,7 @@ invisible until a learner hits it.
 
 ## Interactive widgets
 
-37 widgets live in `apps/mobile/src/components/interactives/`, split by subject
+100 widgets live in `apps/mobile/src/components/interactives/`, split by subject
 (`foundations`, `classic`, `deep`, `language`, `applied`, `core`) with a
 dispatcher in `index.tsx`.
 

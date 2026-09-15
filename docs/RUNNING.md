@@ -32,7 +32,7 @@ Prettier). Say yes — they are listed in `.vscode/extensions.json`.
 npm test
 ```
 
-You should see `164 passed`. If that works, the app will run.
+You should see `250 passed`. If that works, the app will run.
 
 ---
 
@@ -174,7 +174,7 @@ Press <kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → **Tasks: Run Task**:
 | **Web (browser)** | Starts the dev server for browser preview |
 | **Mobile (QR / simulator)** | Starts Expo with the QR code |
 | **Desktop (macOS)** | Builds and launches the Electron shell |
-| **Test** | Runs the 164 core tests |
+| **Test** | Runs the 250 core tests |
 | **Test (watch)** | Re-runs tests as you edit |
 | **Typecheck all** | Checks all four packages |
 
@@ -191,7 +191,7 @@ level, and a daily time commitment. It takes about 20 seconds. Then:
 - **Today** — your streak, daily goal, and the single next lesson to do
 - **Learn** — 30 learning paths, then all 40 tracks filterable by level, plus search
 - **Practice** — spaced review, once you have finished a lesson or two
-- **Lab** — all 37 interactive widgets, browsable without a lesson
+- **Lab** — all 100 interactive widgets, browsable without a lesson
 - **Profile** — mastery by domain, achievements, and settings
 
 **Go to Lab first if you just want to see the interesting parts.** It is the
@@ -227,6 +227,19 @@ networks often block the direct connection.
 its own bundled TypeScript. Open any `.ts` file, press
 <kbd>Cmd/Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> → *TypeScript: Select
 TypeScript Version* → **Use Workspace Version**.
+
+**The browser shows a blank page on `npm run web`.** Every screen is white,
+the console shows a 404 for `entry.bundle`, and nothing errors in the terminal.
+This was a real bug and is fixed — `apps/mobile/index.js` exists so that `main`
+is a path inside the package rather than the bare specifier
+`expo-router/entry`, which the dev server resolved against `apps/mobile` where
+the hoisted `node_modules` is not. If you are on an older checkout, pull. Note
+that `expo export` was never affected, so a production build hid this.
+
+**Git shows `apps/mobile/tsconfig.json` modified after the first run.** Expo
+rewrites it on first start to add its generated types to `include`. The
+committed file is already Expo's version, so this should no longer happen; if
+it does, the change is harmless and can be committed or discarded.
 
 **The desktop app shows a blank window.** It loads from the web dev server in
 dev mode, so `npm run web` has to be running first in another terminal.

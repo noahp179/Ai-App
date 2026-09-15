@@ -266,13 +266,13 @@ export default function TodayScreen(): React.JSX.Element {
         </Card>
       ) : null}
 
+      {/*
+        The card is deliberately not pressable. It contains a button, and a
+        button inside a button is invalid HTML: one tap fires both handlers,
+        and a screen reader announces a control nested inside a control.
+      */}
       {progress.entitlement.plan === 'free' ? (
-        <Card
-          onPress={() => router.push('/paywall?trigger=settings')}
-          outlined
-          borderColor={theme.colors.warning}
-          style={{ marginTop: theme.spacing.lg }}
-        >
+        <Card outlined borderColor={theme.colors.warning} style={{ marginTop: theme.spacing.lg }}>
           <Text variant="bodyStrong" tone="warning">
             Unlock every track
           </Text>

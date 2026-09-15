@@ -4,13 +4,28 @@
     "jsx": "react-jsx",
     "composite": false,
     "noEmit": true,
-    "types": ["react"],
+    "types": [
+      "react"
+    ],
     "paths": {
-      "@synapse/core": ["../../packages/core/src/index.ts"],
-      "@synapse/ui": ["../../packages/ui/src/index.ts"],
-      "@/*": ["./src/*"]
+      "@synapse/core": [
+        "../../packages/core/src/index.ts"
+      ],
+      "@synapse/ui": [
+        "../../packages/ui/src/index.ts"
+      ],
+      "@/*": [
+        "./src/*"
+      ]
     },
     "baseUrl": "."
   },
-  "include": ["app/**/*.ts", "app/**/*.tsx", "src/**/*.ts", "src/**/*.tsx"]
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }
