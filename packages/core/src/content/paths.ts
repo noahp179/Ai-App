@@ -691,6 +691,100 @@ export const PATHS: Path[] = [
     entryLevel: 'intermediate',
     goals: ['build-products', 'research', 'lead-teams'] as LearnerGoal[],
   },
+
+  {
+    id: 'path-build-for-people',
+    title: 'Build Things People Can Use',
+    tagline: 'Design, accessibility, and the professional half of the job',
+    description:
+      'For engineers who want their work to land. Mental models and usability, interfaces that work for the whole range of human ability, metrics that measure what you meant — and the writing, estimating and incident practice that decides how far any of it reaches.',
+    audience: 'Engineers, designers, and anyone shipping to real users',
+    icon: '🫱',
+    gradient: ['#EC4899', '#22C55E'],
+    trackIds: ['track-product', 'track-web', 'track-statistics', 'track-ethics'],
+    outcomes: [
+      'Diagnose a usability problem instead of guessing at a redesign',
+      'Build interfaces that work with a keyboard and a screen reader',
+      'Pair every metric with a guardrail that catches the obvious cheat',
+      'Write a document that gets read, and run an incident that improves the system',
+      'Recognise a dark pattern and name it in the room',
+    ],
+    entryLevel: 'intro',
+    goals: ['build-products', 'lead-teams', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-graphics-games',
+    title: 'Graphics & Simulation',
+    tagline: 'Geometry into pixels, and the hardware it created',
+    description:
+      'The rendering pipeline end to end — transforms, rasterization, shading, ray tracing, sampling and aliasing — with the linear algebra underneath it and the GPU architecture it produced, which is the same architecture deep learning later ran on.',
+    audience: 'Anyone drawn to rendering, games, or visual computing',
+    icon: '🎮',
+    gradient: ['#F472B6', '#0EA5E9'],
+    trackIds: ['track-math', 'track-graphics', 'track-architecture', 'track-computer-vision'],
+    outcomes: [
+      'Compose transforms and explain why graphics uses homogeneous coordinates',
+      'Trace a triangle from vertices to shaded, depth-tested pixels',
+      'Compare rasterization and ray tracing without picking a side',
+      'Recognise every kind of aliasing and name the fix',
+      'Explain why GPUs suit both rendering and neural networks',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['build-products', 'curious', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-physical-ai',
+    title: 'AI in the Physical World',
+    tagline: 'Robots, sensors, control, and what changes when it can hurt someone',
+    description:
+      'Where machine learning meets hardware that moves. Systems and real-time constraints, noisy sensors and state estimation, feedback control, and the perception and reinforcement learning that sit on top — plus the safety engineering the rest of software does not need.',
+    audience: 'Engineers working on robotics, embedded, or physical products',
+    icon: '🦾',
+    gradient: ['#F59E0B', '#10B981'],
+    trackIds: [
+      'track-systems',
+      'track-robotics',
+      'track-computer-vision',
+      'track-rl',
+      'track-ethics',
+    ],
+    outcomes: [
+      'Treat every sensor reading as a noisy estimate and fuse accordingly',
+      'Tune a control loop and say what each term is doing',
+      'Explain why worst-case latency matters and average latency does not',
+      'Design a failure path that ends somewhere physically safe',
+      'Know what changes about engineering when a bug can injure someone',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['build-products', 'research', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-frontier',
+    title: 'The Frontier',
+    tagline: 'Where computing is going, without the press releases',
+    description:
+      'The subjects surrounded by the most hype, treated carefully. What quantum computing actually does and what it does not, the cryptography it threatens, the information theory underneath both, and the AI safety questions that are live rather than speculative.',
+    audience: 'Curious readers who want to tell a real claim from a headline',
+    icon: '🚀',
+    gradient: ['#8B5CF6', '#22D3EE'],
+    trackIds: [
+      'track-quantum',
+      'track-cryptography',
+      'track-information-theory',
+      'track-ethics',
+    ],
+    outcomes: [
+      'Explain superposition as amplitudes rather than as "both at once"',
+      'Say precisely which algorithms quantum computing breaks and which it weakens',
+      'Assess a "quantum will revolutionise X" claim with specific questions',
+      'Connect entropy to compression, to cross-entropy loss, and to perplexity',
+    ],
+    entryLevel: 'expert',
+    goals: ['curious', 'research'] as LearnerGoal[],
+  },
 ];
 
 export const PATHS_BY_ID: ReadonlyMap<PathId, Path> = new Map(PATHS.map((p) => [p.id, p]));

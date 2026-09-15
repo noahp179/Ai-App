@@ -146,6 +146,8 @@ describe('catalog integrity', () => {
       'code-tracer', 'type-coercion', 'box-model', 'event-loop', 'cloud-cost',
       'logic-gates', 'binary-adder', 'lexer-tokens', 'ast-explorer', 'gc-simulator',
       'huffman-tree', 'ab-test-sim', 'confidence-interval',
+      'qubit-bloch', 'quantum-circuit', 'rasterizer', 'ray-tracer', 'pid-tuner',
+      'usability-audit', 'incident-timeline',
     ]);
 
     const unused = [...declared].filter((w) => !used.has(w));

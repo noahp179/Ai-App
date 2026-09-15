@@ -34,7 +34,9 @@ type LabGroup =
   | 'Programming'
   | 'The web & cloud'
   | 'Hardware & compilers'
-  | 'Information & statistics';
+  | 'Information & statistics'
+  | 'Frontier'
+  | 'Design & practice';
 
 const GROUPS: LabGroup[] = [
   'Foundations',
@@ -50,6 +52,8 @@ const GROUPS: LabGroup[] = [
   'The web & cloud',
   'Hardware & compilers',
   'Information & statistics',
+  'Frontier',
+  'Design & practice',
 ];
 
 const LAB_ENTRIES: LabEntry[] = [
@@ -143,6 +147,17 @@ const LAB_ENTRIES: LabEntry[] = [
   { widget: 'huffman-tree', title: 'Huffman codes', blurb: 'Watch the average code length meet the entropy exactly.', icon: '📉', group: 'Information & statistics' },
   { widget: 'ab-test-sim', title: 'A/B test', blurb: 'Set the true effect to zero, then run it twenty times and count the false positives.', icon: '🧪', group: 'Information & statistics' },
   { widget: 'confidence-interval', title: 'Confidence intervals', blurb: 'Draw twenty and count how many miss. It should be about one.', icon: '📏', group: 'Information & statistics' },
+
+  // --- Frontier ---
+  { widget: 'qubit-bloch', title: 'A qubit', blurb: 'Move the state, then measure it and watch two numbers become one bit.', icon: '⚛️', group: 'Frontier' },
+  { widget: 'quantum-circuit', title: 'Quantum circuit', blurb: 'Two gates make an entangled pair. Watch |01⟩ and |10⟩ go to zero.', icon: '🔗', group: 'Frontier' },
+  { widget: 'rasterizer', title: 'Rasterizer', blurb: 'Drag a triangle and watch the staircase appear — then turn sampling on.', icon: '🔺', group: 'Frontier' },
+  { widget: 'ray-tracer', title: 'Ray tracing', blurb: 'Quadruple the samples to halve the noise. Every time.', icon: '💡', group: 'Frontier' },
+
+  // --- Design & practice ---
+  { widget: 'pid-tuner', title: 'Tune a PID loop', blurb: 'Make it oscillate, damp it, then close the last gap.', icon: '🎚️', group: 'Design & practice' },
+  { widget: 'usability-audit', title: 'Usability audit', blurb: 'Flag the heuristic violations, then see the two everyone misses.', icon: '🔍', group: 'Design & practice' },
+  { widget: 'incident-timeline', title: 'Run an incident', blurb: 'Four decisions under pressure. Most engineers get the middle two backwards.', icon: '🚨', group: 'Design & practice' },
 ];
 
 export default function PlaygroundScreen(): React.JSX.Element {

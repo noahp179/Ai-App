@@ -400,7 +400,14 @@ export type InteractiveWidget =
   | 'gc-simulator'
   | 'huffman-tree'
   | 'ab-test-sim'
-  | 'confidence-interval';
+  | 'confidence-interval'
+  | 'qubit-bloch'
+  | 'quantum-circuit'
+  | 'rasterizer'
+  | 'ray-tracer'
+  | 'pid-tuner'
+  | 'usability-audit'
+  | 'incident-timeline';
 
 export type FigureName =
   | 'ai-ml-dl-venn'

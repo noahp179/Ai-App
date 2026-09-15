@@ -78,6 +78,15 @@ import {
   LexerTokens,
   LogicGates,
 } from './foundations-cs';
+import {
+  IncidentTimeline,
+  PidTuner,
+  QuantumCircuit,
+  QubitBloch,
+  Rasterizer,
+  RayTracer,
+  UsabilityAudit,
+} from './frontier';
 
 export function Interactive({ widget }: { widget: InteractiveWidget }): React.JSX.Element {
   switch (widget) {
@@ -224,6 +233,20 @@ export function Interactive({ widget }: { widget: InteractiveWidget }): React.JS
       return <AbTestSim />;
     case 'confidence-interval':
       return <ConfidenceIntervalWidget />;
+    case 'qubit-bloch':
+      return <QubitBloch />;
+    case 'quantum-circuit':
+      return <QuantumCircuit />;
+    case 'rasterizer':
+      return <Rasterizer />;
+    case 'ray-tracer':
+      return <RayTracer />;
+    case 'pid-tuner':
+      return <PidTuner />;
+    case 'usability-audit':
+      return <UsabilityAudit />;
+    case 'incident-timeline':
+      return <IncidentTimeline />;
 
     case 'bisect-debug':
       return <BisectDebug />;

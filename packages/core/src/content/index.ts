@@ -52,6 +52,10 @@ import { compilersTrack } from './tracks/compilers';
 import { informationTheoryTrack } from './tracks/information-theory';
 import { cryptographyTrack } from './tracks/cryptography';
 import { statisticsTrack } from './tracks/statistics';
+import { quantumTrack } from './tracks/quantum';
+import { graphicsTrack } from './tracks/graphics';
+import { roboticsTrack } from './tracks/robotics';
+import { productTrack } from './tracks/product';
 import { PATHS } from './paths';
 
 export const TRACKS: Track[] = [
@@ -91,6 +95,10 @@ export const TRACKS: Track[] = [
   informationTheoryTrack,
   cryptographyTrack,
   statisticsTrack,
+  graphicsTrack,
+  roboticsTrack,
+  quantumTrack,
+  productTrack,
 ];
 
 // ---------------------------------------------------------------------------

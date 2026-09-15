@@ -451,6 +451,58 @@ export const SKILLS: Skill[] = [
   s('sk-causal-inference', 'Correlation, causation, and confounding', 'math', 'expert', ['sk-ab-testing']),
   s('sk-selection-bias', 'Selection and survivorship bias', 'math', 'intermediate', ['sk-sampling']),
 
+  // --- Quantum computing ----------------------------------------------------
+  s('sk-qubits', 'Qubits and superposition', 'quantum', 'intermediate'),
+  s('sk-quantum-gates', 'Quantum gates as rotations', 'quantum', 'expert', ['sk-qubits']),
+  s('sk-entanglement', 'Entanglement and correlation at a distance', 'quantum', 'expert', ['sk-qubits']),
+  s('sk-measurement', 'Measurement and collapse', 'quantum', 'intermediate', ['sk-qubits']),
+  s('sk-quantum-interference', 'Interference as the source of speedup', 'quantum', 'expert', ['sk-quantum-gates']),
+  s('sk-quantum-algorithms', 'Shor, Grover, and what they actually do', 'quantum', 'expert', ['sk-quantum-interference']),
+  s('sk-decoherence', 'Decoherence and error correction', 'quantum', 'expert', ['sk-measurement']),
+  s('sk-quantum-reality', 'What quantum computers will and will not do', 'quantum', 'intro', ['sk-qubits']),
+
+  // --- Computer graphics ----------------------------------------------------
+  s('sk-raster-vector', 'Raster and vector representations', 'graphics', 'intro'),
+  s('sk-colour-spaces', 'Colour spaces, gamma, and perception', 'graphics', 'intermediate', ['sk-raster-vector']),
+  s('sk-transforms', 'Transforms and homogeneous coordinates', 'graphics', 'intermediate', ['sk-matrices']),
+  s('sk-rasterization', 'Turning triangles into pixels', 'graphics', 'intermediate', ['sk-transforms']),
+  s('sk-shading', 'Lighting and shading models', 'graphics', 'expert', ['sk-rasterization']),
+  s('sk-ray-tracing', 'Ray tracing and global illumination', 'graphics', 'expert', ['sk-shading']),
+  s('sk-textures', 'Textures, sampling, and filtering', 'graphics', 'intermediate', ['sk-rasterization']),
+  s('sk-graphics-pipeline', 'The GPU pipeline end to end', 'graphics', 'expert', ['sk-rasterization']),
+  s('sk-anti-aliasing', 'Aliasing and how to fight it', 'graphics', 'intermediate', ['sk-rasterization']),
+
+  // --- Robotics & embedded --------------------------------------------------
+  s('sk-microcontrollers', 'Microcontrollers and bare metal', 'robotics', 'intro', ['sk-instruction-cycle']),
+  s('sk-sensors-actuators', 'Sensors, actuators, and noise', 'robotics', 'intro', ['sk-microcontrollers']),
+  s('sk-real-time', 'Real-time constraints and determinism', 'robotics', 'intermediate', ['sk-scheduling']),
+  s('sk-control-loops', 'Feedback control and PID', 'robotics', 'intermediate', ['sk-sensors-actuators']),
+  s('sk-state-estimation', 'Filtering and state estimation', 'robotics', 'expert', ['sk-control-loops']),
+  s('sk-kinematics', 'Kinematics and coordinate frames', 'robotics', 'expert', ['sk-transforms']),
+  s('sk-slam', 'Mapping and localisation', 'robotics', 'expert', ['sk-state-estimation']),
+  s('sk-embedded-constraints', 'Power, memory, and thermal budgets', 'robotics', 'intermediate', ['sk-microcontrollers']),
+  s('sk-safety-critical', 'Safety-critical engineering', 'robotics', 'expert', ['sk-real-time']),
+
+  // --- Human-computer interaction & product ---------------------------------
+  s('sk-mental-models', 'Mental models and conceptual mismatch', 'product', 'intro'),
+  s('sk-affordances', 'Affordances, signifiers, and feedback', 'product', 'intro', ['sk-mental-models']),
+  s('sk-usability-heuristics', 'Usability heuristics that find real problems', 'product', 'intermediate', ['sk-affordances']),
+  s('sk-user-research', 'Asking users the right question', 'product', 'intermediate', ['sk-mental-models']),
+  s('sk-information-architecture', 'Structure, navigation, and findability', 'product', 'intermediate', ['sk-mental-models']),
+  s('sk-inclusive-design', 'Designing for the range of human ability', 'product', 'intermediate', ['sk-affordances']),
+  s('sk-product-metrics', 'Metrics that measure the thing you care about', 'product', 'intermediate', ['sk-ab-testing']),
+  s('sk-dark-patterns', 'Persuasion, manipulation, and where the line is', 'product', 'intermediate', ['sk-product-metrics']),
+
+  // --- Working as an engineer -----------------------------------------------
+  s('sk-technical-writing', 'Writing that gets read and acted on', 'product', 'intro'),
+  s('sk-design-docs', 'Design documents and decision records', 'product', 'intermediate', ['sk-technical-writing']),
+  s('sk-estimation', 'Estimating work and being wrong usefully', 'product', 'intermediate'),
+  s('sk-scope-negotiation', 'Scope, trade-offs, and saying no well', 'product', 'intermediate', ['sk-estimation']),
+  s('sk-incident-response', 'Incidents, mitigation, and blameless postmortems', 'product', 'intermediate', ['sk-observability']),
+  s('sk-on-call', 'On-call, alert fatigue, and sustainable operations', 'product', 'intermediate', ['sk-incident-response']),
+  s('sk-mentoring', 'Mentoring, feedback, and growing others', 'product', 'intermediate'),
+  s('sk-interviewing', 'Technical interviews from both sides', 'product', 'intermediate', ['sk-technical-writing']),
+  s('sk-collaboration', 'Working across time zones and disciplines', 'product', 'intro'),
 ];
 
 export const SKILLS_BY_ID: ReadonlyMap<string, Skill> = new Map(SKILLS.map((sk) => [sk.id, sk]));
