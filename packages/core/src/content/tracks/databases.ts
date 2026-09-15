@@ -447,6 +447,7 @@ export const databasesTrack: Track = {
               'ACID, one letter at a time',
               'A transaction groups operations so they succeed or fail together. The classic example is a transfer: debit one account, credit another. Halfway is not an acceptable state.\n\n**Atomicity** — all or nothing. A crash between the two statements rolls both back.\n\n**Consistency** — constraints hold at the boundaries. A transaction cannot commit a state that violates a foreign key or a check.\n\n**Isolation** — concurrent transactions do not see each other’s partial work. This is the letter with dials on it, and the next section is about them.\n\n**Durability** — once commit returns, the data survives a crash. This is the `fsync` from the operating systems track, which is why commit latency has a physical floor.\n\nWhat trips people is that ACID is a promise about *the database*, not about your system. If your transaction commits and then your code calls a payment API which fails, the database is perfectly consistent and your business state is not. Transactions do not span systems, which is the entire reason idempotency keys and outbox tables exist.',
               {
+                figure: 'acid-transaction',
                 keyTerms: [
                   { term: 'Atomicity', definition: 'The transaction applies completely or not at all.' },
                   { term: 'Durability', definition: 'A committed transaction survives a crash, which requires a real disk flush.' },

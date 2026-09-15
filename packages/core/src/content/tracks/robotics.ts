@@ -205,6 +205,7 @@ export const roboticsTrack: Track = {
               'Open loop and closed loop',
               '**Open-loop** control acts without checking the result. "Run the motor at 60% for two seconds." Simple, and it works only when the world cooperates — add a load, a slope, or a low battery and it silently does something else.\n\n**Closed-loop** control measures the outcome and corrects:\n\n```\nerror = target − measured\noutput = controller(error)\n```\n\nRepeat, often hundreds of times a second. That loop is why a cruise control holds speed up a hill, a thermostat holds a temperature, and a drone stays level in wind. None of them need to know about the hill, the weather, or the wind — they only need to measure the error.\n\nThat is the deep idea worth carrying out of this track: **feedback lets a simple controller handle disturbances it was never told about**. You do not model the world; you measure the discrepancy and correct.\n\nThe same structure appears throughout the catalog under other names. Gradient descent is feedback on a loss. Autoscaling is feedback on queue depth. A Kubernetes controller reconciling toward a desired state is feedback. Retry with backoff is feedback on failure rate. Once you can see the shape, it is everywhere.',
               {
+                figure: 'control-loop',
                 keyTerms: [
                   { term: 'Closed loop', definition: 'Measuring the outcome and correcting the error continuously.' },
                   { term: 'Setpoint', definition: 'The target value the controller is trying to hold.' },

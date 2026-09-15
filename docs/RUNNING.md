@@ -189,7 +189,7 @@ A first run drops you into onboarding: name, why you are here, your starting
 level, and a daily time commitment. It takes about 20 seconds. Then:
 
 - **Today** — your streak, daily goal, and the single next lesson to do
-- **Learn** — 19 learning paths, then all 26 tracks filterable by level
+- **Learn** — 30 learning paths, then all 40 tracks filterable by level, plus search
 - **Practice** — spaced review, once you have finished a lesson or two
 - **Lab** — all 37 interactive widgets, browsable without a lesson
 - **Profile** — mastery by domain, achievements, and settings

@@ -47,6 +47,7 @@ export const systemsTrack: Track = {
               'Five tiers, each a different world',
               'Programs talk about "memory" as though it were one thing. It is a hierarchy, and the numbers between the tiers are not close.\n\n| Tier | Latency | Size |\n|---|---|---|\n| Register | ~0 cycles | bytes |\n| L1 cache | ~4 cycles | ~32 KB |\n| L2/L3 cache | ~12–40 cycles | KB–MB |\n| Main memory (RAM) | ~200 cycles | GB |\n| SSD | ~50,000 cycles | TB |\n\nThe gap between L1 and RAM is roughly **50×**. The gap between RAM and disk is another **250×**. A single mispredicted memory access can cost more than a hundred arithmetic operations.\n\nThis is why big-O is necessary and insufficient. Two O(n) loops over the same data can differ by an order of magnitude depending on whether the CPU can predict what you will touch next. Operation counts assume every memory access costs the same. None of them do.\n\nThe hardware tries to help. It **prefetches**: if you read address 100, then 108, then 116, it fetches ahead before you ask. Give it a predictable pattern and memory is nearly free. Give it pointer chasing and it is helpless.',
               {
+                figure: 'memory-hierarchy',
                 keyTerms: [
                   { term: 'Cache', definition: 'Small fast memory holding recently and nearby-used data.' },
                   { term: 'Prefetching', definition: 'The CPU fetching data ahead of a predictable access pattern.' },

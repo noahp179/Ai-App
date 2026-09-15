@@ -431,7 +431,26 @@ export type FigureName =
   | 'svm-margin'
   | 'ensemble-tree'
   | 'feature-pipeline'
-  | 'mlops-lifecycle';
+  | 'mlops-lifecycle'
+  // --- Computer science ---
+  | 'abstraction-stack'
+  | 'memory-hierarchy'
+  | 'compiler-pipeline'
+  | 'chomsky-hierarchy'
+  | 'p-vs-np'
+  | 'network-layers'
+  | 'request-path'
+  | 'acid-transaction'
+  | 'shared-responsibility'
+  | 'render-pipeline'
+  | 'event-loop-queues'
+  | 'graphics-pipeline'
+  | 'control-loop'
+  | 'entropy-bound'
+  | 'tls-handshake'
+  | 'ab-test-flow'
+  | 'test-pyramid'
+  | 'persona-spectrum';
 
 export type Step = ConceptStep | ExerciseStep | InteractiveStep;
 

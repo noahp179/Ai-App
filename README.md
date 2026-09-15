@@ -1,9 +1,10 @@
 # Synapse
 
-**Learn how AI actually works — from first principles to production systems.**
+**Learn how computing actually works — from a transistor to a production model.**
 
-A complete learning platform for artificial intelligence, machine learning, deep
-learning, LLMs, and generative AI. Built for iOS, Android, and macOS from one
+A complete learning platform for computer science and artificial intelligence:
+programming from zero, the machine underneath it, the systems built on that, and
+the AI running on all of it. Built for iOS, Android, and macOS from one
 TypeScript codebase.
 
 Think Duolingo's pedagogy — short daily sessions, streaks, spaced repetition —
@@ -16,21 +17,38 @@ a graduate course.
 
 | | |
 |---|---|
-| **19 learning paths** | Curated routes through the catalog — pick a goal and the order is decided |
-| **26 tracks** | **AI & ML (17):** Foundations · Prompt Engineering · Math · Types of ML · ML Mechanics · Classic Algorithms · Data & Features · Deep Learning · Computer Vision · NLP · LLMs · Generative AI · Agents · RL · MLOps · Ethics · DSA<br>**Computer science (9):** Systems & Performance · Computer Architecture · Operating Systems · Databases · Networking & Distributed · Software Engineering · Security · Theory of Computation · Discrete Maths |
-| **170 lessons** | 77 units, ~635 minutes of material, all three difficulty levels |
-| **912 exercises** | 10 exercise types, every one with a written explanation |
-| **264 skills** | Individually tracked with spaced-repetition scheduling |
-| **52 interactive widgets** | Every track has at least one hands-on step |
-| **103 knowledge tests** | A checkpoint on every unit, an exam on every track |
+| **30 learning paths** | Curated routes through the catalog — pick a goal and the order is decided |
+| **40 tracks** | **Programming (3):** Fundamentals · Python · Paradigms<br>**Computer science (12):** DSA · Discrete Maths · Theory of Computation · Compilers · Systems & Performance · Computer Architecture · Operating Systems · Databases · Networking · Software Engineering · Security · Cryptography<br>**Maths & hardware (4):** Math for AI · Information Theory · Statistics & Experimentation · Digital Logic & Hardware<br>**AI & ML (15):** AI Foundations · Prompt Engineering · Types of ML · ML Mechanics · Classic Algorithms · Data & Features · Deep Learning · Computer Vision · NLP · LLMs · Generative AI · Agents · RL · MLOps · Ethics<br>**Applied (6):** The Web · Cloud & Infrastructure · Graphics · Robotics & Embedded · Quantum Computing · Design, Product & Practice |
+| **219 lessons** | 106 units, ~875 minutes of material, all three difficulty levels |
+| **1,280 exercises** | 11 exercise types, every one with a written explanation |
+| **402 skills** | Individually tracked, with a prerequisite graph 6 layers deep |
+| **100 interactive widgets** | Every track has at least one hands-on step |
+| **146 knowledge tests** | A checkpoint on every unit, an adaptive exam on every track |
+| **58 diagrams** | Drawn from views, so they scale and follow the theme |
 
 Every track spans intro, intermediate, and expert material. The curriculum is
 data (`packages/core/src/content/`), validated on every test run — a typo in a
-skill reference fails the build rather than silently breaking review scheduling.
+skill reference fails the build rather than silently breaking review scheduling,
+a duplicate skill id is rejected, and every worked solution to a code exercise is
+executed against its own test cases before it can ship.
+
+### Writing code, not just answering about it
+
+One exercise type runs what you type. A prompt, a starter template, and test
+cases that actually execute:
+
+- On web the submission runs in a **Worker** with `fetch`, `XHR` and
+  `importScripts` removed, terminated after 2 seconds — the only way to
+  interrupt a beginner's first infinite loop.
+- Cases are **visible or hidden**. Visible ones make the task unambiguous and
+  show expected-versus-actual on failure; hidden ones run only once the visible
+  ones pass, so special-casing the shown inputs does not count as a solution.
+- Float comparison has a relative tolerance, because an exercise asking for an
+  average should not fail on `0.1 + 0.2`.
 
 ### Paths
 
-Twenty-six tracks is a catalog, not a curriculum. A **path** is an ordered route
+Forty tracks is a catalog, not a curriculum. A **path** is an ordered route
 through several of them, built around a goal someone actually has:
 
 | | |
@@ -54,6 +72,17 @@ through several of them, built around a goal someone actually has:
 | **Ship It Securely** | The failures that cause most breaches, and the habits that prevent them |
 | **CS Interview Prep** | Algorithms, systems design, and the questions behind the questions |
 | **AI Infrastructure** | The systems layer under every training run |
+| **Learn to Code** | From never having programmed to writing real things |
+| **Full-Stack Engineer** | Browser to database, and everything in between |
+| **Platform & Reliability** | Run it, watch it, and survive the incident |
+| **The Theory Underneath** | Logic, information, computation, and the limits of each |
+| **From Sand to Software** | The whole stack, bottom to top |
+| **Measure It Properly** | Experiments and evidence that survive scrutiny |
+| **Security & Cryptography** | Why the padlock means anything, and where systems fail |
+| **Build Things People Can Use** | Design, accessibility, and the professional half of the job |
+| **Graphics & Simulation** | Geometry into pixels, and the hardware it created |
+| **AI in the Physical World** | Robots, sensors, control, and safety-critical engineering |
+| **The Frontier** | Where computing is going, without the press releases |
 
 Paths own no content — they are references into the same tracks — so a lesson
 finished anywhere counts toward every path containing it, and a path can never
@@ -78,9 +107,26 @@ Three tracks cover ML specifically, from the taxonomy down to the algorithms:
   labelling quality, dataset shift, where training data comes from, synthetic
   data and model collapse, class imbalance, and the four kinds of leakage.
 
+### Programming
+
+Three tracks assume nothing, because the rest of the catalog assumed a great
+deal. Someone arriving at AI from outside software was expected to already know
+what a loop is and what Python idiom looks like.
+
+- **Programming Fundamentals** — variables, branching, loops, functions, scope
+  and closures, collections, references and aliasing, text and encoding, and
+  failing deliberately. Taught by writing code that executes against test cases
+  in the app.
+- **Python for AI** — idiom, comprehensions and generators, the data model,
+  NumPy broadcasting, DataFrames and split-apply-combine, environments, and the
+  four traps (mutable defaults, late binding, `is` vs `==`, shallow copies).
+- **Programming Paradigms** — objects and the invariants they protect,
+  inheritance versus composition, purity and immutability, static versus
+  dynamic typing, generics, and why null is a design flaw.
+
 ### Computer science
 
-Nine tracks here are not about AI at all. They exist because the ML material
+Twelve tracks here are not about AI at all. They exist because the ML material
 kept gesturing at them: complexity analysis the moment anyone asks why a nested
 loop over a million rows is a bad idea, the memory hierarchy behind every
 "vectorise your loops", floating point behind every `NaN`, and the reason
@@ -119,14 +165,51 @@ need somewhere to learn this that does not assume a degree.
 - **Discrete Maths for CS** — propositional logic, proof techniques, induction,
   sets and relations, combinatorics, the pigeonhole principle, graph theory,
   modular arithmetic, and recurrence relations.
+- **Compilers & Interpreters** — lexing, parsing and where precedence lives,
+  semantic analysis, SSA and why LLVM exists, optimisation passes and the as-if
+  rule, register allocation as graph colouring, and garbage collection.
+- **Cryptography** — Kerckhoffs, AES and why ECB leaks a picture, randomness as
+  a primitive, Diffie–Hellman, signatures versus MACs, and a precise account of
+  what quantum computing breaks.
 
-Fifteen of the interactive widgets are theirs — including one that hands the
+Over half the interactive widgets are theirs — including one that hands the
 asymptotically better algorithm a 200× constant penalty and lets you find the
 crossover where it still wins, one that lets you interleave two threads by hand
-until the counter comes out wrong, and one that bisects a thousand commits in
-ten questions.
+until the counter comes out wrong, one that builds arithmetic from NAND gates,
+and one that bisects a thousand commits in ten questions.
 
-And two tracks for the AI domains that previously had skills but no home:
+### Maths, hardware, and the rest
+
+- **Digital Logic & Hardware** — transistors as switches, gates, boolean
+  simplification as literal cost reduction, the half adder that turns out to be
+  one XOR and one AND, feedback as memory, and what actually ended in 2005.
+- **Information Theory** — why information has to be a logarithm, entropy as
+  average surprise, the compression floor it sets, Huffman codes hitting that
+  floor exactly, and the line straight to cross-entropy loss and perplexity.
+- **Statistics & Experimentation** — sampling error versus bias, confidence
+  intervals read correctly, the four things a p-value is not, power and the
+  winner's curse, peeking and multiple comparisons, and what randomisation buys
+  that adjustment cannot.
+- **How the Web Works** — semantic markup, the box model, the DOM, the
+  single-threaded event loop, the render pipeline, Core Web Vitals, and
+  accessibility as a default rather than an add-on.
+- **Cloud & Infrastructure** — shared responsibility, VMs versus containers
+  versus functions, orchestration as a reconciliation loop, serverless and cold
+  starts, infrastructure as code, observability, cost, and RPO/RTO.
+- **Computer Graphics** — raster and vector, gamma, homogeneous coordinates,
+  rasterization and the depth buffer, shading, ray tracing and its square-root
+  convergence, textures and aliasing.
+- **Robotics & Embedded** — bare metal, sensors as noisy estimates, hard real
+  time where worst case is the only number that matters, PID, Kalman filtering
+  and SLAM, and what changes when a bug can injure someone.
+- **Quantum Computing** — written against the "both at once" framing. A qubit
+  is an amplitude vector; cancellation, not parallelism, is the speedup. Honest
+  numbers on Shor versus Grover, and on how far away the hardware is.
+- **Design, Product & Practice** — mental models, affordances, inclusive
+  design, Goodhart and guardrail metrics, dark patterns — then writing,
+  estimating, incidents, on-call, mentoring and interviewing.
+
+And the two AI tracks that previously had skills but no home:
 
 - **Computer Vision** — images as tensors, convolution from first principles,
   pooling and receptive fields, the architecture lineage from LeNet to ResNet,
@@ -135,6 +218,16 @@ And two tracks for the AI domains that previously had skills but no home:
   Word2Vec, RNNs and LSTMs, and the seq2seq bottleneck that attention removed.
   Worth doing before the LLM track: attention is much easier to appreciate once
   you have felt the problem it solved.
+
+### Finding your way around
+
+- **Search** across tracks, lessons, skills and paths — including concept key
+  terms, so searching a definition finds the lesson that defines it.
+- **A skill map** built from the prerequisite graph: 402 skills, six layers
+  deep, with a *Ready* view listing exactly the skills whose prerequisites you
+  have mastered and which you have not.
+- **Adaptive track exams** that visit weak skills first, so a fixed-length paper
+  spends its questions where you are least certain.
 
 ---
 
