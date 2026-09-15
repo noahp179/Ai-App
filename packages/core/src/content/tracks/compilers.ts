@@ -367,10 +367,10 @@ export const compilersTrack: Track = {
               'An empirical regularity that holds across almost all programs, which is why nearly every serious collector exploits it.',
             ),
             trueFalse(
-              'Reference counting reclaims cyclic structures without help.',
-              false,
+              'Reference counting leaks cycles unless something else collects them.',
+              true,
               ['sk-garbage-collection'],
-              'Two objects referring to each other never reach zero. Python ships a cycle detector alongside its reference counting for this reason.',
+              'Two objects referring to each other never reach a count of zero, however unreachable they are from the program. Python ships a cycle detector alongside its reference counting for exactly this reason.',
             ),
             shortAnswer(
               'A latency-sensitive service has occasional 300ms pauses. What would you suspect and what would you change?',

@@ -5,16 +5,16 @@
  * anything. This screen exists so that "where was the bit about deadlock" is a
  * five-second question rather than a five-minute one.
  *
- * Results route straight to the thing found. Skills are the exception — a
- * skill is not a screen, so tapping one shows which tracks practise it and
- * routes to the first, which is what someone searching a term actually wants.
+ * Results route straight to the thing found — a lesson result opens the
+ * lesson itself, not the track it sits in. Skills are the exception: a skill
+ * is not a screen, so tapping one routes to the first track that practises it,
+ * which is what someone searching a term actually wants.
  */
 
 import React, { useMemo, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
-  LESSON_INDEX,
   SEARCH_SUGGESTIONS,
   searchCatalog,
   tracksForSkill,
@@ -49,11 +49,12 @@ export default function SearchScreen(): React.JSX.Element {
       case 'path':
         router.push(`/path/${result.id}`);
         return;
-      case 'lesson': {
-        const location = LESSON_INDEX.get(result.id);
-        router.push(location ? `/track/${location.track.id}` : "/learn");
+      case 'lesson':
+        // Straight into the lesson. The player re-checks entitlement and
+        // bounces to the paywall itself, so arriving from search cannot skip a
+        // lock.
+        router.push(`/lesson/${result.id}`);
         return;
-      }
       case 'skill': {
         const tracks = tracksForSkill(result.id);
         const first = tracks[0];

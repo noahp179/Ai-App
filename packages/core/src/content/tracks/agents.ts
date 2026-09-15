@@ -313,8 +313,8 @@ export const agentsTrack: Track = {
               'The model only ever emits a request. Everything else — execution, authorisation, rate limiting, auditing — happens in code you control, which is the only place it can be enforced.',
             ),
             trueFalse(
-              'Returning a tool’s full raw response to the model is usually the safest default.',
-              false,
+              'A tool returning a large raw response is usually worth trimming before it reaches the model.',
+              true,
               ['sk-tool-use', 'sk-context-window'],
               'Raw responses are typically verbose, and every token competes with the reasoning for context. Return the fields the model needs, truncate lists, and summarise long bodies — a 50KB JSON blob can crowd out the task itself.',
             ),
@@ -559,10 +559,10 @@ export const agentsTrack: Track = {
             'The model only ever emits a request. Code decides whether it runs, and code is the only place a rule can actually be enforced.',
           ),
           trueFalse(
-            'An agent that reaches the correct answer has passed evaluation.',
-            false,
+            'An agent can reach the correct answer by a route you would never want to ship.',
+            true,
             ['sk-agent-eval'],
-            'Trajectory, cost, permissions, and recovery all matter. A right answer reached in 40 steps through records it should not have touched is a failure that an outcome check calls a success.',
+            'Twenty tool calls where two would do, a destructive action that happened to be recoverable, a guess that landed — the final answer hides all of it. Evaluating the trajectory as well as the outcome is what catches the run that was right by luck.',
           ),
           mcq(
             'What is the main reason to give a sub-agent only three tools instead of thirty?',

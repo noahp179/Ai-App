@@ -246,10 +246,10 @@ export const webTrack: Track = {
               '`async` does not create a thread. Only a worker actually takes CPU work off the main thread.',
             ),
             trueFalse(
-              'Marking a function `async` makes it run on another thread.',
-              false,
+              'An `async` function still runs on the calling thread; `await` yields rather than parallelises.',
+              true,
               ['sk-event-loop'],
-              'It lets the function yield at `await`. The work still happens on the one thread.',
+              '`async` lets the function suspend at `await` so the event loop can run something else meanwhile. The work still happens on the one thread — a CPU-heavy `async` function blocks everything just as a synchronous one would.',
             ),
           ],
         }),

@@ -101,10 +101,10 @@ export const architectureTrack: Track = {
               '`01111111 + 1 = 10000000`, whose signed reading is −128. The addition succeeded; the meaning wrapped. (Python’s own ints are unbounded — this is what happens in C, Rust, NumPy, and any fixed-width tensor dtype.)',
             ),
             trueFalse(
-              'Integer overflow normally raises an error at runtime.',
-              false,
+              'In most fixed-width languages an overflowing integer wraps around silently.',
+              true,
               ['sk-twos-complement'],
-              'In most fixed-width languages it wraps silently. That silence is what makes overflow bugs hard to find.',
+              'No exception, no warning — the value simply reappears at the other end of the range. That silence is what makes overflow bugs so hard to find, and why bounds are worth checking before the arithmetic rather than after.',
             ),
           ],
         }),
@@ -131,10 +131,10 @@ export const architectureTrack: Track = {
               'Move the magnitude slider and watch the spacing between representable values. Notice that precision is relative: near zero the grid is fine, and by the time you reach a million it is coarser than a penny.',
             ),
             trueFalse(
-              'In float32, the gap between representable values is the same everywhere on the number line.',
-              false,
+              'In float32 the gap between representable values grows as the numbers get larger.',
+              true,
               ['sk-floating-point'],
-              'The spacing scales with magnitude. Precision is relative, not absolute — roughly seven significant decimal digits wherever you are.',
+              'The spacing scales with magnitude. Precision is relative, not absolute — roughly seven significant decimal digits wherever you are, which is why adding a tiny number to a huge one can change nothing at all.',
             ),
             mcq(
               'What is the right way to compare two floats for equality?',

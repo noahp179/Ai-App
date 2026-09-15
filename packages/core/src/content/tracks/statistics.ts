@@ -225,10 +225,10 @@ export const statisticsTrack: Track = {
             'A property of the procedure.',
           ),
           trueFalse(
-            'p = 0.04 means there is a 4% chance the null hypothesis is true.',
-            false,
+            'A p-value is the probability of data at least this extreme assuming the null hypothesis is true.',
+            true,
             ['sk-p-value-misuse'],
-            'It is computed assuming the null is true, so it cannot be a probability about the null.',
+            'The conditioning runs the other way from the common reading: it is P(data | null), not P(null | data). Getting the probability of the hypothesis itself requires a prior, which is exactly what the Bayesian approach supplies and the p-value does not.',
           ),
         ],
       },

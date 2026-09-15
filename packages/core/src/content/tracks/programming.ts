@@ -207,10 +207,10 @@ export const programmingTrack: Track = {
             'First match wins, and nothing after it is even evaluated.',
           ),
           trueFalse(
-            '`=` and `===` mean the same thing inside an if statement.',
-            false,
+            '`=` assigns while `===` compares, which is why `if (x = 5)` is a classic bug.',
+            true,
             ['sk-control-flow'],
-            '`=` assigns. Inside a condition that is almost always a bug.',
+            '`if (x = 5)` assigns 5 to x and then tests 5, which is truthy — so the branch always runs and x is silently clobbered. The assignment is a valid expression, so nothing complains; linters flag it precisely because the language will not.',
           ),
         ],
       },

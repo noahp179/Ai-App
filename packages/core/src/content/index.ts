@@ -309,6 +309,23 @@ export function validateCatalog(): ValidationIssue[] {
     for (const unit of track.units) {
       if (unit.lessons.length === 0) warn(unit.id, 'Unit has no lessons');
 
+      /**
+       * Reports the first value that appears twice, or undefined.
+       *
+       * Repeated options are not a cosmetic problem. The answer UIs remove a
+       * tile once it is used, and a duplicate makes "used" ambiguous — which is
+       * how a repeated value can take an exercise from awkward to unanswerable.
+       */
+      const firstDuplicate = (values: readonly string[]): string | undefined => {
+        const seen = new Set<string>();
+        for (const value of values) {
+          const key = value.trim();
+          if (seen.has(key)) return value;
+          seen.add(key);
+        }
+        return undefined;
+      };
+
       const checkExercise = (exercise: Exercise, location: string): void => {
         if (seenStepIds.has(exercise.id)) err(location, `Duplicate exercise id "${exercise.id}"`);
         seenStepIds.add(exercise.id);
@@ -334,15 +351,29 @@ export function validateCatalog(): ValidationIssue[] {
             if (exercise.answer < 0 || exercise.answer >= exercise.choices.length) {
               err(location, `Exercise "${exercise.id}" answer index out of range`);
             }
+            {
+              const dup = firstDuplicate(exercise.choices);
+              if (dup) err(location, `Exercise "${exercise.id}" repeats the choice "${dup}"`);
+            }
             break;
           case 'multi-select':
             if (exercise.answers.length === 0) {
               err(location, `Exercise "${exercise.id}" has no correct answers`);
             }
+            if (exercise.answers.length === exercise.choices.length) {
+              warn(location, `Exercise "${exercise.id}" marks every choice correct`);
+            }
+            if (new Set(exercise.answers).size !== exercise.answers.length) {
+              err(location, `Exercise "${exercise.id}" lists an answer index twice`);
+            }
             for (const a of exercise.answers) {
               if (a < 0 || a >= exercise.choices.length) {
                 err(location, `Exercise "${exercise.id}" answer index ${a} out of range`);
               }
+            }
+            {
+              const dup = firstDuplicate(exercise.choices);
+              if (dup) err(location, `Exercise "${exercise.id}" repeats the choice "${dup}"`);
             }
             break;
           case 'fill-blank': {
@@ -353,18 +384,37 @@ export function validateCatalog(): ValidationIssue[] {
                 `Exercise "${exercise.id}" has ${blankCount} blanks in the template but ${exercise.blanks.length} answer sets`,
               );
             }
+            exercise.blanks.forEach((accepted, index) => {
+              if (accepted.length === 0) {
+                err(location, `Exercise "${exercise.id}" blank ${index} accepts nothing`);
+              }
+              if (accepted.some((a) => !a.trim())) {
+                err(location, `Exercise "${exercise.id}" blank ${index} accepts an empty string`);
+              }
+            });
             break;
           }
-          case 'match-pairs':
+          case 'match-pairs': {
             if (exercise.pairs.length < 2) {
               err(location, `Exercise "${exercise.id}" needs at least 2 pairs`);
             }
+            // Left-hand prompts must be distinct: they key the answer, so a
+            // repeat is genuinely two different questions wearing one label.
+            // Right-hand values may repeat — categorisation questions put two
+            // items in one bucket on purpose, and the UI consumes tiles by
+            // position rather than by text so that works.
+            const dupLeft = firstDuplicate(exercise.pairs.map((p) => p.left));
+            if (dupLeft) err(location, `Exercise "${exercise.id}" repeats the prompt "${dupLeft}"`);
             break;
-          case 'order-sequence':
+          }
+          case 'order-sequence': {
             if (exercise.items.length < 2) {
               err(location, `Exercise "${exercise.id}" needs at least 2 items`);
             }
+            const dup = firstDuplicate(exercise.items);
+            if (dup) err(location, `Exercise "${exercise.id}" repeats the item "${dup}"`);
             break;
+          }
           case 'code-write': {
             if (exercise.tests.length === 0) {
               err(location, `Exercise "${exercise.id}" has no visible test cases`);
@@ -394,6 +444,12 @@ export function validateCatalog(): ValidationIssue[] {
             }
             if (exercise.items.length < 2) {
               err(location, `Exercise "${exercise.id}" needs at least 2 items`);
+            }
+            const dupItem = firstDuplicate(exercise.items.map((i) => i.item));
+            if (dupItem) err(location, `Exercise "${exercise.id}" repeats the item "${dupItem}"`);
+            const dupCategory = firstDuplicate(exercise.categories);
+            if (dupCategory) {
+              err(location, `Exercise "${exercise.id}" repeats the category "${dupCategory}"`);
             }
             const declared = new Set(exercise.categories);
             for (const entry of exercise.items) {

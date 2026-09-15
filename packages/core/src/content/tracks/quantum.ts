@@ -240,10 +240,10 @@ export const quantumTrack: Track = {
             'Two complex numbers in, one bit out.',
           ),
           trueFalse(
-            'Entanglement allows faster-than-light signalling.',
-            false,
+            'Entanglement produces correlated outcomes but cannot carry a message.',
+            true,
             ['sk-entanglement'],
-            'Each side sees randomness; the correlation only appears on comparison over a classical channel.',
+            'Each side sees purely random results; the correlation only appears once the two records are compared over an ordinary channel, which travels no faster than light. This is the no-communication theorem, and it is why quantum key distribution still needs a classical link.',
           ),
           mcq(
             'Quantum speedup comes from what?',

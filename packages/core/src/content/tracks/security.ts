@@ -99,10 +99,10 @@ export const securityTrack: Track = {
               'If that service is compromised, the attacker gets three tables of reads — not the ability to modify anything.',
             ),
             trueFalse(
-              'Validating input and using parameterised queries is redundant — one of them is enough.',
-              false,
+              'Parameterised queries and input validation defend against different failures and are worth having together.',
+              true,
               ['sk-least-privilege-security'],
-              'Defence in depth assumes one control will fail. Parameterisation is the structural fix; validation is the layer that still helps when something is missed.',
+              'Defence in depth assumes one control will fail. Parameterisation is the structural fix that makes injection impossible at the query boundary; validation is the layer that still helps when something is missed.',
             ),
           ],
         }),
@@ -352,10 +352,10 @@ export const securityTrack: Track = {
             'Verification without storage is exactly the hashing use case.',
           ),
           trueFalse(
-            'Salts must be kept secret.',
-            false,
+            'A salt can be stored in plaintext next to the hash.',
+            true,
             ['sk-password-storage'],
-            'They are stored beside the hash. Their job is uniqueness, which defeats precomputation.',
+            'A salt is not a secret — its job is to be unique per password, so that one rainbow table cannot attack every account at once and two users with the same password get different hashes. A *pepper* is the secret variant, and it is kept outside the database.',
           ),
           mcq(
             'What does a valid certificate chain establish?',

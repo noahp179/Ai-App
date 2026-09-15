@@ -278,10 +278,10 @@ export const nlpTrack: Track = {
               'Static versus contextual. It is why BERT can distinguish the two senses of `bank` and Word2Vec structurally cannot — the context is an input rather than something averaged away during training.',
             ),
             trueFalse(
-              'Averaging the word vectors in a sentence produces a representation that preserves word order.',
-              false,
+              'Averaging the word vectors in a sentence discards word order entirely.',
+              true,
               ['sk-word-embeddings'],
-              'Addition is commutative, so every permutation of the same words gives the identical vector. Recovering order is exactly what recurrent models, and later attention with positional encoding, were for.',
+              'Addition is commutative, so every permutation of the same words gives an identical vector. Recovering order is exactly what recurrent models, and later attention with positional encoding, were for.',
             ),
           ],
         }),

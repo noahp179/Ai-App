@@ -9,10 +9,15 @@
  *    worth having rather than merely interesting.
  *  - **Map** — every skill by domain and depth, with mastery shown, so the
  *    shape of the subject and your progress through it are visible at once.
+ *
+ * The map lays each layer out as a wrapping grid sized from the measured
+ * width, rather than a horizontal rail. A rail hid most of every layer off the
+ * right edge with a clipped card as the only hint that anything was there, and
+ * gave a mouse nothing to drag.
  */
 
-import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   DOMAIN_LABELS,
@@ -23,13 +28,142 @@ import {
   skillGraphStats,
   tracksForSkill,
   type Domain,
+  type GraphNode,
   type Skill,
+  type SkillId,
 } from '@synapse/core';
-import { Badge, Card, ProgressBar, Screen, Text, useTheme } from '@synapse/ui';
+import { Badge, Card, ProgressBar, Screen, Text, useTheme, type Theme } from '@synapse/ui';
 
 import { useProgress } from '../src/store/useProgress';
 
 type MapView = 'Ready' | 'Map';
+
+type Router = ReturnType<typeof useRouter>;
+
+/** The narrowest a chip may be before the grid drops to fewer columns. */
+const MIN_CHIP_WIDTH = 200;
+
+function colourFor(theme: Theme, mastery: number): string {
+  if (mastery >= 0.8) return theme.colors.success;
+  if (mastery >= 0.6) return theme.colors.primary;
+  if (mastery > 0) return theme.colors.warning;
+  return theme.colors.border;
+}
+
+interface ChipProps {
+  skill: Skill;
+  node: GraphNode | undefined;
+  mastery: number;
+  open: boolean;
+  onToggle: (skillId: SkillId) => void;
+  theme: Theme;
+  router: Router;
+}
+
+/**
+ * A skill row that expands to show what it needs and what it unlocks.
+ *
+ * Declared at module scope rather than inside the screen. A component defined
+ * in a render body is a new component type on every render, so React unmounts
+ * and remounts the whole subtree — four hundred chips — every time one of them
+ * is tapped.
+ */
+const SkillChip = React.memo(function SkillChip({
+  skill,
+  node,
+  mastery,
+  open,
+  onToggle,
+  theme,
+  router,
+}: ChipProps): React.JSX.Element {
+  const tracks = open ? tracksForSkill(skill.id) : [];
+  const chain = open ? prerequisiteChain(skill.id) : [];
+
+  return (
+    <Pressable
+      onPress={() => onToggle(skill.id)}
+      accessibilityRole="button"
+      accessibilityState={{ expanded: open }}
+      accessibilityLabel={`${skill.name}. Mastery ${Math.round(mastery * 100)} percent. ${
+        node?.prerequisites.length ?? 0
+      } prerequisites, unlocks ${node?.unlocks.length ?? 0}.`}
+      style={{
+        borderWidth: 1,
+        borderColor: open ? theme.colors.primary : theme.colors.border,
+        borderLeftWidth: 4,
+        borderLeftColor: colourFor(theme, mastery),
+        borderRadius: theme.radii.md,
+        padding: theme.spacing.md,
+        backgroundColor: theme.colors.surface,
+      }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
+        <Text variant="caption" tone="default" style={{ flex: 1 }}>
+          {skill.name}
+        </Text>
+        {mastery > 0 ? (
+          <Text variant="label" tone="tertiary" caps>
+            {Math.round(mastery * 100)}%
+          </Text>
+        ) : null}
+      </View>
+
+      {open ? (
+        <View style={{ marginTop: theme.spacing.md, gap: theme.spacing.sm }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+            <Badge label={`depth ${node?.depth ?? 0}`} tone="neutral" />
+            <Badge label={`unlocks ${node?.unlocks.length ?? 0}`} tone="neutral" />
+            <Badge label={skill.level} tone="neutral" />
+          </View>
+
+          {chain.length > 0 ? (
+            <View>
+              <Text variant="label" tone="tertiary" caps>
+                Needs first
+              </Text>
+              <Text variant="caption" tone="secondary">
+                {chain.map((s) => s.name).join(' → ')}
+              </Text>
+            </View>
+          ) : (
+            <Text variant="caption" tone="tertiary">
+              Assumes nothing — this is a starting point.
+            </Text>
+          )}
+
+          {tracks.length > 0 ? (
+            <View>
+              <Text variant="label" tone="tertiary" caps style={{ marginBottom: theme.spacing.xs }}>
+                Practised in
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.xs }}>
+                {tracks.slice(0, 4).map((track) => (
+                  <Pressable
+                    key={track.id}
+                    onPress={() => router.push(`/track/${track.id}`)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open the ${track.title} track`}
+                    style={{
+                      paddingHorizontal: theme.spacing.md,
+                      paddingVertical: theme.spacing.xs,
+                      borderRadius: theme.radii.pill,
+                      backgroundColor: theme.colors.primarySubtle,
+                    }}
+                  >
+                    <Text variant="caption" tone="primary">
+                      {track.icon} {track.title}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+    </Pressable>
+  );
+});
 
 export default function SkillsScreen(): React.JSX.Element {
   const theme = useTheme();
@@ -37,6 +171,7 @@ export default function SkillsScreen(): React.JSX.Element {
   const progress = useProgress((s) => s.progress);
   const [view, setView] = useState<MapView>('Ready');
   const [openSkill, setOpenSkill] = useState<string | null>(null);
+  const [gridWidth, setGridWidth] = useState(0);
 
   const mastery = useMemo(
     () =>
@@ -56,106 +191,32 @@ export default function SkillsScreen(): React.JSX.Element {
     [mastery],
   );
 
-  const colourFor = (skillId: string): string => {
-    const m = mastery.get(skillId) ?? 0;
-    if (m >= 0.8) return theme.colors.success;
-    if (m >= 0.6) return theme.colors.primary;
-    if (m > 0) return theme.colors.warning;
-    return theme.colors.border;
-  };
+  const toggle = useCallback((skillId: SkillId) => {
+    setOpenSkill((current) => (current === skillId ? null : skillId));
+  }, []);
 
-  /** A skill row that expands to show what it needs and what it unlocks. */
-  const SkillChip = ({ skill }: { skill: Skill }): React.JSX.Element => {
-    const node = graph.get(skill.id);
-    const open = openSkill === skill.id;
-    const m = mastery.get(skill.id) ?? 0;
-    const tracks = open ? tracksForSkill(skill.id) : [];
-    const chain = open ? prerequisiteChain(skill.id) : [];
+  // Chip width from the measured row, so nothing is ever cut off: as many
+  // columns as fit at the minimum width, then share the remainder evenly.
+  const gap = theme.spacing.sm;
+  const chipColumns =
+    gridWidth > 0 ? Math.max(1, Math.floor((gridWidth + gap) / (MIN_CHIP_WIDTH + gap))) : 1;
+  const chipWidth =
+    gridWidth > 0
+      ? Math.floor((gridWidth - gap * (chipColumns - 1)) / chipColumns)
+      : undefined;
 
-    return (
-      <Pressable
-        onPress={() => setOpenSkill(open ? null : skill.id)}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
-        accessibilityLabel={`${skill.name}. Mastery ${Math.round(m * 100)} percent. ${
-          node?.prerequisites.length ?? 0
-        } prerequisites, unlocks ${node?.unlocks.length ?? 0}.`}
-        style={{
-          borderWidth: 1,
-          borderColor: open ? theme.colors.primary : theme.colors.border,
-          borderLeftWidth: 4,
-          borderLeftColor: colourFor(skill.id),
-          borderRadius: theme.radii.md,
-          padding: theme.spacing.md,
-          backgroundColor: theme.colors.surface,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
-          <Text variant="caption" tone="default" style={{ flex: 1 }}>
-            {skill.name}
-          </Text>
-          {m > 0 ? (
-            <Text variant="label" tone="tertiary" caps>
-              {Math.round(m * 100)}%
-            </Text>
-          ) : null}
-        </View>
-
-        {open ? (
-          <View style={{ marginTop: theme.spacing.md, gap: theme.spacing.sm }}>
-            <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-              <Badge label={`depth ${node?.depth ?? 0}`} tone="neutral" />
-              <Badge label={`unlocks ${node?.unlocks.length ?? 0}`} tone="neutral" />
-              <Badge label={skill.level} tone="neutral" />
-            </View>
-
-            {chain.length > 0 ? (
-              <View>
-                <Text variant="label" tone="tertiary" caps>
-                  Needs first
-                </Text>
-                <Text variant="caption" tone="secondary">
-                  {chain.map((s) => s.name).join(' → ')}
-                </Text>
-              </View>
-            ) : (
-              <Text variant="caption" tone="tertiary">
-                Assumes nothing — this is a starting point.
-              </Text>
-            )}
-
-            {tracks.length > 0 ? (
-              <View>
-                <Text variant="label" tone="tertiary" caps style={{ marginBottom: theme.spacing.xs }}>
-                  Practised in
-                </Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.xs }}>
-                  {tracks.slice(0, 4).map((track) => (
-                    <Pressable
-                      key={track.id}
-                      onPress={() => router.push(`/track/${track.id}`)}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Open the ${track.title} track`}
-                      style={{
-                        paddingHorizontal: theme.spacing.md,
-                        paddingVertical: theme.spacing.xs,
-                        borderRadius: theme.radii.pill,
-                        backgroundColor: theme.colors.primarySubtle,
-                      }}
-                    >
-                      <Text variant="caption" tone="primary">
-                        {track.icon} {track.title}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            ) : null}
-          </View>
-        ) : null}
-      </Pressable>
-    );
-  };
+  const chipFor = (node: GraphNode): React.JSX.Element => (
+    <SkillChip
+      key={node.skill.id}
+      skill={node.skill}
+      node={node}
+      mastery={mastery.get(node.skill.id) ?? 0}
+      open={openSkill === node.skill.id}
+      onToggle={toggle}
+      theme={theme}
+      router={router}
+    />
+  );
 
   return (
     <Screen scroll>
@@ -253,13 +314,22 @@ export default function SkillsScreen(): React.JSX.Element {
           ) : (
             <View style={{ gap: theme.spacing.sm }}>
               {ready.map((skill) => (
-                <SkillChip key={skill.id} skill={skill} />
+                <SkillChip
+                  key={skill.id}
+                  skill={skill}
+                  node={graph.get(skill.id)}
+                  mastery={mastery.get(skill.id) ?? 0}
+                  open={openSkill === skill.id}
+                  onToggle={toggle}
+                  theme={theme}
+                  router={router}
+                />
               ))}
             </View>
           )}
         </View>
       ) : (
-        <View>
+        <View onLayout={(e) => setGridWidth(e.nativeEvent.layout.width)}>
           <Text variant="heading" style={{ marginBottom: theme.spacing.xs }}>
             The whole map
           </Text>
@@ -286,20 +356,21 @@ export default function SkillsScreen(): React.JSX.Element {
               {column.layers.map((layer, depth) =>
                 layer.length === 0 ? null : (
                   <View key={depth} style={{ marginBottom: theme.spacing.md }}>
-                    <Text variant="label" tone="tertiary" caps style={{ marginBottom: theme.spacing.xs }}>
-                      Layer {depth}
-                    </Text>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={{ gap: theme.spacing.xs }}
+                    <Text
+                      variant="label"
+                      tone="tertiary"
+                      caps
+                      style={{ marginBottom: theme.spacing.xs }}
                     >
+                      Layer {depth} · {layer.length}
+                    </Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap }}>
                       {layer.map((node) => (
-                        <View key={node.skill.id} style={{ width: 210 }}>
-                          <SkillChip skill={node.skill} />
+                        <View key={node.skill.id} style={{ width: chipWidth }}>
+                          {chipFor(node)}
                         </View>
                       ))}
-                    </ScrollView>
+                    </View>
                   </View>
                 ),
               )}

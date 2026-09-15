@@ -225,10 +225,10 @@ export const databasesTrack: Track = {
             'Only matched pairs survive an inner join.',
           ),
           trueFalse(
-            '`WHERE price = NULL` matches rows whose price is NULL.',
-            false,
+            '`WHERE price IS NULL` is the only way to match NULL, because `= NULL` matches nothing.',
+            true,
             ['sk-sql-queries'],
-            'Comparison with NULL yields unknown. Use `IS NULL`.',
+            'NULL means unknown, and any comparison with an unknown is itself unknown rather than true — so the row is never returned, and no error is raised either. `IS NULL` and `IS NOT NULL` are the dedicated operators for exactly this reason.',
           ),
         ],
       },

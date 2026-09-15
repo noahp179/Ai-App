@@ -521,11 +521,15 @@ function MatchExercise({
   const theme = useTheme();
   const [activeLeft, setActiveLeft] = useState<string | null>(null);
 
+  // Each right-hand value gets its own tile, identified by its position rather
+  // than its text. Categorisation questions legitimately repeat a value — two
+  // tasks that are both "Supervised" — and consuming tiles by text would remove
+  // every copy the moment one was used, leaving the second item unanswerable.
   const rights = useMemo(
     () =>
       exercise.kind === 'match-pairs'
         ? seededShuffle(
-            exercise.pairs.map((p) => p.right),
+            exercise.pairs.map((p, index) => ({ value: p.right, key: `r${index}` })),
             hashString(exercise.id),
           )
         : [],
@@ -535,7 +539,15 @@ function MatchExercise({
 
   const pairs = draft?.kind === 'pairs' ? draft.pairs : [];
   const pairedLefts = new Set(pairs.map((p) => p.left));
-  const pairedRights = new Set(pairs.map((p) => p.right));
+
+  // Which tiles are spoken for, derived from the answer rather than held as a
+  // second piece of state: walk the pairs in order and claim the first unclaimed
+  // tile carrying that value. One source of truth, so unpairing needs no undo.
+  const claimed = new Set<string>();
+  for (const pair of pairs) {
+    const tile = rights.find((r) => r.value === pair.right && !claimed.has(r.key));
+    if (tile) claimed.add(tile.key);
+  }
 
   const pairUp = (right: string): void => {
     if (!activeLeft) return;
@@ -606,13 +618,13 @@ function MatchExercise({
 
           <View style={{ flex: 1, gap: theme.spacing.sm }}>
             {rights
-              .filter((right) => !pairedRights.has(right))
+              .filter((right) => !claimed.has(right.key))
               .map((right) => (
                 <AnswerOption
-                  key={`right-${right}`}
-                  label={right}
+                  key={right.key}
+                  label={right.value}
                   disabled={activeLeft === null}
-                  onPress={() => pairUp(right)}
+                  onPress={() => pairUp(right.value)}
                 />
               ))}
           </View>

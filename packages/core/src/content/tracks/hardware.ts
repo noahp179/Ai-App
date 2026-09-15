@@ -177,10 +177,10 @@ export const hardwareTrack: Track = {
               'A 64-bit ripple adder waits for 64 stages. Carry-lookahead computes the carries in parallel instead, trading gates for speed.',
             ),
             trueFalse(
-              'Subtraction needs a separate circuit from addition.',
-              false,
+              'An adder can subtract by adding the two’s-complement negation of its second operand.',
+              true,
               ['sk-combinational', 'sk-twos-complement'],
-              'Invert the second operand and set carry-in to 1. Two’s complement was chosen precisely so one adder does both.',
+              'Invert the second operand and set carry-in to 1. Two’s complement was chosen precisely so that one adder does both, which is why you will not find a subtractor unit in a simple ALU diagram.',
             ),
             multi(
               'Which are built purely from combinational logic — no memory?',

@@ -101,10 +101,10 @@ export const typesOfMlTrack: Track = {
             ),
 
             trueFalse(
-              'Reinforcement learning is told the correct action after each step.',
-              false,
+              'Reinforcement learning receives a reward signal rather than the correct action.',
+              true,
               ['sk-ml-paradigms'],
-              'It receives a reward, not a correction. "You scored 3 points" does not say which of your actions earned them — untangling that is the credit assignment problem, and it is what makes RL fundamentally harder than supervised learning.',
+              '“You scored 3 points” does not say which of your actions earned them. Untangling that is the credit assignment problem, and it is what makes RL fundamentally harder than supervised learning, where the right answer is handed over at every step.',
             ),
 
             shortAnswer(
@@ -308,10 +308,10 @@ export const typesOfMlTrack: Track = {
             'Logistic regression trains on labelled examples, which makes it supervised. The other three all find structure without labels.',
           ),
           trueFalse(
-            'k-means always finds the globally optimal clustering.',
-            false,
+            'k-means can settle on different clusterings depending on where its centroids start.',
+            true,
             ['sk-clustering'],
-            'It converges to a local optimum that depends on initialisation. Running it several times with different seeds and keeping the best result is standard practice; k-means++ initialisation reduces the problem but does not eliminate it.',
+            'It converges to a local optimum of a non-convex objective. This is why implementations run it several times from different seeds — k-means++ initialisation and `n_init` exist precisely to make a bad starting position less likely to be the one you keep.',
           ),
         ],
       },

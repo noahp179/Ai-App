@@ -97,10 +97,10 @@ export const dataEngineeringTrack: Track = {
             ),
 
             trueFalse(
-              'One-hot encoding is always the safest default regardless of cardinality.',
-              false,
+              'One-hot encoding a column with tens of thousands of distinct values usually causes more problems than it solves.',
+              true,
               ['sk-categorical-encoding'],
-              'It is safe with respect to false ordering, but at high cardinality it creates a very wide sparse matrix that hurts distance-based and linear models and slows everything down.',
+              'It is safe with respect to false ordering, but at high cardinality it produces a very wide sparse matrix that hurts distance-based and linear models and slows everything down. Target or hashing encodings are the usual answer there.',
             ),
           ],
         }),

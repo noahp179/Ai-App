@@ -289,10 +289,10 @@ export const mathTrack: Track = {
               'Principal components are directions, not original features — each is a weighted combination of all 50. And PCA never looks at the label, which is exactly why it can discard a low-variance direction that happened to be the one that mattered.',
             ),
             trueFalse(
-              'Matrix multiplication is commutative: `AB` always equals `BA`.',
-              false,
+              'Matrix multiplication is associative: `(AB)C` always equals `A(BC)`.',
+              true,
               ['sk-matrices'],
-              'It is not. Rotating then stretching lands somewhere different from stretching then rotating. Order is meaning — which is why the order of layers in a network is not arbitrary.',
+              'Associative yes, commutative no — `AB` and `BA` are generally different matrices, and may not even have compatible shapes. Associativity is what lets you collapse a chain of linear layers into a single matrix, and choose the cheapest order in which to multiply them.',
             ),
             numeric(
               'You multiply a `(32 × 784)` batch by a `(784 × 128)` weight matrix, then by a `(128 × 10)` output matrix. How many columns does the final result have?',

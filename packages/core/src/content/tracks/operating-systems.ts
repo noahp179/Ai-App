@@ -136,10 +136,10 @@ export const operatingSystemsTrack: Track = {
               'Accumulated-usage fairness gives naturally good interactive behaviour without anyone declaring "this is interactive".',
             ),
             trueFalse(
-              'The main cost of a context switch is saving and restoring registers.',
-              false,
+              'The main cost of a context switch is the cache and TLB state the incoming thread has to rebuild.',
+              true,
               ['sk-scheduling'],
-              'That part is around a microsecond. The larger cost is the cold cache the incoming thread inherits.',
+              'Saving registers takes around a microsecond. The larger cost is the cold cache the incoming thread inherits, and it is invisible in any measurement that counts only the switch itself.',
             ),
             numeric(
               'A single core runs 4 threads with 5 ms time slices. In the worst case, how many milliseconds might a thread wait before running again?',
@@ -168,10 +168,10 @@ export const operatingSystemsTrack: Track = {
             'It is a hardware privilege level, not a software convention.',
           ),
           trueFalse(
-            'A system call costs roughly the same as an ordinary function call.',
-            false,
+            'A system call costs far more than an ordinary function call.',
+            true,
             ['sk-syscalls'],
-            'Around a thousand times more. That gap is why buffered I/O exists.',
+            'A function call is a few nanoseconds; crossing into the kernel is hundreds, plus the cache and branch-predictor state disturbed on the way. This is why buffered I/O exists, and why a loop that calls `write()` per byte is so much slower than one that batches.',
           ),
           mcq(
             'Adding more runnable threads than cores mainly costs you what?',
@@ -361,10 +361,10 @@ export const operatingSystemsTrack: Track = {
             'Per-process, consulted by hardware on every memory access, cached in the TLB.',
           ),
           trueFalse(
-            'A successful write() guarantees the data has reached physical storage.',
-            false,
+            'A successful `write()` only guarantees the data reached the kernel’s page cache.',
+            true,
             ['sk-file-systems'],
-            'It reached the page cache. Only fsync forces it further and waits.',
+            'It is still in volatile memory, and a power cut loses it. `fsync()` is what forces it to the device — and on some hardware even that is acknowledged by a volatile disk cache, which is why durability claims are tested by pulling the plug rather than by reading the manual.',
           ),
           mcq(
             'What is a container, mechanically?',

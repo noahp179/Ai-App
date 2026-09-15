@@ -108,10 +108,10 @@ export const networkingTrack: Track = {
               'Lower the TTL *before* a planned change, not during it — the old TTL governs how long the old answer lingers.',
             ),
             trueFalse(
-              'TLS provides encryption but not any assurance about who you are talking to.',
-              false,
+              'TLS authenticates the server as well as encrypting the connection.',
+              true,
               ['sk-dns-tls'],
-              'Certificate verification is the authentication half, and arguably the more important one. Encryption to an impostor is worthless.',
+              'Certificate verification is the authentication half, and arguably the more important one — encryption to an impostor is worthless. It is also why disabling certificate checks to make an error go away removes the guarantee that mattered.',
             ),
           ],
         }),
@@ -204,10 +204,10 @@ export const networkingTrack: Track = {
             'IP promises nothing; TCP builds a reliable stream on top of it.',
           ),
           trueFalse(
-            'POST is idempotent.',
-            false,
+            'GET, PUT and DELETE are idempotent; POST is not.',
+            true,
             ['sk-http'],
-            'Two POSTs usually create two resources. PUT and DELETE are the idempotent mutating methods.',
+            'Repeating a PUT lands on the same final state; repeating a POST usually creates a second resource. That difference is why a client may safely retry a timed-out PUT but needs an idempotency key to retry a POST.',
           ),
           mcq(
             'A cold HTTPS connection costs roughly how many round trips before the request is sent?',

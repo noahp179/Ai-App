@@ -166,10 +166,10 @@ export const promptEngineeringTrack: Track = {
             'Format instability is under-specification. Explicit format plus examples closes it; lowering temperature helps too.',
           ),
           trueFalse(
-            'In-context learning updates the model\'s weights.',
-            false,
+            'In-context learning changes the model’s behaviour without changing its weights.',
+            true,
             ['sk-few-shot'],
-            'No weights change. The examples simply condition the forward pass, and the effect disappears the moment they leave the context.',
+            'Everything happens in the forward pass. The examples in the prompt condition the model for that request only — nothing is retained, which is why the same examples must be resent every time and why a prompt cannot teach genuinely new knowledge the way fine-tuning can.',
           ),
         ],
       },
