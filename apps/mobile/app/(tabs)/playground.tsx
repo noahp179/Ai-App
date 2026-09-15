@@ -27,7 +27,10 @@ type LabGroup =
   | 'Deep learning'
   | 'Language models'
   | 'Applied'
-  | 'Computer science';
+  | 'Computer science'
+  | 'Systems'
+  | 'Data & networks'
+  | 'Practice & security';
 
 const GROUPS: LabGroup[] = [
   'Foundations',
@@ -36,6 +39,9 @@ const GROUPS: LabGroup[] = [
   'Language models',
   'Applied',
   'Computer science',
+  'Systems',
+  'Data & networks',
+  'Practice & security',
 ];
 
 const LAB_ENTRIES: LabEntry[] = [
@@ -91,6 +97,23 @@ const LAB_ENTRIES: LabEntry[] = [
   { widget: 'sorting-visualizer', title: 'Sorting', blurb: 'Step four algorithms and watch the comparison counter, not the bars.', icon: '🔢', group: 'Computer science' },
   { widget: 'hash-table-probe', title: 'Hash tables', blurb: 'Fill the table past 0.75 load and watch the worst case go first.', icon: '🗄️', group: 'Computer science' },
   { widget: 'graph-traversal', title: 'BFS vs DFS', blurb: 'Same maze, same code, one structure different — and different answers.', icon: '🕸️', group: 'Computer science' },
+  { widget: 'finite-automaton', title: 'Finite automaton', blurb: 'Feed it symbols and find two inputs it can no longer tell apart.', icon: '🔁', group: 'Computer science' },
+  { widget: 'truth-table', title: 'Truth tables', blurb: 'Check that P → Q really is ¬P ∨ Q, row by row.', icon: '✅', group: 'Computer science' },
+
+  // --- Systems ---
+  { widget: 'cache-locality', title: 'Cache locality', blurb: 'Same operation count, two access patterns, an order of magnitude apart.', icon: '⚡', group: 'Systems' },
+  { widget: 'race-condition', title: 'Race conditions', blurb: 'Interleave two threads by hand until the counter comes out wrong.', icon: '🏁', group: 'Systems' },
+  { widget: 'float-precision', title: 'Float precision', blurb: 'Watch the gaps between representable numbers widen with magnitude.', icon: '🔬', group: 'Systems' },
+  { widget: 'cpu-scheduler', title: 'CPU scheduler', blurb: 'Queue jobs and see what first-come-first-served does to a short one.', icon: '⏱️', group: 'Systems' },
+  { widget: 'virtual-memory', title: 'Virtual memory', blurb: 'Translate addresses through the page table and trigger a fault.', icon: '🧩', group: 'Systems' },
+
+  // --- Data & networks ---
+  { widget: 'query-plan', title: 'Query plans', blurb: 'Toggle an index and watch a sequential scan become an index scan.', icon: '🗃️', group: 'Data & networks' },
+  { widget: 'latency-budget', title: 'Latency budget', blurb: 'Assemble a request, then parallelise the calls and watch it collapse.', icon: '🌐', group: 'Data & networks' },
+
+  // --- Practice & security ---
+  { widget: 'bisect-debug', title: 'Bisect a regression', blurb: 'Ten questions to find one bad commit among a thousand.', icon: '🔎', group: 'Practice & security' },
+  { widget: 'hash-avalanche', title: 'Hash avalanche', blurb: 'Change one character and count how many output bits flip.', icon: '🔐', group: 'Practice & security' },
 ];
 
 export default function PlaygroundScreen(): React.JSX.Element {

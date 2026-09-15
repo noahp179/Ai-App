@@ -13,9 +13,7 @@ import { Badge, Text, useTheme, useTicker } from '@synapse/ui';
 import { Slider } from '../Slider';
 import {
   ActionRow,
-  Bar,
   Note,
-  PlotCanvas,
   Readout,
   SegmentedControl,
   clamp01,

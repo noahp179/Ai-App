@@ -8,7 +8,7 @@
  */
 
 import type { Track } from '../../domain/types';
-import { categorize, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
+import { concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const nlpTrack: Track = {
   id: 'track-nlp',

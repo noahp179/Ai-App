@@ -16,13 +16,13 @@ a graduate course.
 
 | | |
 |---|---|
-| **13 learning paths** | Curated routes through the catalog — pick a goal and the order is decided |
-| **17 tracks** | Foundations · **Data Structures & Algorithms** · Prompt Engineering · Math · Types of ML · ML Mechanics · Classic Algorithms · Data & Features · Deep Learning · Computer Vision · NLP · LLMs · Generative AI · Agents · RL · MLOps · Ethics |
-| **123 lessons** | 53 units, ~460 minutes of material, all three difficulty levels |
-| **578 exercises** | 10 exercise types, every one with a written explanation |
-| **177 skills** | Individually tracked with spaced-repetition scheduling |
-| **41 interactive widgets** | Every track has at least one hands-on step |
-| **70 knowledge tests** | A checkpoint on every unit, an exam on every track |
+| **19 learning paths** | Curated routes through the catalog — pick a goal and the order is decided |
+| **26 tracks** | **AI & ML (17):** Foundations · Prompt Engineering · Math · Types of ML · ML Mechanics · Classic Algorithms · Data & Features · Deep Learning · Computer Vision · NLP · LLMs · Generative AI · Agents · RL · MLOps · Ethics · DSA<br>**Computer science (9):** Systems & Performance · Computer Architecture · Operating Systems · Databases · Networking & Distributed · Software Engineering · Security · Theory of Computation · Discrete Maths |
+| **170 lessons** | 77 units, ~635 minutes of material, all three difficulty levels |
+| **912 exercises** | 10 exercise types, every one with a written explanation |
+| **264 skills** | Individually tracked with spaced-repetition scheduling |
+| **52 interactive widgets** | Every track has at least one hands-on step |
+| **103 knowledge tests** | A checkpoint on every unit, an exam on every track |
 
 Every track spans intro, intermediate, and expert material. The curriculum is
 data (`packages/core/src/content/`), validated on every test run — a typo in a
@@ -30,7 +30,7 @@ skill reference fails the build rather than silently breaking review scheduling.
 
 ### Paths
 
-Sixteen tracks is a catalog, not a curriculum. A **path** is an ordered route
+Twenty-six tracks is a catalog, not a curriculum. A **path** is an ordered route
 through several of them, built around a goal someone actually has:
 
 | | |
@@ -48,6 +48,12 @@ through several of them, built around a goal someone actually has:
 | **AI for Decision Makers** | Enough depth to ask the right questions — no calculus |
 | **Learning From Consequences** | Reinforcement learning, from gridworlds to RLHF |
 | **ML Interview Prep** | The algorithms round and the ML round, plus the maths behind both |
+| **Computer Science, Properly** | The degree-shaped route, without the degree |
+| **Backend Engineer** | Everything behind the API, from schema to incident |
+| **Make It Fast** | Find the real bottleneck, then fix the right layer |
+| **Ship It Securely** | The failures that cause most breaches, and the habits that prevent them |
+| **CS Interview Prep** | Algorithms, systems design, and the questions behind the questions |
+| **AI Infrastructure** | The systems layer under every training run |
 
 Paths own no content — they are references into the same tracks — so a lesson
 finished anywhere counts toward every path containing it, and a path can never
@@ -74,18 +80,51 @@ Three tracks cover ML specifically, from the taxonomy down to the algorithms:
 
 ### Computer science
 
-One track here is not about AI. **Data Structures & Algorithms** covers Big-O
-from first principles, analysing loops and recursion, amortised cost, the five
-structures every language ships, binary search and balanced trees, graph
-traversal from BFS to Dijkstra, sorting and its O(n log n) lower bound, and
-recursion through to dynamic programming and greedy algorithms.
+Nine tracks here are not about AI at all. They exist because the ML material
+kept gesturing at them: complexity analysis the moment anyone asks why a nested
+loop over a million rows is a bad idea, the memory hierarchy behind every
+"vectorise your loops", floating point behind every `NaN`, and the reason
+training runs on GPUs rather than CPUs. People arriving from outside software
+need somewhere to learn this that does not assume a degree.
 
-It earns its place twice: the ML engineering path runs straight into complexity
-analysis the moment anyone asks why a nested loop over a million rows is a bad
-idea, and people arriving from outside software need somewhere to learn this
-that does not assume a degree. Four of the interactive widgets are its own —
-including one that hands the asymptotically better algorithm a 200× constant
-penalty and lets you find the crossover where it still wins.
+- **Data Structures & Algorithms** — Big-O from first principles, analysing
+  loops and recursion, amortised cost, the five structures every language
+  ships, binary search and balanced trees, graph traversal from BFS to
+  Dijkstra, sorting and its O(n log n) lower bound, and recursion through to
+  dynamic programming and greedy algorithms.
+- **Systems & Performance** — the memory hierarchy, cache lines and locality,
+  stack versus heap, concurrency versus parallelism, race conditions and locks,
+  I/O-bound versus CPU-bound, profiling, and Amdahl's law.
+- **Computer Architecture** — binary and two's complement, floating point and
+  numerical stability, the instruction cycle, compiled versus interpreted
+  versus JIT, SIMD, and why GPUs suit deep learning.
+- **Operating Systems** — the kernel boundary and what a syscall costs, CPU
+  scheduling, virtual memory and page faults, thrashing, files and durability,
+  and containers as namespaces plus cgroups.
+- **Databases** — the relational model, normalisation, SQL and joins, indexes
+  and query plans, ACID and isolation levels, OLTP versus OLAP, and sharding
+  versus replication.
+- **Networking & Distributed Systems** — the layers a request passes through,
+  DNS and TLS, HTTP and API design, latency budgets, caching, load balancing,
+  queues, CAP, consistency models, idempotency, and retry with backoff.
+- **Software Engineering Practice** — commits and branching, code review, the
+  test pyramid, property-based testing, CI/CD, debugging as binary search, and
+  technical debt as a decision rather than a moral failing.
+- **Security Fundamentals** — threat modelling, authn versus authz, hashing
+  versus encryption, password storage, TLS and certificates, injection, XSS and
+  CSRF, secrets, and supply-chain risk. Defensive throughout.
+- **Theory of Computation** — finite automata, regular and context-free
+  languages, Turing machines, undecidability, P versus NP, NP-completeness, and
+  what to do when the exact answer is out of reach.
+- **Discrete Maths for CS** — propositional logic, proof techniques, induction,
+  sets and relations, combinatorics, the pigeonhole principle, graph theory,
+  modular arithmetic, and recurrence relations.
+
+Fifteen of the interactive widgets are theirs — including one that hands the
+asymptotically better algorithm a 200× constant penalty and lets you find the
+crossover where it still wins, one that lets you interleave two threads by hand
+until the counter comes out wrong, and one that bisects a thousand commits in
+ten questions.
 
 And two tracks for the AI domains that previously had skills but no home:
 

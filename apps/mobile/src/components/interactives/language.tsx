@@ -3,7 +3,7 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { Pressable, TextInput, View } from 'react-native';
+import { TextInput, View } from 'react-native';
 import { Badge, Text, useTheme } from '@synapse/ui';
 
 import { Slider } from '../Slider';

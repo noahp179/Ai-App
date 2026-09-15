@@ -345,7 +345,6 @@ function FillBlankExercise({
 
 function NumericExercise({
   exercise,
-  draft,
   onDraftChange,
   result,
 }: ExerciseViewProps): React.JSX.Element {

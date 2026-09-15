@@ -230,6 +230,111 @@ export const SKILLS: Skill[] = [
   s('sk-recursion', 'Recursion and divide and conquer', 'computer-science', 'intermediate', ['sk-complexity-analysis']),
   s('sk-dynamic-programming', 'Memoisation and dynamic programming', 'computer-science', 'expert', ['sk-recursion']),
   s('sk-greedy', 'Greedy algorithms and when they fail', 'computer-science', 'expert', ['sk-sorting']),
+
+  // --- Systems & performance -----------------------------------------------
+  s('sk-memory-hierarchy', 'The memory hierarchy', 'systems', 'intro'),
+  s('sk-cache-locality', 'Cache lines and locality', 'systems', 'intermediate', ['sk-memory-hierarchy']),
+  s('sk-stack-vs-heap', 'Stack and heap allocation', 'systems', 'intermediate', ['sk-memory-hierarchy']),
+  s('sk-pointers-references', 'Pointers, references, and ownership', 'systems', 'intermediate', ['sk-stack-vs-heap']),
+  s('sk-processes-threads', 'Processes and threads', 'systems', 'intermediate'),
+  s('sk-concurrency-parallelism', 'Concurrency versus parallelism', 'systems', 'intermediate', ['sk-processes-threads']),
+  s('sk-race-conditions', 'Race conditions and shared state', 'systems', 'expert', ['sk-concurrency-parallelism']),
+  s('sk-locks-deadlock', 'Locks, contention, and deadlock', 'systems', 'expert', ['sk-race-conditions']),
+  s('sk-async-io', 'Async, event loops, and blocking', 'systems', 'intermediate', ['sk-concurrency-parallelism']),
+  s('sk-io-vs-cpu-bound', 'I/O-bound versus CPU-bound work', 'systems', 'intro', ['sk-processes-threads']),
+  s('sk-profiling', 'Profiling before optimising', 'systems', 'intermediate'),
+  s('sk-amdahls-law', 'Amdahl’s law and the serial fraction', 'systems', 'expert', ['sk-concurrency-parallelism']),
+
+  // --- Computer architecture ------------------------------------------------
+  s('sk-binary-representation', 'Binary, hex, and bit widths', 'systems', 'intro'),
+  s('sk-twos-complement', 'Two’s complement and overflow', 'systems', 'intermediate', ['sk-binary-representation']),
+  s('sk-floating-point', 'Floating point and its gaps', 'systems', 'intermediate', ['sk-binary-representation']),
+  s('sk-numerical-stability', 'Numerical stability in practice', 'systems', 'expert', ['sk-floating-point']),
+  s('sk-instruction-cycle', 'What a CPU actually executes', 'systems', 'intro'),
+  s('sk-compilation-interpretation', 'Compiled, interpreted, and JIT', 'systems', 'intermediate', ['sk-instruction-cycle']),
+  s('sk-simd-vectorisation', 'SIMD and vectorisation', 'systems', 'expert', ['sk-instruction-cycle']),
+  s('sk-gpu-architecture', 'Why GPUs suit deep learning', 'systems', 'expert', ['sk-simd-vectorisation']),
+
+  // --- Operating systems ----------------------------------------------------
+  s('sk-os-role', 'What an operating system is for', 'systems', 'intro'),
+  s('sk-scheduling', 'CPU scheduling', 'systems', 'intermediate', ['sk-processes-threads']),
+  s('sk-virtual-memory', 'Virtual memory and address spaces', 'systems', 'expert', ['sk-memory-hierarchy']),
+  s('sk-paging-swapping', 'Paging, page faults, and thrashing', 'systems', 'expert', ['sk-virtual-memory']),
+  s('sk-file-systems', 'Files, inodes, and durability', 'systems', 'intermediate', ['sk-os-role']),
+  s('sk-syscalls', 'System calls and the kernel boundary', 'systems', 'intermediate', ['sk-os-role']),
+  s('sk-containers', 'Containers, images, and isolation', 'systems', 'intermediate', ['sk-syscalls']),
+
+  // --- Databases ------------------------------------------------------------
+  s('sk-relational-model', 'Tables, keys, and the relational model', 'databases', 'intro'),
+  s('sk-normalization', 'Normalisation and redundancy', 'databases', 'intermediate', ['sk-relational-model']),
+  s('sk-sql-queries', 'SQL as set operations', 'databases', 'intro', ['sk-relational-model']),
+  s('sk-joins', 'Joins and what they cost', 'databases', 'intermediate', ['sk-sql-queries']),
+  s('sk-db-indexes', 'Indexes and when they help', 'databases', 'intermediate', ['sk-joins']),
+  s('sk-query-plans', 'Reading a query plan', 'databases', 'expert', ['sk-db-indexes']),
+  s('sk-transactions-acid', 'Transactions and ACID', 'databases', 'intermediate', ['sk-relational-model']),
+  s('sk-isolation-levels', 'Isolation levels and their anomalies', 'databases', 'expert', ['sk-transactions-acid']),
+  s('sk-oltp-olap', 'OLTP versus OLAP', 'databases', 'intermediate', ['sk-sql-queries']),
+  s('sk-nosql', 'When a non-relational store wins', 'databases', 'intermediate', ['sk-relational-model']),
+  s('sk-sharding-replication', 'Sharding and replication', 'databases', 'expert', ['sk-transactions-acid']),
+
+  // --- Networking & distributed systems ------------------------------------
+  s('sk-network-layers', 'The layers a request passes through', 'networking', 'intro'),
+  s('sk-http', 'HTTP, methods, and status codes', 'networking', 'intro', ['sk-network-layers']),
+  s('sk-api-design', 'Designing an API surface', 'networking', 'intermediate', ['sk-http']),
+  s('sk-latency-bandwidth', 'Latency versus bandwidth', 'networking', 'intro', ['sk-network-layers']),
+  s('sk-dns-tls', 'DNS and the TLS handshake', 'networking', 'intermediate', ['sk-network-layers']),
+  s('sk-load-balancing', 'Load balancing and horizontal scale', 'networking', 'intermediate', ['sk-http']),
+  s('sk-caching-layers', 'Caching, invalidation, and staleness', 'networking', 'intermediate', ['sk-latency-bandwidth']),
+  s('sk-cap-theorem', 'The CAP theorem', 'networking', 'expert', ['sk-load-balancing']),
+  s('sk-consistency-models', 'Strong and eventual consistency', 'networking', 'expert', ['sk-cap-theorem']),
+  s('sk-idempotency', 'Idempotency and exactly-once', 'networking', 'expert', ['sk-http']),
+  s('sk-retries-backoff', 'Retries, backoff, and thundering herds', 'networking', 'intermediate', ['sk-idempotency']),
+  s('sk-queues-events', 'Queues and event-driven architecture', 'networking', 'intermediate', ['sk-load-balancing']),
+
+  // --- Software engineering practice ---------------------------------------
+  s('sk-version-control', 'Version control and commits', 'software-engineering', 'intro'),
+  s('sk-branching', 'Branching, merging, and conflicts', 'software-engineering', 'intermediate', ['sk-version-control']),
+  s('sk-unit-testing', 'Unit tests and what to assert', 'software-engineering', 'intro'),
+  s('sk-test-pyramid', 'The test pyramid', 'software-engineering', 'intermediate', ['sk-unit-testing']),
+  s('sk-property-testing', 'Property-based testing', 'software-engineering', 'expert', ['sk-unit-testing']),
+  s('sk-ci-cd', 'Continuous integration and delivery', 'software-engineering', 'intermediate', ['sk-unit-testing']),
+  s('sk-code-review', 'Code review that finds things', 'software-engineering', 'intermediate', ['sk-version-control']),
+  s('sk-debugging', 'Debugging as a discipline', 'software-engineering', 'intermediate'),
+  s('sk-abstraction', 'Abstraction and coupling', 'software-engineering', 'intermediate'),
+  s('sk-technical-debt', 'Technical debt as a decision', 'software-engineering', 'expert', ['sk-abstraction']),
+
+  // --- Security -------------------------------------------------------------
+  s('sk-threat-modelling', 'Threat modelling', 'security', 'intro'),
+  s('sk-authn-authz', 'Authentication versus authorisation', 'security', 'intro', ['sk-threat-modelling']),
+  s('sk-hashing-vs-encryption', 'Hashing versus encryption', 'security', 'intro'),
+  s('sk-password-storage', 'Storing passwords safely', 'security', 'intermediate', ['sk-hashing-vs-encryption']),
+  s('sk-tls-pki', 'TLS, certificates, and trust', 'security', 'intermediate', ['sk-hashing-vs-encryption']),
+  s('sk-injection', 'Injection and untrusted input', 'security', 'intermediate', ['sk-threat-modelling']),
+  s('sk-xss-csrf', 'XSS, CSRF, and the browser model', 'security', 'expert', ['sk-injection']),
+  s('sk-secrets-management', 'Secrets and key management', 'security', 'intermediate', ['sk-threat-modelling']),
+  s('sk-least-privilege-security', 'Least privilege and blast radius', 'security', 'intermediate', ['sk-authn-authz']),
+  s('sk-supply-chain', 'Dependency and supply-chain risk', 'security', 'expert', ['sk-secrets-management']),
+
+  // --- Theory of computation ------------------------------------------------
+  s('sk-finite-automata', 'Finite automata', 'computer-science', 'intermediate'),
+  s('sk-regular-languages', 'Regular languages and their limits', 'computer-science', 'expert', ['sk-finite-automata']),
+  s('sk-context-free', 'Context-free grammars and parsing', 'computer-science', 'expert', ['sk-regular-languages']),
+  s('sk-turing-machines', 'Turing machines and computability', 'computer-science', 'expert', ['sk-finite-automata']),
+  s('sk-halting-problem', 'Undecidability and the halting problem', 'computer-science', 'expert', ['sk-turing-machines']),
+  s('sk-complexity-classes', 'P, NP, and complexity classes', 'computer-science', 'expert', ['sk-big-o']),
+  s('sk-np-completeness', 'NP-completeness and reductions', 'computer-science', 'expert', ['sk-complexity-classes']),
+  s('sk-approximation', 'Living with intractable problems', 'computer-science', 'expert', ['sk-np-completeness']),
+
+  // --- Discrete mathematics -------------------------------------------------
+  s('sk-propositional-logic', 'Propositional logic and truth tables', 'computer-science', 'intro'),
+  s('sk-proof-techniques', 'Direct proof, contradiction, contrapositive', 'computer-science', 'intermediate', ['sk-propositional-logic']),
+  s('sk-induction', 'Mathematical induction', 'computer-science', 'intermediate', ['sk-proof-techniques']),
+  s('sk-sets-relations', 'Sets, relations, and equivalence', 'computer-science', 'intro'),
+  s('sk-combinatorics', 'Counting, permutations, combinations', 'computer-science', 'intermediate', ['sk-sets-relations']),
+  s('sk-pigeonhole', 'The pigeonhole principle', 'computer-science', 'intermediate', ['sk-combinatorics']),
+  s('sk-graph-theory', 'Graph theory and its vocabulary', 'computer-science', 'intermediate', ['sk-graphs']),
+  s('sk-modular-arithmetic', 'Modular arithmetic', 'computer-science', 'intermediate'),
+  s('sk-recurrence-relations', 'Recurrence relations', 'computer-science', 'expert', ['sk-induction']),
 ];
 
 export const SKILLS_BY_ID: ReadonlyMap<string, Skill> = new Map(SKILLS.map((sk) => [sk.id, sk]));

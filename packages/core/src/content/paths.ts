@@ -1,7 +1,7 @@
 /**
  * Learning paths.
  *
- * Sixteen tracks is a catalog, not a curriculum. A path is a curated ordering
+ * Twenty-six tracks is a catalog, not a curriculum. A path is a curated ordering
  * of tracks around a goal a learner actually has — "I want to ship an LLM
  * feature", "I want to be an ML engineer", "I need to make decisions about this
  * and I am never going to write a gradient by hand".
@@ -347,6 +347,172 @@ export const PATHS: Path[] = [
     ],
     entryLevel: 'intro',
     goals: ['career-switch', 'exam-prep'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-cs-degree',
+    title: 'Computer Science, Properly',
+    tagline: 'The degree-shaped route, without the degree',
+    description:
+      'The core of an undergraduate computer science curriculum, ordered so each track earns the next. Complexity and data structures, the discrete maths that proves things about them, how a machine actually executes code, the operating system underneath, and finally the theory that says what can be computed at all.',
+    audience: 'Self-taught engineers who want the foundations they skipped',
+    icon: '🎓',
+    gradient: ['#6366F1', '#22D3EE'],
+    trackIds: [
+      'track-foundations',
+      'track-dsa',
+      'track-discrete-math',
+      'track-architecture',
+      'track-systems',
+      'track-os',
+      'track-theory',
+    ],
+    outcomes: [
+      'State the complexity of any code you write, and prove it by recurrence',
+      'Write an induction argument for a loop invariant or a recursive function',
+      'Explain what happens between your source code and an executed instruction',
+      'Say why a program is slow at the level of caches, syscalls, and paging',
+      'Recognise an undecidable or NP-complete problem before you waste a month on it',
+    ],
+    entryLevel: 'intro',
+    goals: ['career-switch', 'exam-prep', 'curious'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-backend',
+    title: 'Backend Engineer',
+    tagline: 'Everything behind the API, from schema to incident',
+    description:
+      'The working knowledge a backend engineer is assumed to have and is rarely taught in order. Data structures, the data layer, the request path, the practices that keep a codebase changeable, and the security failures that account for most real breaches.',
+    audience: 'Engineers building and running server-side systems',
+    icon: '🛰️',
+    gradient: ['#0EA5E9', '#8B5CF6'],
+    trackIds: [
+      'track-foundations',
+      'track-dsa',
+      'track-databases',
+      'track-networking',
+      'track-swe',
+      'track-security',
+    ],
+    outcomes: [
+      'Design a normalised schema and know exactly where you denormalised and why',
+      'Read a query plan and fix the scan rather than guessing at an index',
+      'Budget a request end to end and find the sequential calls costing you most',
+      'Make an operation idempotent and retry it without causing a second outage',
+      'Recognise injection, broken authorisation, and leaked secrets on sight',
+    ],
+    entryLevel: 'intro',
+    goals: ['build-products', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-performance',
+    title: 'Make It Fast',
+    tagline: 'Find the real bottleneck, then fix the right layer',
+    description:
+      'Performance work across every layer that can be the problem: the algorithm, the hardware underneath it, the operating system between them, the database, and the network. The organising discipline throughout is the same one — measure before you change anything.',
+    audience: 'Engineers whose system is slow and who are tired of guessing',
+    icon: '🚀',
+    gradient: ['#F59E0B', '#EF4444'],
+    trackIds: [
+      'track-dsa',
+      'track-systems',
+      'track-architecture',
+      'track-os',
+      'track-databases',
+      'track-networking',
+    ],
+    outcomes: [
+      'Separate an algorithmic problem from a memory-locality one',
+      'Tell I/O-bound from CPU-bound work before choosing a concurrency model',
+      'Recognise thrashing, cache stampedes, and N+1 queries by their signature',
+      'Profile first, and defend every optimisation with a measurement',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['build-products', 'lead-teams'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-secure-engineering',
+    title: 'Ship It Securely',
+    tagline: 'The failures that cause most breaches, and the habits that prevent them',
+    description:
+      'Defensive security for people who build things rather than break them. Threat modelling, authentication and authorisation done properly, the cryptography you will actually touch, untrusted input, and the engineering practices — review, tests, dependency hygiene — that catch the rest.',
+    audience: 'Engineers who want secure defaults to feel obvious',
+    icon: '🛡️',
+    gradient: ['#EF4444', '#8B5CF6'],
+    trackIds: [
+      'track-foundations',
+      'track-security',
+      'track-networking',
+      'track-databases',
+      'track-swe',
+    ],
+    outcomes: [
+      'Threat model a feature before you build it, not after an incident',
+      'Store passwords and secrets in a way that survives a database leak',
+      'Explain what a certificate proves and what disabling verification costs',
+      'Write parameterised queries and context-aware output encoding by habit',
+      'Assess a dependency as a permanent trust decision rather than a convenience',
+    ],
+    entryLevel: 'intro',
+    goals: ['build-products', 'lead-teams', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-cs-interview',
+    title: 'CS Interview Prep',
+    tagline: 'Algorithms, systems design, and the questions behind the questions',
+    description:
+      'What technical interviews actually cover, in the order they cover it. Complexity and data structures for the coding round, discrete maths for the reasoning, and databases, networking and systems for the design round — where the interviewer is checking whether you can name a trade-off, not whether you memorised an architecture.',
+    audience: 'Anyone with an interview loop coming up',
+    icon: '🎯',
+    gradient: ['#22C55E', '#0EA5E9'],
+    trackIds: [
+      'track-dsa',
+      'track-discrete-math',
+      'track-systems',
+      'track-databases',
+      'track-networking',
+      'track-theory',
+    ],
+    outcomes: [
+      'State and justify the complexity of a solution without hedging',
+      'Pick a data structure from the access pattern under time pressure',
+      'Walk a systems design question through storage, caching, and failure',
+      'Name the CAP and consistency trade-off a design is actually making',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['exam-prep', 'career-switch'] as LearnerGoal[],
+  },
+
+  {
+    id: 'path-ai-infrastructure',
+    title: 'AI Infrastructure',
+    tagline: 'The systems layer under every training run',
+    description:
+      'Where computer science and machine learning actually meet. Why GPUs suit the workload, what the memory hierarchy does to your data loader, how the operating system decides whether your batch fits, and the data and deployment engineering that turns a notebook into a service.',
+    audience: 'Engineers making ML systems fast, reliable, and affordable',
+    icon: '🏗️',
+    gradient: ['#8B5CF6', '#F59E0B'],
+    trackIds: [
+      'track-foundations',
+      'track-systems',
+      'track-architecture',
+      'track-os',
+      'track-data',
+      'track-mlops',
+    ],
+    outcomes: [
+      'Explain why deep learning runs on GPUs in terms of the hardware, not folklore',
+      'Diagnose a starved GPU as a data-pipeline problem rather than a model one',
+      'Predict when a batch size will fall off the memory cliff instead of degrading',
+      'Reason about numerical stability where it changes results, not where it does not',
+      'Ship a model with shadow, canary, and rollback, on infrastructure you understand',
+    ],
+    entryLevel: 'intermediate',
+    goals: ['build-products', 'career-switch', 'research'] as LearnerGoal[],
   },
 ];
 

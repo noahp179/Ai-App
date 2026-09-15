@@ -130,7 +130,6 @@ export default function LessonScreen(): React.JSX.Element {
     });
     // `session` is a store object whose identity changes every update; depending
     // on it here would restart the session on every answer.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, assessment, isReview, progress.entitlement]);
 
   const snapshot = session.snapshot;
@@ -162,7 +161,6 @@ export default function LessonScreen(): React.JSX.Element {
       newAchievements: result.newAchievements.length,
     });
     successFeedback();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snapshot?.status]);
 
   // Nudge the answered option up into the visible band above the sheet. Runs
@@ -183,7 +181,6 @@ export default function LessonScreen(): React.JSX.Element {
     setSummary(null);
     setExamResult(null);
     router.back();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   const onCheck = useCallback(() => {
@@ -198,7 +195,6 @@ export default function LessonScreen(): React.JSX.Element {
       // its own count for the session, the store persists it across sessions.
       if (snapshot?.heartsRemaining !== null) loseHeart();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snapshot?.heartsRemaining]);
 
   // --- render --------------------------------------------------------------

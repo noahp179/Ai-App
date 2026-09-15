@@ -33,6 +33,15 @@ import { mlopsTrack, ethicsTrack, reinforcementLearningTrack } from './tracks/ap
 import { computerVisionTrack } from './tracks/computer-vision';
 import { nlpTrack } from './tracks/nlp';
 import { dsaTrack } from './tracks/dsa';
+import { systemsTrack } from './tracks/systems';
+import { architectureTrack } from './tracks/architecture';
+import { operatingSystemsTrack } from './tracks/operating-systems';
+import { databasesTrack } from './tracks/databases';
+import { networkingTrack } from './tracks/networking';
+import { softwareEngineeringTrack } from './tracks/software-engineering';
+import { securityTrack } from './tracks/security';
+import { theoryTrack } from './tracks/theory';
+import { discreteMathTrack } from './tracks/discrete-math';
 import { PATHS } from './paths';
 
 export const TRACKS: Track[] = [
@@ -53,6 +62,15 @@ export const TRACKS: Track[] = [
   reinforcementLearningTrack,
   mlopsTrack,
   ethicsTrack,
+  systemsTrack,
+  architectureTrack,
+  operatingSystemsTrack,
+  databasesTrack,
+  networkingTrack,
+  softwareEngineeringTrack,
+  securityTrack,
+  discreteMathTrack,
+  theoryTrack,
 ];
 
 // ---------------------------------------------------------------------------

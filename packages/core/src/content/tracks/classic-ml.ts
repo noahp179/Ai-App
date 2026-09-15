@@ -11,7 +11,7 @@
  */
 
 import type { Track } from '../../domain/types';
-import { categorize, codeOutput, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
+import { categorize, codeOutput, concept, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const classicMlTrack: Track = {
   id: 'track-classic-ml',

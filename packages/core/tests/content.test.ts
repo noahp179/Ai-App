@@ -140,6 +140,9 @@ describe('catalog integrity', () => {
       'beam-search', 'moe-router', 'quantization', 'rag-retrieval', 'prompt-lab',
       'q-learning', 'agent-loop-sim', 'diffusion-denoise', 'drift-monitor',
       'big-o-explorer', 'sorting-visualizer', 'hash-table-probe', 'graph-traversal',
+      'cache-locality', 'race-condition', 'float-precision', 'cpu-scheduler', 'virtual-memory',
+      'query-plan', 'latency-budget', 'finite-automaton', 'truth-table', 'hash-avalanche',
+      'bisect-debug',
     ]);
 
     const unused = [...declared].filter((w) => !used.has(w));

@@ -58,6 +58,11 @@ export const DOMAINS = [
   'math',
   'data',
   'computer-science',
+  'systems',
+  'databases',
+  'networking',
+  'software-engineering',
+  'security',
 ] as const;
 export type Domain = (typeof DOMAINS)[number];
 
@@ -77,6 +82,11 @@ export const DOMAIN_LABELS: Record<Domain, string> = {
   math: 'Math for AI',
   data: 'Data & Features',
   'computer-science': 'Computer Science',
+  systems: 'Systems & Performance',
+  databases: 'Databases',
+  networking: 'Networking & Distributed',
+  'software-engineering': 'Software Engineering',
+  security: 'Security',
 };
 
 // ---------------------------------------------------------------------------
@@ -312,7 +322,20 @@ export type InteractiveWidget =
   | 'big-o-explorer'
   | 'sorting-visualizer'
   | 'hash-table-probe'
-  | 'graph-traversal';
+  | 'graph-traversal'
+  // --- Systems ---
+  | 'cache-locality'
+  | 'race-condition'
+  | 'float-precision'
+  | 'cpu-scheduler'
+  | 'virtual-memory'
+  // --- Applied CS ---
+  | 'query-plan'
+  | 'latency-budget'
+  | 'finite-automaton'
+  | 'truth-table'
+  | 'hash-avalanche'
+  | 'bisect-debug';
 
 export type FigureName =
   | 'ai-ml-dl-venn'

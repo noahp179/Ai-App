@@ -52,6 +52,21 @@ import {
 import { BeamSearch, MoeRouter, Quantization, RagRetrieval } from './language';
 import { AgentLoopSim, DiffusionDenoise, DriftMonitor, QLearning } from './applied';
 import { BigOExplorer, GraphTraversal, HashTableProbe, SortingVisualizer } from './cs';
+import {
+  CacheLocality,
+  CpuScheduler,
+  FloatPrecision,
+  RaceCondition,
+  VirtualMemory,
+} from './systems';
+import {
+  BisectDebug,
+  FiniteAutomaton,
+  HashAvalanche,
+  LatencyBudget,
+  QueryPlan,
+  TruthTable,
+} from './applied-cs';
 
 export function Interactive({ widget }: { widget: InteractiveWidget }): React.JSX.Element {
   switch (widget) {
@@ -148,6 +163,32 @@ export function Interactive({ widget }: { widget: InteractiveWidget }): React.JS
       return <HashTableProbe />;
     case 'graph-traversal':
       return <GraphTraversal />;
+
+    // --- Systems ---
+    case 'cache-locality':
+      return <CacheLocality />;
+    case 'race-condition':
+      return <RaceCondition />;
+    case 'float-precision':
+      return <FloatPrecision />;
+    case 'cpu-scheduler':
+      return <CpuScheduler />;
+    case 'virtual-memory':
+      return <VirtualMemory />;
+
+    // --- Applied CS ---
+    case 'query-plan':
+      return <QueryPlan />;
+    case 'latency-budget':
+      return <LatencyBudget />;
+    case 'finite-automaton':
+      return <FiniteAutomaton />;
+    case 'truth-table':
+      return <TruthTable />;
+    case 'hash-avalanche':
+      return <HashAvalanche />;
+    case 'bisect-debug':
+      return <BisectDebug />;
 
     default: {
       // Exhaustiveness guard — a new widget name must be handled above.

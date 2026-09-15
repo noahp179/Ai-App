@@ -11,7 +11,7 @@
  */
 
 import type { Track } from '../../domain/types';
-import { categorize, concept, fill, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
+import { categorize, concept, interactive, lesson, match, mcq, multi, numeric, order, shortAnswer, trueFalse } from '../builders';
 
 export const typesOfMlTrack: Track = {
   id: 'track-types-of-ml',
