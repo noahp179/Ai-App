@@ -92,7 +92,9 @@ export function Slider({
         onLayout={onLayout}
         accessibilityRole="adjustable"
         accessibilityLabel={label}
-        accessibilityValue={{ min, max, now: value }}
+        // `text` overrides the raw number, so a formatted slider announces
+        // "0.075" or "16 px" rather than an unlabelled figure.
+        accessibilityValue={{ min, max, now: value, text: readout }}
         // A generous vertical hit area around a thin visual track.
         style={{ height: 40, justifyContent: 'center' }}
       >

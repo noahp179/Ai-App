@@ -78,7 +78,10 @@ export function LinearRegression(): React.JSX.Element {
 
   return (
     <View>
-      <PlotCanvas height={200}>
+      <PlotCanvas
+        height={200}
+        accessibilityLabel="Scatter plot of data points with the fitted line drawn through them"
+      >
         {(size) => (
           <>
             {/* Residuals — the vertical errors being squared. */}
@@ -187,7 +190,10 @@ export function Knn(): React.JSX.Element {
 
   return (
     <View>
-      <PlotCanvas height={210} onPressPoint={setQuery} onDragPoint={setQuery}>
+      <PlotCanvas
+        height={210} onPressPoint={setQuery} onDragPoint={setQuery}
+        accessibilityLabel="Scatter plot of two classes with the query point and its k nearest neighbours highlighted"
+      >
         {(size) => (
           <>
             {neighbours.map((n, i) => (
@@ -331,7 +337,10 @@ export function KMeans(): React.JSX.Element {
 
   return (
     <View>
-      <PlotCanvas height={220} onPressPoint={(p) => setExtraPoints((prev) => [...prev, p])}>
+      <PlotCanvas
+        height={220} onPressPoint={(p) => setExtraPoints((prev) => [...prev, p])}
+        accessibilityLabel="Scatter plot of points with the current cluster centroids"
+      >
         {(size) => (
           <>
             {points.map((p, i) => (
@@ -460,7 +469,10 @@ export function DecisionTree(): React.JSX.Element {
 
   return (
     <View>
-      <PlotCanvas height={200}>
+      <PlotCanvas
+        height={200}
+        accessibilityLabel="Scatter plot of two classes with the chosen split line drawn"
+      >
         {(size) => (
           <>
             {feature === 'x' ? (
@@ -685,7 +697,10 @@ export function PcaProjection(): React.JSX.Element {
 
   return (
     <View>
-      <PlotCanvas height={210}>
+      <PlotCanvas
+        height={210}
+        accessibilityLabel="Scatter plot with the current projection axis drawn through it"
+      >
         {(size) => (
           <>
             <Line
@@ -760,7 +775,10 @@ export function AnomalyDetection(): React.JSX.Element {
 
   return (
     <View>
-      <PlotCanvas height={160}>
+      <PlotCanvas
+        height={160}
+        accessibilityLabel="Scatter plot of points with the anomaly threshold boundary drawn"
+      >
         {(size) => (
           <>
             <Line from={{ x: threshold, y: 0 }} to={{ x: threshold, y: 1 }} size={size} color={theme.colors.warning} thickness={3} />
@@ -882,7 +900,10 @@ export function RocCurve(): React.JSX.Element {
         label="Dataset"
       />
 
-      <PlotCanvas height={190}>
+      <PlotCanvas
+        height={190}
+        accessibilityLabel="ROC curve with the current operating point marked"
+      >
         {(size) => (
           <>
             <Line from={{ x: 0, y: 0 }} to={{ x: 1, y: 1 }} size={size} color={theme.colors.border} thickness={1} dashed />

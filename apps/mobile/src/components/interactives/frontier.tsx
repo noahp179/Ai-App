@@ -62,7 +62,10 @@ export function QubitBloch(): React.JSX.Element {
         format={(v) => (v === 0 ? '|0⟩' : v === 180 ? '|1⟩' : v === 90 ? 'equal' : `${v}°`)}
       />
 
-      <PlotCanvas height={200}>
+      <PlotCanvas
+        height={200}
+        accessibilityLabel="The qubit state as a point on a circle, with the zero pole at the top and the one pole at the bottom"
+      >
         {({ width, height }) => {
           const toPx = (u: { x: number; y: number }): { x: number; y: number } => ({
             x: u.x * width,
@@ -371,7 +374,10 @@ export function Rasterizer(): React.JSX.Element {
         onChange={setAntialias}
       />
 
-      <PlotCanvas height={240}>
+      <PlotCanvas
+        height={240}
+        accessibilityLabel="A pixel grid with the triangle rasterized onto it, and the three draggable vertices"
+      >
         {({ width, height }) => {
           const toPx = (u: { x: number; y: number }): { x: number; y: number } => ({
             x: u.x * width,
@@ -475,7 +481,10 @@ export function RayTracer(): React.JSX.Element {
         onChange={setShowShadow}
       />
 
-      <PlotCanvas height={200}>
+      <PlotCanvas
+        height={200}
+        accessibilityLabel="The camera ray reaching a surface, with reflection and shadow rays drawn from the hit point"
+      >
         {({ width, height }) => {
           const toPx = (u: { x: number; y: number }): { x: number; y: number } => ({
             x: u.x * width,
@@ -603,7 +612,10 @@ export function PidTuner(): React.JSX.Element {
         onChange={setDisturbance}
       />
 
-      <PlotCanvas height={180}>
+      <PlotCanvas
+        height={180}
+        accessibilityLabel="The controlled value plotted over time against the target line"
+      >
         {({ width, height }) => (
           <>
             <View

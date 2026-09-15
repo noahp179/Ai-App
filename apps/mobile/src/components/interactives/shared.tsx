@@ -41,6 +41,19 @@ export const dist = (a: UnitPoint, b: UnitPoint): number => Math.hypot(a.x - b.x
 
 export interface PlotCanvasProps {
   height?: number;
+  /**
+   * What the plot shows, for assistive technology.
+   *
+   * A canvas of absolutely-positioned marks is invisible to a screen reader —
+   * there is nothing to read. Widgets pair this with a `Readout`, which
+   * announces the numbers the plot is showing, so the pair is usable without
+   * seeing it.
+   *
+   * Required rather than optional, deliberately: an unlabelled plot is a blank
+   * region to anyone not looking at it, and making that a compile error is the
+   * only way it stays true as widgets are added.
+   */
+  accessibilityLabel: string;
   /** Called with unit coordinates (y already flipped so up is +y). */
   onPressPoint?: (point: UnitPoint) => void;
   /** Fires continuously while dragging. Enables drag-to-move interactions. */
@@ -56,6 +69,7 @@ export interface PlotCanvasProps {
  */
 export function PlotCanvas({
   height = 200,
+  accessibilityLabel,
   onPressPoint,
   onDragPoint,
   children,
@@ -100,6 +114,12 @@ export function PlotCanvas({
     <View
       {...responder.panHandlers}
       onLayout={onLayout}
+      accessible
+      accessibilityRole={onPressPoint || onDragPoint ? 'adjustable' : 'image'}
+      accessibilityLabel={accessibilityLabel}
+      {...(onPressPoint || onDragPoint
+        ? { accessibilityHint: 'Tap or drag inside the plot to change it' }
+        : {})}
       style={[
         {
           height,
@@ -285,8 +305,15 @@ export function Readout({
   items: Array<{ label: string; value: string; color?: string }>;
 }): React.JSX.Element {
   const theme = useTheme();
+  // A readout is the *result* of the interaction — the number the learner
+  // changed something to see. Announcing it as one sentence when it changes is
+  // what makes these widgets usable without sight; reading four separate
+  // label/value pairs is not the same thing.
   return (
     <View
+      accessible
+      accessibilityLiveRegion="polite"
+      accessibilityLabel={items.map((i) => `${i.label}: ${i.value}`).join('. ')}
       style={{
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -295,7 +322,7 @@ export function Readout({
       }}
     >
       {items.map((item) => (
-        <View key={item.label}>
+        <View key={item.label} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Text variant="label" tone="tertiary" caps>
             {item.label}
           </Text>
@@ -328,7 +355,11 @@ export function SegmentedControl<T extends string>({
           {label}
         </Text>
       ) : null}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.xs }}>
+      <View
+        accessibilityRole="radiogroup"
+        accessibilityLabel={label}
+        style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.xs }}
+      >
         {options.map((option) => {
           const active = option === value;
           return (
@@ -337,6 +368,7 @@ export function SegmentedControl<T extends string>({
               onPress={() => onChange(option)}
               accessibilityRole="radio"
               accessibilityState={{ selected: active }}
+              accessibilityLabel={label ? `${label}: ${option}` : option}
               style={{
                 paddingHorizontal: theme.spacing.md,
                 paddingVertical: theme.spacing.sm,
@@ -372,6 +404,8 @@ export function ActionRow({
           onPress={action.onPress}
           disabled={action.disabled}
           accessibilityRole="button"
+          accessibilityLabel={action.label}
+          accessibilityState={{ disabled: Boolean(action.disabled) }}
           style={{
             flex: 1,
             paddingVertical: theme.spacing.md,
@@ -405,14 +439,20 @@ export function Bar({
   fraction,
   color,
   height = 8,
+  label,
 }: {
   fraction: number;
   color: string;
   height?: number;
+  /** Named so a screen reader can say what the bar measures. */
+  label?: string;
 }): React.JSX.Element {
   const theme = useTheme();
   return (
     <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(clamp01(fraction) * 100) }}
+      {...(label ? { accessibilityLabel: label } : {})}
       style={{
         height,
         borderRadius: height / 2,

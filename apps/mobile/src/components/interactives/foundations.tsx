@@ -99,6 +99,8 @@ export function MlTypeSorter(): React.JSX.Element {
               onPress={() => choose(paradigm)}
               disabled={answered}
               accessibilityRole="button"
+              accessibilityLabel={`Answer: ${paradigm}`}
+              accessibilityState={{ disabled: answered }}
               style={{
                 padding: theme.spacing.md,
                 borderRadius: theme.radii.md,
@@ -653,7 +655,13 @@ export function CrossValidation(): React.JSX.Element {
 
       <View style={{ gap: theme.spacing.xs, marginTop: theme.spacing.lg }}>
         {Array.from({ length: k }, (_, round) => (
-          <Pressable key={round} onPress={() => setActiveFold(round)}>
+          <Pressable
+            key={round}
+            onPress={() => setActiveFold(round)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: round === activeFold }}
+            accessibilityLabel={`Cross-validation round ${round + 1}`}
+          >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
               <Text variant="label" tone={round === activeFold ? 'primary' : 'tertiary'} style={{ width: 56 }}>
                 Round {round + 1}

@@ -73,7 +73,11 @@ export function TokenizerWidget(): React.JSX.Element {
         ))}
       </View>
 
-      <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.lg }}>
+      <View
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={`${tokens.length} tokens from ${text.length} characters`}
+        style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.lg }}
+      >
         <Badge label={`${tokens.length} tokens`} tone="primary" />
         <Badge label={`${text.length} characters`} tone="neutral" />
         <Badge
@@ -162,7 +166,13 @@ export function TemperatureWidget(): React.JSX.Element {
         color={temperature > 1.3 ? theme.colors.danger : theme.colors.primary}
       />
 
-      <View style={{ gap: theme.spacing.sm, marginTop: theme.spacing.lg }}>
+      <View
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={logits
+          .map((entry, index) => `${entry.token} ${((probabilities[index] ?? 0) * 100).toFixed(0)} percent`)
+          .join(', ')}
+        style={{ gap: theme.spacing.sm, marginTop: theme.spacing.lg }}
+      >
         {logits.map((entry, index) => (
           <View key={entry.token}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -240,7 +250,13 @@ export function PerceptronWidget(): React.JSX.Element {
       <Slider value={w2} min={-3} max={3} step={0.1} onChange={setW2} label="Weight w₂" />
       <Slider value={bias} min={-3} max={3} step={0.1} onChange={setBias} label="Bias b" color={theme.colors.info} />
 
-      <View style={{ gap: theme.spacing.xs, marginTop: theme.spacing.lg }}>
+      <View
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={results
+          .map((r) => `Input ${r.x} and ${r.y} gives ${r.output}`)
+          .join('. ')}
+        style={{ gap: theme.spacing.xs, marginTop: theme.spacing.lg }}
+      >
         {results.map((result) => (
           <View
             key={`${result.x}-${result.y}`}
@@ -329,6 +345,12 @@ export function GradientDescentWidget(): React.JSX.Element {
           gap: 2,
           marginTop: theme.spacing.lg,
         }}
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={
+          diverged
+            ? 'The loss is diverging — the learning rate is too high'
+            : 'The loss curve is descending toward the minimum'
+        }
       >
         {path.slice(0, 16).map((x, index) => {
           const loss = Math.min(1, (x * x) / 16);
@@ -409,6 +431,9 @@ export function AttentionWidget(): React.JSX.Element {
             <Pressable
               key={`${token}-${index}`}
               onPress={() => setSelected(index)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={`Token "${token}". Attention weight ${(weight * 100).toFixed(0)} percent.`}
               style={{
                 paddingHorizontal: theme.spacing.sm,
                 paddingVertical: theme.spacing.xs,
@@ -424,7 +449,12 @@ export function AttentionWidget(): React.JSX.Element {
         })}
       </View>
 
-      <Text variant="caption" tone="tertiary" style={{ marginTop: theme.spacing.lg }}>
+      <Text
+        variant="caption"
+        tone="tertiary"
+        accessibilityLiveRegion="polite"
+        style={{ marginTop: theme.spacing.lg }}
+      >
         {selected === 7
           ? '“it” attends most strongly to “animal” — that is coreference resolution falling out of the attention weights.'
           : `“${tokens[selected]}” — brighter tokens receive more attention weight.`}
@@ -505,7 +535,11 @@ export function ConfusionMatrixWidget(): React.JSX.Element {
         {cell('True neg', stats.tn, theme.colors.success)}
       </View>
 
-      <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.lg }}>
+      <View
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={`Precision ${(stats.precision * 100).toFixed(0)} percent, recall ${(stats.recall * 100).toFixed(0)} percent, F1 ${(stats.f1 * 100).toFixed(0)} percent`}
+        style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.lg }}
+      >
         <Badge label={`Precision ${(stats.precision * 100).toFixed(0)}%`} tone="primary" />
         <Badge label={`Recall ${(stats.recall * 100).toFixed(0)}%`} tone="info" />
         <Badge label={`F1 ${(stats.f1 * 100).toFixed(0)}%`} tone="success" />
@@ -572,7 +606,11 @@ export function BiasVarianceWidget(): React.JSX.Element {
         format={(v) => `degree ${v.toFixed(0)}`}
       />
 
-      <View style={{ marginTop: theme.spacing.lg }}>
+      <View
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={`Training error ${(trainError * 100).toFixed(0)} percent, validation error ${(valError * 100).toFixed(0)} percent. ${verdict}.`}
+        style={{ marginTop: theme.spacing.lg }}
+      >
         {bar('Training error', trainError, theme.colors.info)}
         {bar('Validation error', valError, theme.colors.primary)}
       </View>
@@ -639,6 +677,9 @@ export function EmbeddingWidget(): React.JSX.Element {
           <Pressable
             key={word.word}
             onPress={() => setSelected(word.word)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: word.word === selected }}
+            accessibilityLabel={`${word.word}, in the ${word.group} group`}
             style={{
               position: 'absolute',
               left: `${word.x * 82}%`,
@@ -661,7 +702,14 @@ export function EmbeddingWidget(): React.JSX.Element {
         Nearest to “{anchor.word}” by cosine similarity
       </Text>
 
-      <View style={{ gap: theme.spacing.xs, marginTop: theme.spacing.sm }}>
+      <View
+        accessibilityLiveRegion="polite"
+        accessibilityLabel={`Nearest to ${anchor.word}: ${similarities
+          .slice(0, 4)
+          .map((e) => e.word)
+          .join(', ')}`}
+        style={{ gap: theme.spacing.xs, marginTop: theme.spacing.sm }}
+      >
         {similarities.slice(0, 4).map((entry) => (
           <View key={entry.word} style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text variant="caption" style={{ width: 72 }}>
@@ -730,6 +778,9 @@ export function PromptLabWidget(): React.JSX.Element {
             <Pressable
               key={part.key}
               onPress={() => toggle(part.key)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: active }}
+              accessibilityLabel={`Prompt component: ${part.key}`}
               style={{
                 paddingHorizontal: theme.spacing.md,
                 paddingVertical: theme.spacing.sm,
@@ -749,7 +800,12 @@ export function PromptLabWidget(): React.JSX.Element {
       </View>
 
       <Card background={theme.colors.surfaceMuted} style={{ marginTop: theme.spacing.lg }}>
-        <Text variant="mono" mono tone={prompt ? 'default' : 'tertiary'}>
+        <Text
+          variant="mono"
+          mono
+          tone={prompt ? 'default' : 'tertiary'}
+          accessibilityLiveRegion="polite"
+        >
           {prompt || 'Add at least one part to build a prompt…'}
         </Text>
       </Card>

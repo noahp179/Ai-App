@@ -95,7 +95,10 @@ export function ActivationExplorer(): React.JSX.Element {
     <View>
       <SegmentedControl options={ACTIVATIONS} value={activation} onChange={setActivation} label="Activation" />
 
-      <PlotCanvas height={200}>
+      <PlotCanvas
+        height={200}
+        accessibilityLabel="The activation function plotted against its derivative"
+      >
         {(size) => (
           <>
             {/* Axes */}
@@ -480,7 +483,10 @@ export function NeuralNetTrainer(): React.JSX.Element {
     <View>
       <SegmentedControl options={['XOR', 'Circle', 'Two blobs'] as const} value={dataset} onChange={setDataset} label="Dataset" />
 
-      <PlotCanvas height={210}>
+      <PlotCanvas
+        height={210}
+        accessibilityLabel="The network diagram, with connection thickness showing weight magnitude"
+      >
         {(size) => (
           <>
             {surface.map((cell, i) => (
@@ -518,7 +524,10 @@ export function NeuralNetTrainer(): React.JSX.Element {
           <Text variant="label" tone="tertiary" caps>
             Loss
           </Text>
-          <PlotCanvas height={60}>
+          <PlotCanvas
+            height={60}
+            accessibilityLabel="The training loss curve over epochs"
+          >
             {(size) => <Path points={lossCurve} size={size} color={theme.colors.success} thickness={2} />}
           </PlotCanvas>
         </View>
@@ -629,7 +638,10 @@ export function LearningRateSchedule(): React.JSX.Element {
     <View>
       <SegmentedControl options={SCHEDULES} value={schedule} onChange={setSchedule} label="Schedule" />
 
-      <PlotCanvas height={150}>
+      <PlotCanvas
+        height={150}
+        accessibilityLabel="Learning rate plotted against training step for the chosen schedule"
+      >
         {(size) => <Path points={curve} size={size} color={theme.colors.primary} thickness={3} />}
       </PlotCanvas>
       <Text variant="label" tone="tertiary" caps align="center" style={{ marginTop: 4 }}>

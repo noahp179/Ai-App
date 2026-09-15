@@ -101,7 +101,10 @@ export function BigOExplorer(): React.JSX.Element {
         label="Compare O(n log n) against"
       />
 
-      <PlotCanvas height={190}>
+      <PlotCanvas
+        height={190}
+        accessibilityLabel="Growth curves for each complexity class against input size"
+      >
         {(size) => (
           <>
             {curves.map((curve) => (
