@@ -18,7 +18,7 @@ A standalone desktop workspace for AI, productivity, learning and personal organ
 | **Learning Hub** | 72 free AI learning resources from universities, non-profits, public bodies and companies, every link checked by a script; nine learning paths; progress, notes, study scheduling. No invented ratings or durations. |
 | **Prompt library** | Prompts with `{{variables}}`, versions you can restore, provider labels, import/export, “open in AI”. |
 | **Marketplace & Creator Studio** | Free bundled starter prompts, listing files, and an optional marketplace server (reference implementation in `server/`) with accounts, moderation, verified reviews and server-enforced 7-day trials. **No payments**: purchases are never simulated. |
-| **Parental Learning Controls** | Optional and off by default: block copying AI answers, tutor mode, supervised study sessions, best-effort screen-capture privacy — with honest per-OS limits. |
+| **Parental Learning Controls** | Optional and off by default: lock any section (News, Games, Marketplace…) with a PIN, block copying AI answers, tutor mode, supervised study sessions, best-effort screen-capture privacy — with honest per-OS limits. |
 | **Browser extension** | Optional Chromium extension that saves pages/selections to FlowCompanion over a paired, loopback-only bridge. |
 
 ## Screenshots

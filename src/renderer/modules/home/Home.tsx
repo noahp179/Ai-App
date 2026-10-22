@@ -6,7 +6,9 @@ import { api, errorMessage } from '../../lib/api';
 import { fmtDuration, fmtMinutes, fmtRelative, hour12, zoneOf } from '../../lib/format';
 import { invalidate, useQuery } from '../../lib/query';
 import { navigate } from '../../lib/router';
+import { useParental } from '../../lib/parental';
 import { useSettings } from '../../lib/settings';
+import type { ModuleId } from '../../../shared/settings';
 import { remainingMs, useFocusSession } from '../productivity/FocusTab';
 import { HOME_WIDGETS } from './widgets';
 
@@ -222,7 +224,9 @@ function Reading() {
 
 export default function Home() {
   const { settings } = useSettings();
-  const m = settings.layout.modules;
+  const parental = useParental();
+  // A widget shows only when its section is turned on and not locked by a parent.
+  const m = Object.fromEntries(Object.entries(settings.layout.modules).map(([id, on]) => [id, on && (parental?.isModuleAllowed(id as ModuleId) ?? true)])) as Record<ModuleId, boolean>;
   const hour = new Date().getHours();
   const greeting = hour < 5 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   return (

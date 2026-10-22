@@ -120,7 +120,7 @@ describe('Parental learning controls (PA–PO)', () => {
 
   it('PI: turning off with the PIN removes every restriction and ends any session', () => {
     const { p } = setup();
-    on(p, { hideGamesOutsideSessions: true, screenCapturePrivacy: true });
+    on(p, { lockedModules: ['games'], screenCapturePrivacy: true });
     p.startSession('2468', { goal: 'Reading', minutes: 20, allowedModules: ['learning'] });
     expect(() => p.disable('1111')).toThrow(/Wrong PIN/);
     p.disable('2468');
@@ -174,10 +174,10 @@ describe('Parental learning controls (PA–PO)', () => {
 
   it('PM: settings, PIN and an active session survive a restart', () => {
     const { p, reopen } = setup();
-    on(p, { tutorMode: true, hideGamesOutsideSessions: true });
+    on(p, { tutorMode: true, lockedModules: ['news', 'games'] });
     p.startSession('2468', { goal: 'Revision', minutes: 60, allowedModules: ['learning'] });
     const after = reopen();
-    expect(after.status(linux)).toMatchObject({ enabled: true, config: { hideGamesOutsideSessions: true }, session: { goal: 'Revision' } });
+    expect(after.status(linux)).toMatchObject({ enabled: true, config: { lockedModules: ['news', 'games'] }, session: { goal: 'Revision' } });
     expect(after.tutorPrompt()).toBe(TUTOR_PROMPT);
     expect(() => after.updateConfig('2468', {})).not.toThrow();
   });
@@ -190,12 +190,64 @@ describe('Parental learning controls (PA–PO)', () => {
     expect(p.tutorPrompt()).toBeNull();
   });
 
-  it('PO: games can be locked outside sessions; invalid settings are rejected rather than silently applied', () => {
+  it('PO: any extra section can be locked; invalid settings are rejected rather than silently applied', () => {
     const { p } = setup();
-    on(p, { hideGamesOutsideSessions: true });
+    on(p, { lockedModules: ['news', 'games', 'marketplace'] });
     expect(p.isModuleAllowed('games')).toBe(false);
+    expect(p.isModuleAllowed('news')).toBe(false);
+    expect(p.isModuleAllowed('marketplace')).toBe(false);
     expect(p.isModuleAllowed('notes')).toBe(true);
     expect(() => p.updateConfig('2468', { sessionAllowedModules: ['not-a-module'] as never })).toThrow();
-    expect(p.config().hideGamesOutsideSessions).toBe(true);
+    expect(() => p.updateConfig('2468', { lockedModules: ['settings'] as never })).toThrow(/cannot be locked/);
+    expect(() => p.updateConfig('2468', { lockedModules: ['home'] as never })).toThrow(/cannot be locked/);
+    expect(p.config().lockedModules).toEqual(['news', 'games', 'marketplace']);
+  });
+});
+
+describe('Locked sections', () => {
+  it('locks and unlocks sections with the PIN', () => {
+    const { p } = setup();
+    on(p);
+    expect(p.config().lockedModules).toEqual([]);
+    expect(() => p.updateConfig('0000', { lockedModules: ['news'] })).toThrow(/Wrong PIN/);
+    expect(p.isModuleAllowed('news')).toBe(true);
+    p.updateConfig('2468', { lockedModules: ['news', 'games', 'news'] });
+    expect(p.config().lockedModules).toEqual(['news', 'games']);
+    expect(p.lockReason('news')).toBe('This section is locked by Parental Learning Controls.');
+    expect(p.lockReason('notes')).toBeNull();
+    p.updateConfig('2468', { lockedModules: [] });
+    expect(p.isModuleAllowed('news')).toBe(true);
+  });
+
+  it('opens a locked section only for a study session that includes it', () => {
+    const { p, clock } = setup();
+    on(p, { lockedModules: ['games', 'news'] });
+    p.startSession('2468', { goal: 'Break time', minutes: 15, allowedModules: ['games'] });
+    expect(p.isModuleAllowed('games')).toBe(true);
+    expect(p.isModuleAllowed('news')).toBe(false);
+    expect(p.lockReason('news')).toBe('This section is not part of the current study session.');
+    clock.advanceMinutes(16);
+    expect(p.isModuleAllowed('games')).toBe(false);
+  });
+
+  it('turns the old games-only switch into a Games lock', () => {
+    const { kv, p, reopen } = setup();
+    on(p);
+    const state = kv.get<{ config: Record<string, unknown> }>('parental:state', { config: {} });
+    const { lockedModules: _drop, ...legacy } = state.config;
+    kv.set('parental:state', { ...state, config: { ...legacy, hideGamesOutsideSessions: true } });
+    const upgraded = reopen();
+    expect(upgraded.config().lockedModules).toEqual(['games']);
+    expect(upgraded.isModuleAllowed('games')).toBe(false);
+    kv.set('parental:state', { ...state, config: { ...legacy, hideGamesOutsideSessions: false } });
+    expect(reopen().config().lockedModules).toEqual([]);
+  });
+
+  it('applies no locks when the controls are off', () => {
+    const { p } = setup();
+    on(p, { lockedModules: ['news', 'games'] });
+    p.disable('2468');
+    expect(p.isModuleAllowed('news')).toBe(true);
+    expect(p.isModuleAllowed('games')).toBe(true);
   });
 });

@@ -98,3 +98,74 @@ test('parental learning controls: off by default, explicit setup, indicators, co
     await close(again);
   }
 });
+
+test('parental locks: a parent locks News, Games and AI; they stay closed everywhere, survive a restart, and unlock with the PIN', async () => {
+  const l = await launch();
+  try {
+    const { page } = l;
+    await nav(page, 'Settings').click();
+    await settingsNav(page, 'Parental Learning Controls').click();
+    await page.getByLabel('PIN or passphrase').fill('2468');
+    await page.getByLabel('Repeat PIN').fill('2468');
+    await page.getByText('I am the parent or guardian setting this up openly').click();
+    await page.getByRole('button', { name: 'Turn on parental learning controls' }).click();
+    await page.getByLabel('I have saved the recovery code.').check();
+    await page.getByRole('button', { name: 'Done' }).click();
+
+    const locks = page.getByRole('group', { name: 'Locked sections', exact: true });
+    for (const name of ['News', 'Games', 'AI Workspace']) await locks.getByRole('button', { name, exact: true }).click();
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await page.getByLabel('Parent PIN').fill('2468');
+    await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+    await expect(page.locator('.banner-strip.parental')).toContainText('locked: News, Games, AI Workspace');
+    await expect(page.getByText('Locked: News, Games, AI Workspace', { exact: true })).toBeVisible();
+
+    await nav(page, 'News').click();
+    await expect(page.getByRole('heading', { name: 'News is locked by Parental Learning Controls' })).toBeVisible();
+    await nav(page, 'Games').click();
+    await expect(page.getByRole('heading', { name: 'Games is locked by Parental Learning Controls' })).toBeVisible();
+    await nav(page, 'Home').click();
+    await expect(page.getByRole('region', { name: 'Recent notes' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Headlines' })).toHaveCount(0);
+    await expect(page.getByRole('region', { name: 'Ask AI' })).toHaveCount(0);
+
+    await page.keyboard.press('Control+K');
+    await page.getByLabel('Search', { exact: true }).fill('Go to');
+    const palette = page.getByRole('dialog', { name: 'Search and commands' });
+    await expect(palette.getByText('Go to Notes')).toBeVisible();
+    await expect(palette.getByText('Go to News')).toHaveCount(0);
+    await expect(palette.getByText('Go to Games')).toHaveCount(0);
+    await page.keyboard.press('Escape');
+
+    // Enforced by the main process too, not only hidden in the UI.
+    const refused = await page.evaluate(async () => {
+      const c = await window.fc.invoke('ai.createConversation', []);
+      const id = c.ok ? (c.value as { id: string }).id : '';
+      const r = await window.fc.invoke('ai.send', [{ conversationId: id, content: 'hi' }]);
+      return r.ok ? 'sent' : r.error.message;
+    });
+    expect(refused).toBe('This section is locked by Parental Learning Controls.');
+  } finally {
+    await close(l);
+  }
+
+  const again = await launch(l.dataDir);
+  try {
+    const { page } = again;
+    await expect(page.locator('.banner-strip.parental')).toContainText('locked: News, Games, AI Workspace');
+    await nav(page, 'Games').click();
+    await expect(page.getByRole('heading', { name: 'Games is locked by Parental Learning Controls' })).toBeVisible();
+
+    await nav(page, 'Settings').click();
+    await settingsNav(page, 'Parental Learning Controls').click();
+    await page.getByRole('group', { name: 'Locked sections', exact: true }).getByRole('button', { name: 'Games', exact: true }).click();
+    await page.getByRole('button', { name: 'Save changes' }).click();
+    await page.getByLabel('Parent PIN').fill('2468');
+    await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+    await expect(page.locator('.banner-strip.parental')).toContainText('locked: News, AI Workspace');
+    await nav(page, 'Games').click();
+    await expect(page.getByRole('button', { name: /^Word guess/ })).toBeVisible();
+  } finally {
+    await close(again);
+  }
+});

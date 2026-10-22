@@ -8,10 +8,14 @@ import { api, errorMessage } from '../../lib/api';
 import { fmtDuration } from '../../lib/format';
 import { useParental } from '../../lib/parental';
 import { invalidate, useQuery } from '../../lib/query';
+import { LOCKABLE_MODULES } from '../../../shared/parental';
 import { MODULES } from '../registry';
 import { Section } from './controls';
 
 const SESSION_CHOICES = MODULES.filter((m) => !['home', 'settings'].includes(m.id));
+/** Lockable sections, optional extras (News, Games, Marketplace, Creator Studio) first. */
+const LOCK_CHOICES = LOCKABLE_MODULES.map((id) => MODULES.find((m) => m.id === id)).filter((m): m is (typeof MODULES)[number] => !!m);
+const moduleNames = (ids: string[]) => ids.map((id) => MODULES.find((m) => m.id === id)?.label ?? id).join(', ');
 
 /** Asks for the parent PIN before running `onSubmit`. Errors (wrong PIN, lockout) are shown in the dialog. */
 export function PinModal({ title, action, onSubmit, onClose, children }: { title: string; action: string; onSubmit: (pin: string) => Promise<void>; onClose: () => void; children?: ReactNode }) {
@@ -85,10 +89,10 @@ function RecoveryCodeModal({ code, onClose }: { code: string; onClose: () => voi
   );
 }
 
-function ModuleChips({ value, onChange, label }: { value: string[]; onChange: (v: string[]) => void; label: string }) {
+function ModuleChips({ value, onChange, label, choices = SESSION_CHOICES }: { value: string[]; onChange: (v: string[]) => void; label: string; choices?: typeof SESSION_CHOICES }) {
   return (
     <div className="row-wrap" style={{ gap: 4 }} role="group" aria-label={label}>
-      {SESSION_CHOICES.map((m) => {
+      {choices.map((m) => {
         const on = value.includes(m.id);
         return (
           <button key={m.id} type="button" className="chip" aria-pressed={on} onClick={() => onChange(on ? value.filter((x) => x !== m.id) : [...value, m.id])}>
@@ -113,7 +117,7 @@ function Scope() {
             <li>Stop copying AI answers inside FlowCompanion.</li>
             <li>Tutor mode: the AI guides with hints and questions instead of writing finished homework.</li>
             <li>Supervised study sessions that open only the sections you choose, for a set time.</li>
-            <li>Optionally lock games outside sessions.</li>
+            <li>Lock any section — such as News, Games or the Marketplace — so it stays closed until you unlock it.</li>
             <li>{sc.supported ? 'Ask the operating system to keep FlowCompanion out of screenshots and screen recordings (best effort).' : 'Screen-capture privacy is not available on this operating system.'}</li>
           </ul>
         </div>
@@ -146,7 +150,9 @@ function ConfigToggles({ c, onChange, captureSupported }: { c: ParentalConfig; o
         label="Screen-capture privacy (best effort)"
         description={captureSupported ? 'Asks the operating system to hide FlowCompanion windows from screenshots and recordings. Some tools may still capture them.' : 'Not available on this operating system.'}
       />
-      <Toggle checked={c.hideGamesOutsideSessions} onChange={(v) => onChange({ ...c, hideGamesOutsideSessions: v })} label="Lock games outside study sessions" description="Games are available only in sessions that include them." />
+      <Field label="Locked sections" hint="Locked sections stay closed, even if they are turned on in Settings → Modules. A study session can open one for its length if you include it.">
+        <ModuleChips label="Locked sections" choices={LOCK_CHOICES} value={c.lockedModules} onChange={(v) => onChange({ ...c, lockedModules: v })} />
+      </Field>
       <Field label="Sections available in study sessions (default)">
         <ModuleChips label="Default session sections" value={c.sessionAllowedModules} onChange={(v) => onChange({ ...c, sessionAllowedModules: v as ModuleId[] })} />
       </Field>
@@ -241,7 +247,7 @@ function Manage({ onRecoveryCode }: { onRecoveryCode: (code: string) => void }) 
           <StatusRow on={p.config.copyRestriction} label="Copying AI answers is blocked" note={p.config.copyRestriction ? 'Inside FlowCompanion only.' : undefined} />
           <StatusRow on={p.config.tutorMode} label="Tutor mode" />
           <StatusRow on={sc.applied} label="Screen-capture privacy" note={p.config.screenCapturePrivacy ? (sc.applied ? `Requested from the operating system. ${sc.detail}` : sc.detail) : undefined} />
-          <StatusRow on={p.config.hideGamesOutsideSessions} label="Games locked outside sessions" />
+          <StatusRow on={p.config.lockedModules.length > 0} label={p.config.lockedModules.length ? `Locked: ${moduleNames(p.config.lockedModules)}` : 'No sections locked'} />
           <StatusRow on={!!p.session} label={p.session ? `Study session running — ${fmtDuration(Math.max(0, new Date(p.session.endsAt).getTime() - Date.now()))} left` : 'No study session running'} />
         </div>
       </Section>

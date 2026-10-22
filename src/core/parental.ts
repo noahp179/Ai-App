@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { CopyContext } from '../shared/api';
+import { LOCKABLE_MODULES, isModuleOpen } from '../shared/parental';
 import { MODULE_IDS, type ModuleId } from '../shared/settings';
 import type { ParentalConfig, ParentalStatus, StudySession } from '../shared/types';
 import type { Db } from './db/database';
@@ -12,14 +13,12 @@ const STATE = 'parental:state';
 const MAX_ATTEMPTS = 5;
 const BASE_LOCK_MS = 5 * 60_000;
 const MAX_LOCK_MS = 60 * 60_000;
-/** Always reachable during a session: the home screen, and Settings (to end the session with the PIN). */
-const ALWAYS_ALLOWED: ModuleId[] = ['home', 'settings'];
 
 export const DEFAULT_PARENTAL_CONFIG: ParentalConfig = {
   copyRestriction: true,
   screenCapturePrivacy: false,
   tutorMode: true,
-  hideGamesOutsideSessions: false,
+  lockedModules: [],
   sessionAllowedModules: ['learning', 'notes', 'ai', 'calendar', 'productivity'],
 };
 
@@ -35,9 +34,21 @@ const Config = z.object({
   copyRestriction: z.boolean(),
   screenCapturePrivacy: z.boolean(),
   tutorMode: z.boolean(),
-  hideGamesOutsideSessions: z.boolean(),
+  lockedModules: z
+    .array(z.enum(MODULE_IDS as unknown as [ModuleId, ...ModuleId[]]))
+    .max(30)
+    .refine((ids) => ids.every((id) => LOCKABLE_MODULES.includes(id)), 'Home and Settings cannot be locked.')
+    .transform((ids) => [...new Set(ids)]),
   sessionAllowedModules: z.array(z.enum(MODULE_IDS as unknown as [ModuleId, ...ModuleId[]])).max(30),
 });
+
+/** Settings saved by earlier versions had a games-only switch; it becomes a lock on Games. */
+function upgradeConfig(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw;
+  const { hideGamesOutsideSessions, ...rest } = raw as Record<string, unknown> & { hideGamesOutsideSessions?: boolean };
+  if (Array.isArray(rest.lockedModules)) return rest;
+  return { ...rest, lockedModules: hideGamesOutsideSessions ? ['games'] : [] };
+}
 
 interface State {
   enabled: boolean;
@@ -90,7 +101,7 @@ export class ParentalService {
   private state(): State {
     const s = this.kv.get<Partial<State> | null>(STATE, null);
     if (!s) return { ...OFF };
-    const cfg = Config.safeParse(s.config);
+    const cfg = Config.safeParse(upgradeConfig(s.config));
     return { ...OFF, ...s, config: cfg.success ? cfg.data : DEFAULT_PARENTAL_CONFIG };
   }
 
@@ -260,11 +271,13 @@ export class ParentalService {
 
   isModuleAllowed(id: ModuleId): boolean {
     const s = this.state();
-    if (!s.enabled) return true;
-    const session = this.activeSession();
-    if (session) return ALWAYS_ALLOWED.includes(id) || session.allowedModules.includes(id);
-    if (id === 'games' && s.config.hideGamesOutsideSessions) return false;
-    return true;
+    return isModuleOpen(s.enabled, s.config, s.enabled ? this.activeSession() : null, id);
+  }
+
+  /** Why a section is closed right now, or null if it is open. */
+  lockReason(id: ModuleId): string | null {
+    if (this.isModuleAllowed(id)) return null;
+    return this.activeSession() ? 'This section is not part of the current study session.' : 'This section is locked by Parental Learning Controls.';
   }
 
   copyBlockedReason(context: CopyContext): string | null {

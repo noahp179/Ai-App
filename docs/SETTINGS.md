@@ -28,7 +28,7 @@ All settings live in Settings and take effect immediately (no restart), persist 
 | **News**: topics [AI, technology, science], refresh every [60 min], preview length [220], keyword alerts [on], hide read [off] | |
 | **Marketplace**: server address [none], show paid listings [on], trial reminders [on] | Changing the server signs you out of the previous one. |
 | **Browser**: bridge [off], port [47823] | Starts/stops the loopback bridge for the extension. |
-| **Parental Learning Controls** [off] | See [PARENTAL_CONTROLS.md](PARENTAL_CONTROLS.md). Changes need the parent PIN. |
+| **Parental Learning Controls** [off] | Copy blocking, tutor mode, study sessions, screen-capture privacy, and **locked sections** (lock any section such as News, Games or the Marketplace). See [PARENTAL_CONTROLS.md](PARENTAL_CONTROLS.md). Changes need the parent PIN. |
 
 ## Privacy & data
 

@@ -9,7 +9,7 @@ Optional tools for a parent or guardian who is helping a young person learn with
 | **Block copying AI answers** | Copy buttons are hidden, keyboard copy/cut and dragging from AI answers are blocked in the page, text selection is disabled on answers, and the main process refuses clipboard writes in the AI context. | FlowCompanion's AI workspace and floating companion only |
 | **Tutor mode** | Adds instructions to every AI request asking the assistant to teach with hints and questions and not to write finished homework, essays or test answers. | All AI providers used through FlowCompanion. The model may not always comply. |
 | **Supervised study sessions** | For a set time (5 min–8 h), only the chosen sections plus Home and Settings open; others show a "paused" screen. The AI tab in the companion is hidden if AI is not included. The session ends on time even if the app was closed, and ending early needs the PIN. A banner shows the goal and time left. | FlowCompanion only |
-| **Lock games outside sessions** | Games open only in sessions that include them. | FlowCompanion only |
+| **Locked sections** | Any section except Home and Settings — for example News, Games, Marketplace, Creator Studio or the AI workspace — can be locked with the PIN. A locked section shows a "locked" screen, disappears from Home widgets, the command palette and search results, sends no news alerts, and is refused by the main process (for example AI requests and browser-extension saves). It stays locked even if turned on in Settings → Modules. A study session can open a locked section for its length if the parent includes it. Locks persist across restarts. | FlowCompanion only |
 | **Screen-capture privacy (best effort)** | Asks the OS to exclude FlowCompanion windows from screenshots and recordings using Electron's documented `setContentProtection`. | macOS and Windows: requested from the OS (some capture methods may still record; Windows before 10 2004 shows a black window instead). **Linux: not available** and never shown as active. |
 
 A banner at the top of FlowCompanion says the controls are on and lists the active ones, so nothing is hidden from the person using the app.
@@ -36,6 +36,7 @@ A banner at the top of FlowCompanion says the controls are on and lists the acti
 | Copy restriction (in FlowCompanion) | Yes | Yes | Yes (verified) |
 | Tutor mode | Yes | Yes | Yes (verified) |
 | Supervised sessions | Yes | Yes | Yes (verified) |
+| Locked sections | Yes | Yes | Yes (verified) |
 | Screen-capture privacy | Requested via display affinity — not verified on Windows | Requested via window sharing type — not verified on macOS | Not available |
 
 ## Acceptance tests PA–PO
@@ -58,6 +59,6 @@ The brief asked to keep the original parental-control acceptance tests PA–PO, 
 | PL | Sessions end on time even across restarts; ending early needs the PIN | unit + e2e |
 | PM | Settings and active sessions persist across restarts | unit + e2e |
 | PN | Tutor mode changes AI requests | unit (+ AI integration test of the extra system prompt) |
-| PO | Games lock outside sessions; invalid settings rejected | unit |
+| PO | Any extra section (News, Games, Marketplace…) can be locked; Home/Settings cannot; invalid settings rejected | unit + e2e (News, Games and AI locked, persisted, unlocked) |
 
 Not executed: screen-capture privacy on real Windows and macOS machines.

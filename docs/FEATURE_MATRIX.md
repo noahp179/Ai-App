@@ -175,7 +175,7 @@ Classifications, as defined in the brief:
 | Block copying AI answers (in FlowCompanion) | Verified | unit, e2e |
 | Tutor mode | Verified | unit, int |
 | Supervised study sessions, end on time, persist | Verified | unit, e2e |
-| Lock games outside sessions | Verified | unit |
+| Lock any section (News, Games, Marketplace, Creator Studio, AI…) with the PIN; enforced in navigation, Home, search, alerts, AI and the browser bridge | Verified | unit, e2e |
 | Screen-capture privacy on macOS/Windows | Not fully verified | Uses Electron `setContentProtection`; not run on those OSes |
 | Screen-capture privacy on Linux | Blocked | No documented OS mechanism; reported unavailable |
 | Supervised profiles (separate user profiles) | Not implemented | Sessions only |

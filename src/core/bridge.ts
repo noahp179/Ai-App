@@ -32,8 +32,8 @@ export interface BridgeDeps {
   capture: (input: { text: string; kind: 'note' | 'task' | 'reading'; url?: string | null }) => CaptureResult;
   /** Shows FlowCompanion with an AI prompt prefilled. Nothing is sent to a provider until the user presses Send. */
   openAi: (prompt: string) => void;
-  /** Returns why an action is not allowed right now (for example during a supervised session), or null. */
-  blocked: (action: 'capture' | 'ask') => string | null;
+  /** Returns why an action is not allowed right now (a locked section or a supervised session), or null. */
+  blocked: (action: 'capture' | 'ask', kind?: 'note' | 'task' | 'reading') => string | null;
   onChange?: () => void;
 }
 
@@ -203,9 +203,9 @@ export class BrowserBridge {
       );
 
       if (req.method === 'POST' && url.pathname === '/v1/capture') {
-        const why = this.d.blocked('capture');
-        if (why) throw new BridgeError(403, why);
         const c = CaptureBody.parse(body);
+        const why = this.d.blocked('capture', c.kind);
+        if (why) throw new BridgeError(403, why);
         const pageUrl = c.url ? safeHttpUrl(c.url) : null;
         if (c.url && !pageUrl) throw new BridgeError(400, 'Only http and https pages can be saved.');
         let text: string;

@@ -5,6 +5,7 @@ import { Badge, Banner, Button, Field, Input, Loading, useConfirm, useToast } fr
 import { api, errorMessage } from '../../lib/api';
 import { fmtDateTime } from '../../lib/format';
 import { invalidate, useQuery } from '../../lib/query';
+import { useParental } from '../../lib/parental';
 import { useSettings } from '../../lib/settings';
 import { ProviderManager } from '../ai/ProviderSetup';
 import { MODULES } from '../registry';
@@ -137,12 +138,20 @@ export function AppearanceSection() {
 
 export function ModulesSection() {
   const { settings, update } = useSettings();
+  const parental = useParental();
   return (
     <Section title="Modules" description="Turn off what you don’t use. Turned-off modules disappear from navigation and search; their data stays.">
       {MODULE_IDS.filter((m) => m !== 'home' && m !== 'settings').map((id) => {
         const def = MODULES.find((m) => m.id === id)!;
+        const locked = !!parental?.enabled && parental.config.lockedModules.includes(id);
         return (
-          <ToggleSetting key={id} label={def.label} description={def.description} value={settings.layout.modules[id as ModuleId]} onSave={(v) => update({ layout: { modules: { [id]: v } } })} />
+          <ToggleSetting
+            key={id}
+            label={def.label}
+            description={locked ? `${def.description} Locked by a parent: it stays closed even when turned on here (Settings → Parental Learning Controls).` : def.description}
+            value={settings.layout.modules[id as ModuleId]}
+            onSave={(v) => update({ layout: { modules: { [id]: v } } })}
+          />
         );
       })}
     </Section>

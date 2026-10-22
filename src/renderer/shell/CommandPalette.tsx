@@ -1,8 +1,10 @@
 import { BookMarked, Bookmark, CalendarDays, CornerDownLeft, FileText, GraduationCap, ListTodo, MessageSquare, Newspaper, NotebookPen, Sparkles, Zap } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { SEARCH_HIT_MODULE } from '../../shared/parental';
 import type { SearchHit } from '../../shared/types';
 import { routeFor } from '../components/LinksPanel';
 import { api } from '../lib/api';
+import { useParental } from '../lib/parental';
 import { navigate } from '../lib/router';
 import { useSettings } from '../lib/settings';
 import { MODULES } from '../modules/registry';
@@ -47,6 +49,7 @@ export function Snippet({ text }: { text: string }) {
 
 export function CommandPalette({ onClose, onCapture }: { onClose: () => void; onCapture: () => void }) {
   const { settings, update } = useSettings();
+  const parental = useParental();
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [sel, setSel] = useState(0);
@@ -87,17 +90,19 @@ export function CommandPalette({ onClose, onCapture }: { onClose: () => void; on
       { id: 'df', label: settings.layout.distractionFree ? 'Leave distraction-free mode' : 'Distraction-free mode', hint: 'Ctrl+Shift+D', icon: <Zap size={15} />, run: () => void update({ layout: { distractionFree: !settings.layout.distractionFree } }) },
       { id: 'companion', label: 'Show or hide companion', icon: <Zap size={15} />, run: () => void api.window.toggleCompanion() },
     ];
-    const modules = MODULES.filter((m) => settings.layout.modules[m.id]).map<Item>((m) => {
+    const modules = MODULES.filter((m) => settings.layout.modules[m.id] && (parental?.isModuleAllowed(m.id) ?? true)).map<Item>((m) => {
       const Icon = m.icon;
       return { id: `go-${m.id}`, label: `Go to ${m.label}`, hint: m.description, icon: <Icon size={15} />, run: go(`/${m.id}`) };
     });
     return [...base, ...modules];
-  }, [settings, update, onCapture]);
+  }, [settings, update, onCapture, parental]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const cmds = needle ? commands.filter((c) => c.label.toLowerCase().includes(needle)) : commands.slice(0, 9);
-    const hitItems: Item[] = hits.map((h) => ({
+    // Results from locked or turned-off sections are left out.
+    const open = (h: SearchHit) => settings.layout.modules[SEARCH_HIT_MODULE[h.type]] && (parental?.isModuleAllowed(SEARCH_HIT_MODULE[h.type]) ?? true);
+    const hitItems: Item[] = hits.filter(open).map((h) => ({
       id: `${h.type}:${h.id}`,
       label: h.title,
       hint: <Snippet text={h.snippet} />,
@@ -105,7 +110,7 @@ export function CommandPalette({ onClose, onCapture }: { onClose: () => void; on
       run: () => navigate(routeFor(h.type, h.id)),
     }));
     return [...cmds.slice(0, 6), ...hitItems];
-  }, [q, commands, hits]);
+  }, [q, commands, hits, settings.layout.modules, parental]);
 
   useEffect(() => setSel(0), [q, hits]);
 

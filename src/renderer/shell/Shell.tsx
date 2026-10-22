@@ -120,7 +120,7 @@ export function Shell() {
                       type="button"
                       className={`nav-item ${active?.id === m.id ? 'active' : ''} ${locked ? 'locked' : ''}`}
                       aria-current={active?.id === m.id ? 'page' : undefined}
-                      title={locked ? `${m.label} is not part of this study session` : m.label}
+                      title={locked ? (sessionActive ? `${m.label} is not part of this study session` : `${m.label} is locked by Parental Learning Controls`) : m.label}
                       onClick={() => navigate(`/${m.id}`)}
                     >
                       <Icon size={17} aria-hidden />
@@ -160,6 +160,7 @@ export function Shell() {
               {parental.config.copyRestriction ? ' · copying limited in the AI workspace' : ''}
               {parental.config.screenCapturePrivacy ? (parental.platform.screenCapturePrivacy.applied ? ' · screen-capture privacy requested' : ' · screen-capture privacy not supported on this OS') : ''}
               {parental.config.tutorMode ? ' · tutor mode' : ''}
+              {parental.config.lockedModules.length ? ` · locked: ${parental.config.lockedModules.map((id) => MODULES.find((m) => m.id === id)?.label ?? id).join(', ')}` : ''}
             </span>
             <span className="spacer" />
             <button type="button" className="btn ghost sm" onClick={() => navigate('/settings/parental')}>
@@ -240,7 +241,7 @@ function ModuleLocked({ module }: { module: ModuleDef }) {
     <div className="page">
       <div className="empty">
         <Shield size={28} />
-        <h3>{inSession ? `${module.label} is paused during this study session` : `${module.label} is turned off by Parental Learning Controls`}</h3>
+        <h3>{inSession ? `${module.label} is paused during this study session` : `${module.label} is locked by Parental Learning Controls`}</h3>
         <p>{inSession ? 'A parent or guardian started a supervised study session. The sections included in it are still available.' : 'A parent or guardian can change this in Settings → Parental Learning Controls.'}</p>
       </div>
     </div>

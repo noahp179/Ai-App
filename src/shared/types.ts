@@ -806,7 +806,8 @@ export interface ParentalConfig {
   copyRestriction: boolean;
   screenCapturePrivacy: boolean;
   tutorMode: boolean;
-  hideGamesOutsideSessions: boolean;
+  /** Sections locked by the parent. They stay closed unless a study session includes them. */
+  lockedModules: string[];
   sessionAllowedModules: string[];
 }
 

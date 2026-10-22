@@ -95,7 +95,7 @@ test('marketplace server: sign up, server-enforced trial with disclosure, no pur
     await expect(page.getByText('Signed in as')).toBeVisible();
 
     await nav(page, 'Marketplace').click();
-    await page.getByLabel('Source').selectOption('remote');
+    await page.getByLabel('Source', { exact: true }).selectOption('remote');
     await page.getByRole('button', { name: /^Exam revision planner by Maker, \$3\.49/ }).click();
     await expect(page.getByText('A planner that spreads revision')).toBeVisible();
     await page.getByRole('button', { name: 'Start free trial' }).click();

@@ -10,8 +10,8 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | --- | --- | --- |
 | Type checking (Node side + renderer) | `npm run typecheck` | Pass |
 | Lint | `npm run lint` | Pass (0 problems) |
-| Unit + integration | `npm test` | **205 passed**, 0 failed, 23 skipped (the live tests below, which skip themselves without their environment variables) |
-| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` with `FC_LIVE_OPENAI_COMPAT_URL` set | **21 passed**, 0 failed |
+| Unit + integration | `npm test` | **209 passed**, 0 failed, 23 skipped (the live tests below, which skip themselves without their environment variables) |
+| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` | **21 passed**, 0 failed, 1 skipped (the live-model test, which needs `FC_LIVE_OPENAI_COMPAT_URL`; it passed in the previous full run the same day) |
 | Live: real local model | `FC_LIVE_OPENAI_COMPAT_URL=http://127.0.0.1:8080/v1 npx vitest run tests/live/local-model.test.ts` | **2 passed** (llama.cpp `llama-server`, Qwen2.5-0.5B-Instruct Q4_K_M) |
 | Live: built-in news feeds | `FC_LIVE_FEEDS=1 npx vitest run tests/live/feeds.test.ts` | **11 passed, 10 failed** — every failure is `403 Blocked by egress policy` from this environment's outbound proxy (feeds.bbci.co.uk, arstechnica.com, theverge.com, espn.com), not from the publishers. Earlier the same day all 21 passed. The packaged app (Electron's network stack) loaded BBC, Hacker News and NASA feeds at 06:43 (see `docs/images/home.png`). |
 | Learning Hub links | `node scripts/verify-links.mjs --dry` | **72/72 verified** (HTTP 2xx and expected page text) |
@@ -34,7 +34,7 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | tests/unit/games.test.ts | 9 | Sudoku uniqueness/conflicts, word evaluation with repeated letters, memory, trivia, scores |
 | tests/unit/learning.test.ts | 16 | Catalog validity (no ratings/durations, every link verified), filters, progress, paths, consent-based recommendations, export/delete |
 | tests/unit/prompts.test.ts | 9 | Variables and defaults, versions and restore, search/filters, import/export, FTS indexing |
-| tests/unit/parental.test.ts | 15 | Acceptance tests PA–PO |
+| tests/unit/parental.test.ts | 19 | Acceptance tests PA–PO, plus locked sections (PIN, sessions, migration of the old games-only lock) |
 | tests/unit/protocol.test.ts | 3 | `app://` path-traversal refusal, CSP |
 | tests/integration/ai.test.ts | 33 | OpenAI, OpenAI-compatible, Anthropic (official SDK), Gemini and Ollama adapters against mock servers: no fabricated replies without a provider, key storage (encrypted or session-only), streaming, non-streaming, cancel, idle timeout, retry on another model, network, auth, rate-limit, missing-model and refusal errors, Claude refusal fallback and content-block replay, conversation management, retention, tutor prompt |
 | tests/integration/marketplace-server.test.ts | 11 | Accounts and scrypt, moderation flow, preview rule, verified reviews, server-enforced 7-day trial including expiry, 501 purchases, reports, malformed requests, demo seed, rate limiting |
@@ -50,7 +50,7 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | discover.spec.ts | News: add a local feed, search, save; games: trivia round score, sudoku progress survives restart; word guess, memory and reaction time played with keyboard and mouse |
 | learning.spec.ts | Browse, progress, notes autosave, study session scheduled into the calendar, global search, restart; paths and goals change suggestions |
 | marketplace.spec.ts | Prompt versions/restore/variables/copy; bundled listing saved to library; reference server: sign-up, trial disclosure gate, server trial, purchase refused, publish for review |
-| parental.spec.ts | PA–PO in the app: off by default, setup with recovery code, banner, AI copy blocked, wrong PIN, session locks sections, survives restart, end early, turn off |
+| parental.spec.ts | PA–PO in the app: off by default, setup with recovery code, banner, AI copy blocked, wrong PIN, session locks sections, survives restart, end early, turn off; a parent locks News, Games and AI (locked screens, Home, command palette, AI refused by the main process), locks persist and unlock with the PIN |
 | browser.spec.ts | Bridge off by default, turned on from Settings, pairing code, page saved to the reading queue |
 | extension.spec.ts | Real extension loaded in Chromium: popup pairing (wrong then right code), context-menu actions save page/selection, ask AI, non-web pages refused, a normal web page cannot use the bridge |
 
@@ -76,6 +76,7 @@ Background activity: one timer that sleeps until the next due job (max 1 hour); 
 - The marketplace reviews/reports tables could not record server listings (foreign key), fixed with migration v11.
 - The preview check rejected valid descriptions of short prompts; replaced with a word-sequence overlap check.
 - Oversized request bodies reset the connection instead of returning 413 (server and bridge).
+- An end-to-end test used a loose label locator (`Source`) that sometimes also matched a listing titled "…sources"; made exact and re-run 10 times without failure.
 
 ## Not executed
 

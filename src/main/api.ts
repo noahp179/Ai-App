@@ -57,6 +57,11 @@ export function createApi(ctx: AppContext): FlowApi {
     ctx.scheduler.wake();
     return v as T;
   };
+  /** Parental locks are enforced here too, not only by hiding the UI. */
+  const aiOpen = () => {
+    const why = ctx.parental.lockReason('ai');
+    if (why) throw new UserError(why, 'locked');
+  };
   const scopeOf = (s: unknown): OccurrenceScope => {
     if (s !== 'this' && s !== 'following' && s !== 'all') throw new UserError('Unknown scope.');
     return s;
@@ -630,8 +635,14 @@ export function createApi(ctx: AppContext): FlowApi {
       archiveConversation: (id, archived) => ctx.ai.archiveConversation(id, archived === true),
       deleteConversation: (id) => ctx.ai.deleteConversation(id),
       deleteAllConversations: () => ctx.ai.deleteAllConversations(),
-      send: (input) => ctx.ai.send(input),
-      retry: (id, opts) => ctx.ai.retry(id, opts ?? {}),
+      send: (input) => {
+        aiOpen();
+        return ctx.ai.send(input);
+      },
+      retry: (id, opts) => {
+        aiOpen();
+        return ctx.ai.retry(id, opts ?? {});
+      },
       cancel: (id) => ctx.ai.cancel(id),
       exportConversation: async (id, format) => {
         if (format !== 'markdown' && format !== 'json') throw new UserError('Unknown export format.');

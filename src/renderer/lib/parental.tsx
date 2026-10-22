@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { isModuleOpen } from '../../shared/parental';
 import type { ModuleId } from '../../shared/settings';
 import type { ParentalStatus } from '../../shared/types';
 import { useToast } from '../components/ui';
@@ -11,19 +12,9 @@ export interface ParentalView extends ParentalStatus {
 
 const Ctx = createContext<ParentalView | null>(null);
 
-const ALWAYS: ModuleId[] = ['home', 'settings'];
-
 function view(s: ParentalStatus, now: number): ParentalView {
   const session = s.session && new Date(s.session.endsAt).getTime() > now ? s.session : null;
-  return {
-    ...s,
-    session,
-    isModuleAllowed: (id) => {
-      if (!s.enabled) return true;
-      if (session) return ALWAYS.includes(id) || session.allowedModules.includes(id);
-      return !(id === 'games' && s.config.hideGamesOutsideSessions);
-    },
-  };
+  return { ...s, session, isModuleAllowed: (id) => isModuleOpen(s.enabled, s.config, session, id) };
 }
 
 /**

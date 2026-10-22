@@ -156,7 +156,7 @@ export class AppContext {
         return r;
       },
       openAi: (prompt) => this.windows.showMain(`/ai/new?prompt=${encodeURIComponent(prompt)}`),
-      blocked: (action) => (action === 'ask' && !this.parental.isModuleAllowed('ai') ? 'The AI workspace is not part of the current study session.' : null),
+      blocked: (action, kind) => this.parental.lockReason(action === 'ask' ? 'ai' : kind === 'note' ? 'notes' : 'productivity'),
       onChange: () => this.changed('browser'),
     });
     this.marketplace = new MarketplaceService({
@@ -176,14 +176,17 @@ export class AppContext {
       settings: () => this.settings.get(),
       fetch: ((input: Parameters<typeof fetch>[0], init?: RequestInit) => net.fetch(input instanceof URL ? input.toString() : (input as string), init)) as typeof fetch,
       userAgent: `FlowCompanion/${app.getVersion()} (+https://github.com/noahp179/Ai-App)`,
-      onAlert: (item, keyword) =>
+      onAlert: (item, keyword) => {
+        // No news alerts while a parent has locked the News section.
+        if (!this.parental.isModuleAllowed('news')) return;
         this.notifications.notify({
           dedupeKey: `feed-alert:${item.id}`,
           kind: 'feed_alert',
           title: `News alert: ${keyword}`,
           body: `${item.title} — ${item.sourceName}`,
           action: { route: `/news?item=${item.id}` },
-        }),
+        });
+      },
     });
     this.reminders = new RemindersService(db, this.clock, this.events, this.tasks, this.notifications, () => this.settings.get().notifications.missedGraceMinutes);
     this.aiTasks = new AiTasksService(db, this.clock, (t) => {

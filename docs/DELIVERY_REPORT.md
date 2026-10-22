@@ -50,8 +50,8 @@ Electron was chosen over Tauri for built-in SQLite (`node:sqlite`, no native mod
 | Command | Result |
 | --- | --- |
 | `npm run typecheck`, `npm run lint` | Pass |
-| `npm test` | 205 passed, 0 failed (23 opt-in live tests skipped) |
-| `xvfb-run -a npx playwright test` (with a real local model) | 21 passed, 0 failed |
+| `npm test` | 209 passed, 0 failed (23 opt-in live tests skipped) |
+| `xvfb-run -a npx playwright test` | 21 passed, 0 failed; the live-model test passed in the previous run |
 | Live local model (llama.cpp + Qwen2.5-0.5B) | 2/2 passed; also answered through the app UI |
 | Live news feeds | 21/21 earlier today; 11/21 in the final run (10 blocked by this environment's network policy) |
 | Learning links | 72/72 verified |
@@ -121,7 +121,7 @@ On Linux, the following are verified:
 - blocking copies of AI answers
 - tutor mode
 - supervised sessions
-- the games lock
+- locking any section (News, Games, Marketplace, AI…) with the PIN
 - PIN, recovery and lockout
 - the status banner
 
