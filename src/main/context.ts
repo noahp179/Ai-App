@@ -10,7 +10,9 @@ import { createBackup, listBackups, openDatabase, pruneBackups } from '../core/d
 import { DataService } from '../core/data';
 import fs from 'node:fs';
 import path from 'node:path';
+import { FeedService } from '../core/feed/service';
 import { FocusService } from '../core/focus';
+import { GamesService } from '../core/games';
 import { KvStore } from '../core/kv';
 import { LinksService } from '../core/links';
 import { NotesService } from '../core/notes';
@@ -61,6 +63,8 @@ export class AppContext {
   readonly ai: AiService;
   readonly events: EventsService;
   readonly data: DataService;
+  readonly feed: FeedService;
+  readonly games: GamesService;
   readonly reminders: RemindersService;
   readonly startup: StartupReport;
   capabilities!: Capabilities;
@@ -122,6 +126,23 @@ export class AppContext {
     this.capture = new CaptureService(this.notes, this.tasks, this.bookmarks);
     this.events = new EventsService(db, this.clock, zone);
     this.data = new DataService(db);
+    this.games = new GamesService(db, this.clock);
+    this.feed = new FeedService({
+      db,
+      clock: this.clock,
+      kv: this.kv,
+      settings: () => this.settings.get(),
+      fetch: ((input: Parameters<typeof fetch>[0], init?: RequestInit) => net.fetch(input instanceof URL ? input.toString() : (input as string), init)) as typeof fetch,
+      userAgent: `FlowCompanion/${app.getVersion()} (+https://github.com/noahp179/Ai-App)`,
+      onAlert: (item, keyword) =>
+        this.notifications.notify({
+          dedupeKey: `feed-alert:${item.id}`,
+          kind: 'feed_alert',
+          title: `News alert: ${keyword}`,
+          body: `${item.title} — ${item.sourceName}`,
+          action: { route: `/news?item=${item.id}` },
+        }),
+    });
     this.reminders = new RemindersService(db, this.clock, this.events, this.tasks, this.notifications, () => this.settings.get().notifications.missedGraceMinutes);
     this.aiTasks = new AiTasksService(db, this.clock, (t) => {
       this.emit('ai.task', t);
@@ -227,6 +248,7 @@ export class AppContext {
 
   private housekeeping(): void {
     try {
+      this.feed.seedDefaults();
       this.ai.housekeeping();
       this.notes.purgeTrash(this.settings.get().notes.trashRetentionDays);
       this.notifications.pruneLog(30);
@@ -236,6 +258,18 @@ export class AppContext {
   }
 
   private registerSchedules(): void {
+    this.scheduler.add({
+      name: 'feed',
+      nextAt: () => this.feed.nextRefreshAt(),
+      run: () => {
+        // Mark the attempt first so an offline machine does not retry in a tight loop.
+        this.kv.set('feed:lastRefresh', this.clock.now().toISOString());
+        void this.feed.refresh().then((results) => {
+          this.emit('feed.refreshed', results);
+          this.changed('news');
+        });
+      },
+    });
     this.scheduler.add({
       name: 'reminders',
       nextAt: () => this.reminders.nextAt(),

@@ -129,6 +129,50 @@ export function createApi(ctx: AppContext): FlowApi {
       },
       openFolder: () => void shell.openPath(ctx.paths.dataDir),
     },
+    news: {
+      categories: () => ctx.feed.categories(),
+      sources: () => ctx.feed.sources(),
+      addSource: async (input) => {
+        const r = await ctx.feed.addSource(input);
+        ctx.changed('news');
+        return r;
+      },
+      updateSource: (id, patch) => changed('news', ctx.feed.updateSource(id, patch)),
+      removeSource: (id) => changed('news', ctx.feed.removeSource(id)),
+      refresh: async (ids) => {
+        const r = await ctx.feed.refresh(Array.isArray(ids) ? ids : undefined, { force: Array.isArray(ids) });
+        ctx.changed('news');
+        ctx.scheduler.wake();
+        return r;
+      },
+      lastRefresh: () => ctx.feed.lastRefresh(),
+      items: (q) => ctx.feed.items(q ?? {}),
+      duplicates: (id) => ctx.feed.duplicatesOf(id),
+      markRead: (id, read) => changed('news', ctx.feed.markRead(id, read === true)),
+      markAllRead: (category) => changed('news', ctx.feed.markAllRead(category)),
+      setSaved: (id, saved) => changed('news', ctx.feed.setSaved(id, saved === true)),
+      addToReadingQueue: (id) => {
+        const item = ctx.feed.get(id);
+        const existing = ctx.bookmarks.list({ queue: 'all' }).find((b) => b.url === item.url);
+        const b = existing ? ctx.bookmarks.update(existing.id, { queue: 'unread' }) : ctx.bookmarks.create({ url: item.url, title: item.title, description: `${item.sourceName}${item.summary ? ` — ${item.summary}` : ''}`.slice(0, 500), tags: ['news'], queue: 'unread' });
+        ctx.changed('bookmarks');
+        return b;
+      },
+      unreadCount: () => ctx.feed.unreadCount(),
+      alerts: () => ctx.feed.alerts(),
+      addAlert: (k) => changed('news', ctx.feed.addAlert(k)),
+      setAlertEnabled: (id, enabled) => changed('news', ctx.feed.setAlertEnabled(id, enabled === true)),
+      removeAlert: (id) => changed('news', ctx.feed.removeAlert(id)),
+    },
+    games: {
+      stats: (game, filter) => ctx.games.stats(game, filter),
+      all: () => ctx.games.all(),
+      record: (game, score, detail) => changed('games', ctx.games.record(game, Number(score), detail ?? {})),
+      saveState: (game, state) => ctx.games.saveState(game, state),
+      loadState: (game) => ctx.games.loadState(game),
+      clearState: (game) => ctx.games.clearState(game),
+      resetScores: (game) => changed('games', ctx.games.resetScores(game)),
+    },
     calendar: {
       occurrences: (from, to) => ctx.events.occurrences(str(from, 'from', 40), str(to, 'to', 40)),
       get: (id) => ctx.events.get(id),

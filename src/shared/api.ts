@@ -13,9 +13,17 @@ import type {
   Conversation,
   EntityLink,
   EventOccurrence,
+  FeedAlert,
+  FeedItem,
+  FeedQuery,
+  FeedRefreshResult,
+  FeedSource,
   FocusSession,
   FocusStats,
   Folder,
+  GameId,
+  GameScore,
+  GameStats,
   InboxNotification,
   LinkableType,
   Message,
@@ -162,6 +170,35 @@ export interface FlowApi {
     restoreBackup(file: string): void;
     deleteAll(confirmation: string): void;
     openFolder(): void;
+  };
+  news: {
+    categories(): { id: string; label: string }[];
+    sources(): FeedSource[];
+    addSource(input: { url: string; name?: string; category?: string }): Promise<{ source: FeedSource; result: FeedRefreshResult }>;
+    updateSource(id: string, patch: { name?: string; category?: string; enabled?: boolean; blocked?: boolean }): FeedSource;
+    removeSource(id: string): void;
+    refresh(sourceIds?: string[]): Promise<FeedRefreshResult[]>;
+    lastRefresh(): string | null;
+    items(query?: FeedQuery): FeedItem[];
+    duplicates(id: string): FeedItem[];
+    markRead(id: string, read: boolean): void;
+    markAllRead(category?: string): number;
+    setSaved(id: string, saved: boolean): FeedItem;
+    addToReadingQueue(id: string): Bookmark;
+    unreadCount(): number;
+    alerts(): FeedAlert[];
+    addAlert(keyword: string): FeedAlert;
+    setAlertEnabled(id: string, enabled: boolean): void;
+    removeAlert(id: string): void;
+  };
+  games: {
+    stats(game: GameId, filter?: { key: string; value: string }): GameStats;
+    all(): GameStats[];
+    record(game: GameId, score: number, detail?: Record<string, string | number | boolean>): GameScore;
+    saveState(game: GameId, state: unknown): void;
+    loadState(game: GameId): unknown;
+    clearState(game: GameId): void;
+    resetScores(game?: GameId): void;
   };
   calendar: {
     occurrences(fromIso: string, toIso: string): EventOccurrence[];
