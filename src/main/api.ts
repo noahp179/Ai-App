@@ -361,6 +361,50 @@ export function createApi(ctx: AppContext): FlowApi {
         return l;
       },
     },
+    parental: {
+      status: () => ctx.parental.status(ctx.parentalPlatform()),
+      setup: (input) => {
+        const r = ctx.parental.setup(input);
+        ctx.applyParental();
+        return r;
+      },
+      updateConfig: (pin, patch) => {
+        const c = ctx.parental.updateConfig(pin, patch);
+        ctx.applyParental();
+        return c;
+      },
+      changePin: (pin, newPin) => ctx.parental.changePin(pin, newPin),
+      recover: (code, newPin) => {
+        const r = ctx.parental.recover(code, newPin);
+        ctx.changed('parental');
+        return r;
+      },
+      disable: (pin) => {
+        ctx.parental.disable(pin);
+        ctx.applyParental();
+      },
+      startSession: (pin, input) => {
+        const s = ctx.parental.startSession(pin, input);
+        ctx.changed('parental');
+        ctx.scheduler.wake();
+        return s;
+      },
+      endSession: (pin) => {
+        const s = ctx.parental.endSession(pin);
+        ctx.changed('parental');
+        ctx.scheduler.wake();
+        return s;
+      },
+      recentSessions: () => ctx.parental.recentSessions(),
+    },
+    browser: {
+      status: () => ctx.bridge.status(ctx.settings.get().browser.bridgeEnabled),
+      startPairing: () => changed('browser', ctx.bridge.startPairing()),
+      cancelPairing: () => changed('browser', ctx.bridge.cancelPairing()),
+      unpair: (id) => changed('browser', ctx.bridge.unpair(str(id, 'id', 100))),
+      extensionFolder: () => ctx.paths.extensionDir,
+      openExtensionFolder: () => void shell.openPath(ctx.paths.extensionDir),
+    },
     calendar: {
       occurrences: (from, to) => ctx.events.occurrences(str(from, 'from', 40), str(to, 'to', 40)),
       get: (id) => ctx.events.get(id),

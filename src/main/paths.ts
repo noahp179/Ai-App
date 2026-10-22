@@ -15,6 +15,8 @@ export function resolvePaths() {
     preloadPath: path.join(__dirname, '..', 'preload', 'index.js'),
     iconPath: path.join(__dirname, '..', '..', 'resources', 'icon.png'),
     trayIconPath: path.join(__dirname, '..', '..', 'resources', 'tray.png'),
+    /** The unpacked browser extension: shipped as an extra resource in installers, or the repo folder in development. */
+    extensionDir: app.isPackaged ? path.join(process.resourcesPath, 'extension') : path.join(__dirname, '..', '..', 'extension'),
   };
 }
 

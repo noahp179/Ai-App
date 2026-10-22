@@ -1,7 +1,8 @@
-import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import http from 'node:http';
 import type { z } from 'zod';
 import { Db } from '../src/core/db/database';
+import { hashSecret, sha256, verifySecret } from '../src/core/passwords';
 import type { Clock } from '../src/core/util';
 import {
   API_PREFIX,
@@ -73,25 +74,12 @@ interface Ctx {
   body: unknown;
 }
 
-const PASSWORD_N = 16384;
 const SESSION_DAYS = 30;
 const MAX_BODY = 256 * 1024;
 
-export function hashPassword(password: string): string {
-  const salt = randomBytes(16);
-  const hash = scryptSync(password, salt, 32, { N: PASSWORD_N });
-  return `scrypt$${PASSWORD_N}$${salt.toString('base64')}$${hash.toString('base64')}`;
-}
+export const hashPassword = hashSecret;
+export const verifyPassword = (password: string, stored: string): boolean => verifySecret(password, stored);
 
-export function verifyPassword(password: string, stored: string): boolean {
-  const [alg, n, salt, hash] = stored.split('$');
-  if (alg !== 'scrypt' || !n || !salt || !hash) return false;
-  const expected = Buffer.from(hash, 'base64');
-  const actual = scryptSync(password, Buffer.from(salt, 'base64'), expected.length, { N: Number(n) });
-  return timingSafeEqual(actual, expected);
-}
-
-const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
 
 /**
  * Reference marketplace server. Plain node:http + SQLite, no framework. It is meant to be run behind a

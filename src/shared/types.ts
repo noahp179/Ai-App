@@ -821,8 +821,12 @@ export interface ParentalStatus {
     os: string;
     copyRestriction: { supported: boolean; scope: string };
     screenCapturePrivacy: { supported: boolean; applied: boolean; detail: string };
+    /** FlowCompanion cannot enforce anything inside other apps or websites. */
+    otherAppsAndWebsites: { supported: false; detail: string };
   };
   session: StudySession | null;
+  /** Remaining recovery attempts before a lockout, for display. */
+  attemptsBeforeLockout: number;
 }
 
 export interface StudySession {
@@ -837,12 +841,21 @@ export interface StudySession {
 
 // ───────────────────────────── Browser bridge ─────────────────────────────
 
+export interface BridgeClient {
+  id: Id;
+  name: string;
+  pairedAt: IsoTime;
+  lastSeenAt: IsoTime | null;
+}
+
 export interface BridgeStatus {
   enabled: boolean;
   listening: boolean;
   port: number;
   error: string | null;
-  paired: boolean;
+  clients: BridgeClient[];
+  /** Shown while pairing; expires after a few minutes. */
   pairingCode: string | null;
+  pairingExpiresAt: IsoTime | null;
   lastRequestAt: IsoTime | null;
 }

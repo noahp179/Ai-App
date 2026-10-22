@@ -3,6 +3,7 @@ import type { Settings } from '../shared/settings';
 import { Companion } from './companion/Companion';
 import { ConfirmProvider, Loading, PromptProvider, ToastProvider } from './components/ui';
 import { api, errorMessage } from './lib/api';
+import { ParentalProvider } from './lib/parental';
 import { SettingsProvider, applyAppearance } from './lib/settings';
 import { Shell } from './shell/Shell';
 
@@ -31,7 +32,9 @@ export function App() {
     <SettingsProvider initial={settings}>
       <ToastProvider>
         <ConfirmProvider>
-          <PromptProvider>{isCompanion ? <Companion /> : <Shell />}</PromptProvider>
+          <PromptProvider>
+            <ParentalProvider>{isCompanion ? <Companion /> : <Shell />}</ParentalProvider>
+          </PromptProvider>
         </ConfirmProvider>
       </ToastProvider>
     </SettingsProvider>

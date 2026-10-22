@@ -25,6 +25,7 @@ import type {
   GameScore,
   GameStats,
   AbuseReport,
+  BridgeStatus,
   CreatorProfile,
   InboxNotification,
   Listing,
@@ -34,6 +35,8 @@ import type {
   ListingStatus,
   MarketplaceAccount,
   MarketplaceStatus,
+  ParentalConfig,
+  ParentalStatus,
   Prompt,
   PromptVersion,
   ProviderLabel,
@@ -61,6 +64,7 @@ import type {
   ResourceStatus,
   SearchHit,
   SendMessageInput,
+  StudySession,
   StartupReport,
   Task,
   TaskList,
@@ -311,6 +315,27 @@ export interface FlowApi {
     analytics(id: string): Promise<{ server: { views: number; trialStarts: number; acquisitions: number; reviews: number; averageRating: number | null } | null; note: string }>;
     exportPackage(id: string): Promise<SaveResult>;
     importPackage(): Promise<Listing | null>;
+  };
+  parental: {
+    status(): ParentalStatus;
+    /** Turns controls on. `acknowledged` confirms the scope explanation was read. Returns a one-time recovery code. */
+    setup(input: { pin: string; acknowledged: boolean; config?: Partial<ParentalConfig> }): { recoveryCode: string };
+    updateConfig(pin: string, patch: Partial<ParentalConfig>): ParentalConfig;
+    changePin(pin: string, newPin: string): void;
+    recover(recoveryCode: string, newPin: string): { recoveryCode: string };
+    disable(pin: string): void;
+    startSession(pin: string, input: { goal: string; minutes: number; allowedModules: string[] }): StudySession;
+    endSession(pin: string): StudySession | null;
+    recentSessions(): StudySession[];
+  };
+  browser: {
+    status(): BridgeStatus;
+    startPairing(): { code: string; expiresAt: string };
+    cancelPairing(): void;
+    unpair(id: string): void;
+    /** Folder with the unpacked browser extension, for "Load unpacked" in the browser. */
+    extensionFolder(): string;
+    openExtensionFolder(): void;
   };
   calendar: {
     occurrences(fromIso: string, toIso: string): EventOccurrence[];

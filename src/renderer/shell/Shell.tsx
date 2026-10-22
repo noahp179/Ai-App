@@ -234,12 +234,14 @@ function ModuleOff({ module }: { module: ModuleDef }) {
 }
 
 function ModuleLocked({ module }: { module: ModuleDef }) {
+  const parental = useParental();
+  const inSession = !!parental?.session;
   return (
     <div className="page">
       <div className="empty">
         <Shield size={28} />
-        <h3>{module.label} is paused during this study session</h3>
-        <p>A parent or guardian set up a supervised study session. The modules included in the session are still available.</p>
+        <h3>{inSession ? `${module.label} is paused during this study session` : `${module.label} is turned off by Parental Learning Controls`}</h3>
+        <p>{inSession ? 'A parent or guardian started a supervised study session. The sections included in it are still available.' : 'A parent or guardian can change this in Settings → Parental Learning Controls.'}</p>
       </div>
     </div>
   );

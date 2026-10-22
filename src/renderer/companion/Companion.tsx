@@ -229,8 +229,13 @@ function FocusTabMini() {
 }
 
 export function Companion() {
+  const parental = useParental();
+  const aiAllowed = parental?.isModuleAllowed('ai') ?? true;
   const [state, setState] = useState<CompanionState | null>(null);
   const [tab, setTab] = useState<Tab>('capture');
+  useEffect(() => {
+    if (!aiAllowed && tab === 'ai') setTab('capture');
+  }, [aiAllowed, tab]);
   useEffect(() => {
     void api.window.companionState().then(setState);
     return onAppEvent('companion.state', setState);
@@ -254,9 +259,11 @@ export function Companion() {
         <IconButton label="Quick capture" onClick={() => (setTab('capture'), void api.window.setCompanionCollapsed(false))}>
           <Zap size={15} />
         </IconButton>
-        <IconButton label="Ask AI" onClick={() => (setTab('ai'), void api.window.setCompanionCollapsed(false))}>
-          <Sparkles size={15} />
-        </IconButton>
+        {aiAllowed ? (
+          <IconButton label="Ask AI" onClick={() => (setTab('ai'), void api.window.setCompanionCollapsed(false))}>
+            <Sparkles size={15} />
+          </IconButton>
+        ) : null}
         <IconButton label="Expand" onClick={() => void api.window.setCompanionCollapsed(false)}>
           <Maximize2 size={15} />
         </IconButton>
@@ -299,7 +306,7 @@ export function Companion() {
           onChange={setTab}
           options={[
             { value: 'capture', label: 'Capture' },
-            { value: 'ai', label: 'Ask AI' },
+            ...(aiAllowed ? [{ value: 'ai' as const, label: 'Ask AI' }] : []),
             { value: 'today', label: <CalendarDays size={14} aria-label="Today" /> },
             { value: 'focus', label: <Target size={14} aria-label="Focus" /> },
           ]}
@@ -307,7 +314,7 @@ export function Companion() {
       </div>
       <div className="companion-body">
         {tab === 'capture' ? <CaptureTab /> : null}
-        {tab === 'ai' ? <AiTab /> : null}
+        {tab === 'ai' && aiAllowed ? <AiTab /> : null}
         {tab === 'today' ? <TodayTab /> : null}
         {tab === 'focus' ? <FocusTabMini /> : null}
       </div>

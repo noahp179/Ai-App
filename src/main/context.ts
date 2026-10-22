@@ -2,6 +2,7 @@ import { Notification, app, clipboard, dialog, nativeTheme, net, powerMonitor, s
 import { AiTasksService } from '../core/aitasks';
 import { AiService } from '../core/ai/service';
 import { BookmarksService } from '../core/bookmarks';
+import { BrowserBridge } from '../core/bridge';
 import { EventsService } from '../core/calendar/events';
 import { RemindersService } from '../core/calendar/reminders';
 import { CaptureService } from '../core/capture';
@@ -9,6 +10,7 @@ import type { Db } from '../core/db/database';
 import { createBackup, listBackups, openDatabase, pruneBackups } from '../core/db/open';
 import { DataService } from '../core/data';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { FeedService } from '../core/feed/service';
 import { FocusService } from '../core/focus';
@@ -19,6 +21,7 @@ import { LinksService } from '../core/links';
 import { MarketplaceService } from '../core/marketplace/service';
 import { NotesService } from '../core/notes';
 import { NotificationCenter, resolveZone } from '../core/notifications';
+import { ParentalService, contentProtectionSupport, type PlatformSupport } from '../core/parental';
 import { PromptsService } from '../core/prompts';
 import { Scheduler } from '../core/scheduler';
 import { SearchService } from '../core/search';
@@ -71,6 +74,9 @@ export class AppContext {
   readonly learning: LearningService;
   readonly prompts: PromptsService;
   readonly marketplace: MarketplaceService;
+  readonly parental: ParentalService;
+  readonly bridge: BrowserBridge;
+  private contentProtection: { applied: boolean; error: string | null } = { applied: false, error: null };
   readonly reminders: RemindersService;
   readonly startup: StartupReport;
   capabilities!: Capabilities;
@@ -135,6 +141,22 @@ export class AppContext {
     this.games = new GamesService(db, this.clock);
     this.learning = new LearningService(db, this.clock, () => this.settings.get());
     this.prompts = new PromptsService(db, this.clock);
+    this.parental = new ParentalService(db, this.kv, this.clock);
+    this.copyBlockedReason = (c) => this.parental.copyBlockedReason(c);
+    this.tutorPrompt = () => this.parental.tutorPrompt();
+    this.bridge = new BrowserBridge({
+      kv: this.kv,
+      clock: this.clock,
+      version: app.getVersion(),
+      capture: (input) => {
+        const r = this.capture.capture(input);
+        this.changed(r.kind === 'note' ? 'notes' : r.kind === 'task' ? 'tasks' : 'bookmarks');
+        return r;
+      },
+      openAi: (prompt) => this.windows.showMain(`/ai/new?prompt=${encodeURIComponent(prompt)}`),
+      blocked: (action) => (action === 'ask' && !this.parental.isModuleAllowed('ai') ? 'The AI workspace is not part of the current study session.' : null),
+      onChange: () => this.changed('browser'),
+    });
     this.marketplace = new MarketplaceService({
       db,
       clock: this.clock,
@@ -215,6 +237,28 @@ export class AppContext {
     return ctx;
   }
 
+  parentalPlatform(): PlatformSupport {
+    const support = contentProtectionSupport(process.platform, os.release());
+    return {
+      os: `${process.platform === 'darwin' ? 'macOS' : process.platform === 'win32' ? 'Windows' : process.platform === 'linux' ? 'Linux' : process.platform} ${os.release()}`,
+      contentProtection: { supported: support.supported, applied: this.contentProtection.applied, detail: this.contentProtection.error ?? support.detail },
+    };
+  }
+
+  /** Applies parental settings that need the OS (screen-capture privacy) and tells the windows to refresh. */
+  applyParental(): void {
+    const want = this.parental.wantsContentProtection();
+    if (contentProtectionSupport(process.platform, os.release()).supported) {
+      try {
+        this.windows.setContentProtection(want);
+        this.contentProtection = { applied: want, error: null };
+      } catch (err) {
+        this.contentProtection = { applied: false, error: `Screen-capture privacy could not be turned on: ${(err as Error).message}` };
+      }
+    } else this.contentProtection = { applied: false, error: null };
+    this.changed('parental');
+  }
+
   private trialReminders(): { key: string; at: number; kind: 'soon' | 'ended'; trial: ReturnType<MarketplaceService['trials']>[number] }[] {
     if (!this.settings.get().marketplace.trialExpiryReminders) return [];
     const fired = new Set(this.kv.get<string[]>('trials:notified', []));
@@ -282,6 +326,7 @@ export class AppContext {
     powerMonitor.on('resume', () => this.onResume());
     this.housekeeping();
     this.registerSchedules();
+    this.applyParental();
     this.scheduler.wake();
   }
 
@@ -335,6 +380,22 @@ export class AppContext {
         });
         if (done.kind === 'focus' && this.settings.get().productivity.autoStartBreaks) this.focus.start(this.focus.nextKind());
         this.emit('focus.tick', this.focus.current());
+      },
+    });
+    this.scheduler.add({
+      name: 'study-session',
+      nextAt: () => this.parental.nextSessionEnd(),
+      run: () => {
+        const done = this.parental.completeDueSession();
+        if (!done) return;
+        this.notifications.notify({
+          dedupeKey: `study-session:${done.id}`,
+          kind: 'system',
+          title: 'Study session finished',
+          body: done.goal ? `“${done.goal}” is done. All sections are available again.` : 'All sections are available again.',
+          action: { route: '/home' },
+        });
+        this.changed('parental');
       },
     });
     this.scheduler.add({
@@ -399,6 +460,9 @@ export class AppContext {
     }
     if (prev && prev.data.backupsToKeep !== s.data.backupsToKeep) pruneBackups(this.paths.backupDir, s.data.backupsToKeep);
     if (prev) this.windows.applySettings(s);
+    if (!prev || prev.browser.bridgeEnabled !== s.browser.bridgeEnabled || prev.browser.bridgePort !== s.browser.bridgePort) {
+      void (s.browser.bridgeEnabled ? this.bridge.start(s.browser.bridgePort) : this.bridge.stop()).then(() => this.changed('browser'));
+    }
     if (prev && prev.marketplace.serverUrl !== s.marketplace.serverUrl) {
       // An account belongs to one server; switching servers signs you out.
       this.marketplace.forgetAccount();
@@ -468,6 +532,7 @@ export class AppContext {
 
   shutdown(): void {
     this.scheduler.stop();
+    void this.bridge.stop();
     this.tray.destroy();
     this.db.close();
   }
