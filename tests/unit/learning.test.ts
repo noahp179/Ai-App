@@ -139,6 +139,20 @@ describe('LearningService', () => {
     expect(r.items[0]).toMatchObject({ resourceId: 'fastai-course', reason: 'You started this' });
   });
 
+  it('uses conversation topics only with their separate consent', () => {
+    const db = memoryDb();
+    const clock = new FakeClock('2026-10-20T10:00:00Z');
+    const settings = SettingsSchema.parse({});
+    const svc = new LearningService(db, clock, () => settings, () => ['Why does my transformer model overfit?', 'Dinner ideas']);
+    expect(svc.recommendations().items.some((i) => i.reason.startsWith('Related to your AI conversation'))).toBe(false);
+    settings.privacy.useConversationsForPersonalization = true;
+    const rec = svc.recommendations().items.find((i) => i.reason.startsWith('Related to your AI conversation'));
+    expect(rec?.reason).toBe('Related to your AI conversation “Why does my transformer model overfit?”');
+    expect(svc.get(rec!.resourceId).title.toLowerCase()).toContain('transformer');
+    settings.privacy.personalization = false;
+    expect(svc.recommendations().items.every((i) => i.reason === 'A good place to start')).toBe(true);
+  });
+
   it('exports and deletes learning data, including links to resources', () => {
     const { svc, db, clock } = setup();
     const links = new LinksService(db, clock, (id) => svc.title(id));

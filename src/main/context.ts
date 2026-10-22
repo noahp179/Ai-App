@@ -139,7 +139,9 @@ export class AppContext {
     this.events = new EventsService(db, this.clock, zone);
     this.data = new DataService(db);
     this.games = new GamesService(db, this.clock);
-    this.learning = new LearningService(db, this.clock, () => this.settings.get());
+    this.learning = new LearningService(db, this.clock, () => this.settings.get(), () =>
+      db.all<{ title: string }>("SELECT title FROM conversations WHERE archived_at IS NULL AND ephemeral = 0 AND title != '' AND title != 'New conversation' ORDER BY updated_at DESC LIMIT 15").map((r) => r.title),
+    );
     this.prompts = new PromptsService(db, this.clock);
     this.parental = new ParentalService(db, this.kv, this.clock);
     this.copyBlockedReason = (c) => this.parental.copyBlockedReason(c);

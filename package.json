@@ -1,7 +1,7 @@
 {
   "name": "flowcompanion",
   "productName": "FlowCompanion",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "A standalone desktop workspace for AI, productivity, learning and personal organization.",
   "license": "MIT",
@@ -57,5 +57,80 @@
     "typescript-eslint": "^8.72.0",
     "vite": "^7.3.7",
     "vitest": "^4.1.12"
-  }
+  },
+  "build": {
+    "appId": "org.flowcompanion.desktop",
+    "productName": "FlowCompanion",
+    "copyright": "Copyright \u00a9 2026 FlowCompanion contributors",
+    "directories": {
+      "output": "release",
+      "buildResources": "resources"
+    },
+    "files": [
+      "dist/main/**/*",
+      "dist/preload/**/*",
+      "dist/renderer/**/*",
+      "resources/icon.png",
+      "resources/tray.png",
+      "package.json",
+      "!**/*.map",
+      "!**/node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "extension",
+        "to": "extension",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "asar": true,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "grantFileProtocolExtraPrivileges": false
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office",
+      "icon": "resources/icon.png",
+      "synopsis": "AI, productivity and learning workspace",
+      "maintainer": "FlowCompanion contributors <noreply@flowcompanion.invalid>",
+      "syncDesktopName": true
+    },
+    "deb": {
+      "packageCategory": "office"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "resources/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "resources/icon.png",
+      "hardenedRuntime": true
+    },
+    "publish": null
+  },
+  "desktopName": "flowcompanion.desktop"
 }

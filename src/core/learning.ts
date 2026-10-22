@@ -39,6 +39,8 @@ const toProgress = (r: Row): ResourceProgress => ({
 });
 
 const STATUSES: ResourceStatus[] = ['not_started', 'in_progress', 'completed'];
+const STOP_WORDS = new Set(['about', 'with', 'from', 'that', 'this', 'what', 'your', 'help', 'write', 'make', 'into', 'have', 'need', 'using', 'conversation', 'untitled', 'please', 'question', 'questions', 'some', 'more', 'how', 'why', 'when', 'where', 'which', 'learn', 'learning']);
+const cleanTitle = (t: string) => (t.length > 60 ? `${t.slice(0, 59)}…` : t);
 const LEVELS = { beginner: 0, intermediate: 1, advanced: 2 } as const;
 
 /**
@@ -55,6 +57,8 @@ export class LearningService {
     private readonly db: Db,
     private readonly clock: Clock,
     private readonly settings: () => Settings,
+    /** Titles of recent AI conversations; only read when the user allows it (privacy.useConversationsForPersonalization). */
+    private readonly conversationTitles: () => string[] = () => [],
     catalog = loadCatalog(),
   ) {
     this.items = catalog.resources;
@@ -214,6 +218,24 @@ export class LearningService {
       const recent = [...progress.values()].filter((p) => p.status === 'in_progress').sort((a, b) => (b.lastOpenedAt ?? b.updatedAt).localeCompare(a.lastOpenedAt ?? a.updatedAt));
       for (const p of recent.slice(0, 2)) add(p.resourceId, 'You started this', null);
       for (const p of paths.filter((x) => x.started && x.nextResourceId)) add(p.nextResourceId, `Next step in “${p.title}”`, p.id);
+    }
+    if (s.privacy.useConversationsForPersonalization) {
+      // Matched locally against resource titles and topics; nothing is sent anywhere.
+      let found = 0;
+      for (const title of this.conversationTitles().slice(0, 15)) {
+        if (found >= 2) break;
+        const words = (title.toLowerCase().match(/[\p{L}][\p{L}-]{3,}/gu) ?? []).filter((w) => !STOP_WORDS.has(w));
+        for (const w of words) {
+          const hit = this.items.find(
+            (r) => !seen.has(r.id) && progress.get(r.id)?.status !== 'completed' && (r.title.toLowerCase().split(/[^\p{L}]+/u).includes(w) || r.topics.some((t) => topicLabel(t).toLowerCase().split(/[^\p{L}]+/u).includes(w))),
+          );
+          if (hit) {
+            add(hit.id, `Related to your AI conversation “${cleanTitle(title)}”`, null);
+            found++;
+            break;
+          }
+        }
+      }
     }
     const level = s.learning.preferredLevel;
     for (const goal of s.learning.goals) {

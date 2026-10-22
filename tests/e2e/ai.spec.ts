@@ -23,6 +23,23 @@ test('AI workspace shows an honest setup screen, then chats through a connected 
     await expect(page.getByLabel('Assistant message').getByText('Hello, world')).toBeVisible();
     await expect(page.getByText(/Sent to OpenAI-compatible/)).toBeVisible();
 
+    // An answer can become a note and a task, both linked back to the conversation.
+    const answer = page.getByLabel('Assistant message').last();
+    await answer.hover();
+    await answer.getByRole('button', { name: 'Save response as a note' }).click();
+    await expect(page.getByText('Saved as note.')).toBeVisible();
+    await answer.hover();
+    await answer.getByRole('button', { name: 'Create a task from this response' }).click();
+    const noteTitles = await page.evaluate(async () => {
+      const r = await window.fc.invoke('notes.list', [{}]);
+      return r.ok ? (r.value as { title: string }[]).map((n) => n.title) : [];
+    });
+    expect(noteTitles.some((t) => t.includes('Hello, world'))).toBe(true);
+    await expect.poll(async () => (await page.evaluate(async () => {
+      const t = await window.fc.invoke('tasks.list', [{}]);
+      return t.ok ? (t.value as { title: string }[]).map((x) => x.title) : [];
+    })).some((t) => t.includes('Hello, world'))).toBe(true);
+
     // The conversation is searchable and survives a restart.
     await close(l);
     const again = await launch(l.dataDir);

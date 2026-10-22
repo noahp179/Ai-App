@@ -266,6 +266,13 @@ export class FeedService {
       for (const it of items) {
         const uk = urlKey(it.url);
         const tk = titleKey(it.title);
+        // Some publishers (e.g. BBC) re-issue the same article in the same feed with a new GUID. Treat that as an
+        // update of the item we already have, not as a new headline.
+        const same = uk ? this.db.get<{ id: string }>('SELECT id FROM feed_items WHERE source_id = ? AND url_key = ? ORDER BY rowid LIMIT 1', [s.id, uk]) : undefined;
+        if (same) {
+          this.db.run('UPDATE feed_items SET title = ?, summary = ?, title_key = ? WHERE id = ?', [it.title, it.summary, tk, same.id]);
+          continue;
+        }
         const dup = this.db.get<{ id: string }>(
           'SELECT id FROM feed_items WHERE source_id != ? AND duplicate_of IS NULL AND (url_key = ? OR (title_key = ? AND length(title_key) > 20)) LIMIT 1',
           [s.id, uk, tk],
@@ -281,6 +288,13 @@ export class FeedService {
           if (!dup) fresh.push({ id, sourceId: s.id, sourceName: s.name, category: s.category, url: it.url, title: it.title, summary: it.summary, author: it.author, publishedAt: it.publishedAt, fetchedAt: now, readAt: null, savedAt: null, duplicateOf: null });
         }
       }
+      // Caches written before same-feed republications were detected may hold copies; fold them into the first one.
+      this.db.run(
+        `UPDATE feed_items SET duplicate_of = (SELECT f2.id FROM feed_items f2 WHERE f2.source_id = feed_items.source_id AND f2.url_key = feed_items.url_key AND f2.rowid < feed_items.rowid ORDER BY f2.rowid LIMIT 1)
+         WHERE source_id = ? AND duplicate_of IS NULL AND saved_at IS NULL AND url_key != ''
+           AND EXISTS (SELECT 1 FROM feed_items f3 WHERE f3.source_id = feed_items.source_id AND f3.url_key = feed_items.url_key AND f3.rowid < feed_items.rowid)`,
+        [s.id],
+      );
       // Keep the cache bounded; never drop saved items.
       this.db.run(
         `DELETE FROM feed_items WHERE source_id = ? AND saved_at IS NULL AND id NOT IN (

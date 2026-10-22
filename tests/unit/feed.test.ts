@@ -131,6 +131,21 @@ describe('feed service', () => {
     expect(svc.searchSaved('launch')).toHaveLength(1);
   });
 
+  it('treats an article re-issued in the same feed with a new GUID as one item (BBC style)', async () => {
+    const story = (guid: string, title: string) =>
+      `<item><title>${title}</title><link>https://www.bbc.co.uk/news/articles/c623?at_medium=RSS&amp;at_campaign=rss</link><guid isPermaLink="false">${guid}</guid><description>About energy</description></item>`;
+    feeds['/bbc.xml'] = { body: `<?xml version="1.0"?><rss version="2.0"><channel><title>BBC</title>${story('https://www.bbc.co.uk/news/articles/c623#0', 'NI risks missing 2030 goals')}${story('https://www.bbc.co.uk/news/articles/c623#3', 'NI risks missing 2030 energy goals')}</channel></rss>` };
+    const { svc, settings, db } = setup();
+    settings.update({ feed: { topics: ['science'] } });
+    const { source } = await svc.addSource({ url: `${base}/bbc.xml`, category: 'science' });
+    expect(svc.items().map((i) => i.title)).toEqual(['NI risks missing 2030 energy goals']);
+    // A cache written by an older version that stored both copies is folded on the next refresh.
+    db.run("INSERT INTO feed_items (id, source_id, guid, url, title, summary, author, published_at, fetched_at, url_key, title_key) SELECT 'old-copy', source_id, 'legacy#9', url, title, summary, author, published_at, fetched_at, url_key, title_key FROM feed_items LIMIT 1");
+    expect(svc.items()).toHaveLength(2);
+    await svc.refresh([source.id], { force: true });
+    expect(svc.items()).toHaveLength(1);
+  });
+
   it('hides blocked sources and fires keyword alerts for new items only', async () => {
     feeds['/c.xml'] = { body: RSS(item('Weather update', 'https://c.test/1')) };
     const { svc, alerts } = setup();

@@ -80,3 +80,40 @@ test('games: trivia round records a score; sudoku progress survives a restart', 
     await close(again);
   }
 });
+
+test('games: word guess, memory and reaction time are playable with keyboard and mouse', async () => {
+  const l = await launch();
+  try {
+    const { page } = l;
+    await nav(page, 'Games').click();
+
+    await page.getByRole('button', { name: /^Word guess/ }).click();
+    await page.keyboard.type('crane');
+    await page.keyboard.press('Enter');
+    // Either feedback for each letter, or (1 in 771) solved on the first try.
+    await expect(page.getByRole('grid', { name: 'Guesses' }).getByRole('gridcell', { name: /^C, / }).first()).toBeVisible();
+    if (!(await page.getByText(/Solved in 1/).isVisible())) {
+      await page.keyboard.type('qzxv');
+      await page.keyboard.press('Enter');
+      await expect(page.getByText('Use five letters.')).toBeVisible();
+    }
+    await page.getByRole('button', { name: 'All games' }).click();
+
+    await page.getByRole('button', { name: /^Memory match/ }).click();
+    const cards = page.getByRole('grid', { name: 'Cards' }).getByRole('gridcell');
+    await expect(cards).toHaveCount(16);
+    await cards.nth(0).click();
+    await cards.nth(1).click();
+    await expect(page.getByText(/^Moves 1 ·/)).toBeVisible();
+    await page.getByRole('button', { name: 'All games' }).click();
+
+    await page.getByRole('button', { name: /^Reaction time/ }).click();
+    const panel = page.getByRole('button', { name: /Click or press Space to start/ });
+    await panel.click();
+    await expect(page.getByRole('button', { name: /Wait for green/ })).toBeVisible();
+    await page.getByRole('button', { name: /Wait for green/ }).click();
+    await expect(page.getByRole('button', { name: /Too soon/ })).toBeVisible();
+  } finally {
+    await close(l);
+  }
+});

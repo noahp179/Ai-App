@@ -464,7 +464,7 @@ export function PrivacySection() {
         />
         <ToggleSetting
           label="Also use my AI conversation titles"
-          description="Separate consent: lets suggestions consider the topics of your AI conversations. Processed locally; never sent anywhere."
+          description="Separate consent: lets Learning Hub suggestions consider the titles of your recent AI conversations. Matched on this computer; never sent anywhere."
           value={p.useConversationsForPersonalization}
           disabled={!p.personalization}
           onSave={(v) => update({ privacy: { useConversationsForPersonalization: v } })}
