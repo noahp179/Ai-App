@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Settings } from '../shared/settings';
 import { Companion } from './companion/Companion';
-import { ConfirmProvider, Loading, ToastProvider } from './components/ui';
+import { ConfirmProvider, Loading, PromptProvider, ToastProvider } from './components/ui';
 import { api, errorMessage } from './lib/api';
 import { SettingsProvider, applyAppearance } from './lib/settings';
 import { Shell } from './shell/Shell';
@@ -30,7 +30,9 @@ export function App() {
   return (
     <SettingsProvider initial={settings}>
       <ToastProvider>
-        <ConfirmProvider>{isCompanion ? <Companion /> : <Shell />}</ConfirmProvider>
+        <ConfirmProvider>
+          <PromptProvider>{isCompanion ? <Companion /> : <Shell />}</PromptProvider>
+        </ConfirmProvider>
       </ToastProvider>
     </SettingsProvider>
   );

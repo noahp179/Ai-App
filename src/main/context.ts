@@ -2,9 +2,14 @@ import { Notification, app, clipboard, dialog, nativeTheme, net, powerMonitor, s
 import { AiTasksService } from '../core/aitasks';
 import { AiService } from '../core/ai/service';
 import { BookmarksService } from '../core/bookmarks';
+import { EventsService } from '../core/calendar/events';
+import { RemindersService } from '../core/calendar/reminders';
 import { CaptureService } from '../core/capture';
 import type { Db } from '../core/db/database';
-import { listBackups, openDatabase, pruneBackups } from '../core/db/open';
+import { createBackup, listBackups, openDatabase, pruneBackups } from '../core/db/open';
+import { DataService } from '../core/data';
+import fs from 'node:fs';
+import path from 'node:path';
 import { FocusService } from '../core/focus';
 import { KvStore } from '../core/kv';
 import { LinksService } from '../core/links';
@@ -54,6 +59,9 @@ export class AppContext {
   readonly capture: CaptureService;
   readonly aiTasks: AiTasksService;
   readonly ai: AiService;
+  readonly events: EventsService;
+  readonly data: DataService;
+  readonly reminders: RemindersService;
   readonly startup: StartupReport;
   capabilities!: Capabilities;
   shortcutStatus: ShortcutStatus[] = [];
@@ -112,6 +120,9 @@ export class AppContext {
     this.focus = new FocusService(db, this.clock, () => this.settings.get(), zone);
     this.search = new SearchService(db, [{ search: (q, limit) => this.extraSearch(q, limit) }]);
     this.capture = new CaptureService(this.notes, this.tasks, this.bookmarks);
+    this.events = new EventsService(db, this.clock, zone);
+    this.data = new DataService(db);
+    this.reminders = new RemindersService(db, this.clock, this.events, this.tasks, this.notifications, () => this.settings.get().notifications.missedGraceMinutes);
     this.aiTasks = new AiTasksService(db, this.clock, (t) => {
       this.emit('ai.task', t);
       this.scheduler.wake();
@@ -187,7 +198,15 @@ export class AppContext {
     }
   }
 
-  resolveEventAttachment: (id: string) => { label: string; text: string } | null = () => null;
+  private resolveEventAttachment(id: string): { label: string; text: string } | null {
+    const ev = this.events.get(id);
+    const when = ev.allDay ? `${ev.start} to ${ev.end} (all day)` : `${ev.start} to ${ev.end} (${ev.timeZone})`;
+    const parts = [`${ev.title}`, `When: ${when}`];
+    if (ev.location) parts.push(`Where: ${ev.location}`);
+    if (ev.notes) parts.push('', ev.notes);
+    if (ev.checklist.length) parts.push('', 'Checklist:', ...ev.checklist.map((c) => `- [${c.done ? 'x' : ' '}] ${c.text}`));
+    return { label: `event: ${ev.title}`, text: parts.join('\n') };
+  }
 
   private init(): void {
     pruneBackups(this.paths.backupDir, this.settings.get().data.backupsToKeep);
@@ -217,6 +236,13 @@ export class AppContext {
   }
 
   private registerSchedules(): void {
+    this.scheduler.add({
+      name: 'reminders',
+      nextAt: () => this.reminders.nextAt(),
+      run: () => {
+        if (this.reminders.deliverDue() > 0) this.changed('inbox');
+      },
+    });
     this.scheduler.add({
       name: 'focus',
       nextAt: () => {
@@ -300,7 +326,36 @@ export class AppContext {
   }
 
   backups() {
-    return listBackups(this.paths.backupDir);
+    return listBackups(this.paths.backupDir).map(({ file, size, createdAt }) => ({ file, size, createdAt }));
+  }
+
+  createBackup(label = 'manual'): string {
+    return path.basename(createBackup(this.db, this.paths.backupDir, label, this.clock.now(), this.settings.get().data.backupsToKeep));
+  }
+
+  /** Replaces the database with a backup and restarts. The current data is backed up first. */
+  restoreBackup(file: string): void {
+    const backup = listBackups(this.paths.backupDir).find((b) => b.file === file);
+    if (!backup) throw new Error('That backup does not exist.');
+    createBackup(this.db, this.paths.backupDir, 'before-restore', this.clock.now(), this.settings.get().data.backupsToKeep + 1);
+    this.quitting = true;
+    this.scheduler.stop();
+    this.db.close();
+    for (const ext of ['-wal', '-shm']) fs.rmSync(this.paths.dbPath + ext, { force: true });
+    fs.copyFileSync(backup.path, this.paths.dbPath);
+    app.relaunch();
+    app.exit(0);
+  }
+
+  /** Deletes the database, its backups and all secrets, then restarts empty. */
+  deleteAllData(): void {
+    this.quitting = true;
+    this.scheduler.stop();
+    this.db.close();
+    for (const ext of ['', '-wal', '-shm']) fs.rmSync(this.paths.dbPath + ext, { force: true });
+    fs.rmSync(this.paths.backupDir, { recursive: true, force: true });
+    app.relaunch();
+    app.exit(0);
   }
 
   showError(title: string, message: string): void {

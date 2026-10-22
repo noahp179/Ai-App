@@ -32,6 +32,11 @@ export async function launch(dataDir = freshDataDir(), env: Record<string, strin
   return { app, page, dataDir, logs };
 }
 
+/** A main-navigation button (avoids clashes with same-named buttons elsewhere). */
+export function nav(page: Page, name: string) {
+  return page.getByRole('complementary', { name: 'Main navigation' }).getByRole('button', { name, exact: true });
+}
+
 export async function close(l: Launched): Promise<void> {
   await l.app.evaluate(({ app }) => app.quit()).catch(() => {});
   await l.app.close().catch(() => {});

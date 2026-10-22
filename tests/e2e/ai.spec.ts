@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { startMockProviders } from '../helpers/mockProviders';
-import { close, launch } from './launch';
+import { close, launch, nav } from './launch';
 
 test('AI workspace shows an honest setup screen, then chats through a connected provider', async () => {
   const mock = await startMockProviders();
   const l = await launch();
   try {
     const { page } = l;
-    await page.getByRole('button', { name: 'AI Workspace' }).click();
+    await nav(page, 'AI Workspace').click();
     await expect(page.getByRole('heading', { name: 'Connect an AI provider' })).toBeVisible();
     await expect(page.getByText('it never makes up responses')).toBeVisible();
 
@@ -27,7 +27,7 @@ test('AI workspace shows an honest setup screen, then chats through a connected 
     await close(l);
     const again = await launch(l.dataDir);
     try {
-      await again.page.getByRole('button', { name: 'AI Workspace' }).click();
+      await nav(again.page, 'AI Workspace').click();
       await again.page.getByLabel('Search conversations').fill('hello');
       await expect(again.page.getByRole('button', { name: /Hello there/ })).toBeVisible();
       await again.page.getByRole('button', { name: /Hello there/ }).click();
@@ -46,7 +46,7 @@ test('provider errors are shown with guidance and can be retried on another mode
   const l = await launch();
   try {
     const { page } = l;
-    await page.getByRole('button', { name: 'AI Workspace' }).click();
+    await nav(page, 'AI Workspace').click();
     await page.getByRole('button', { name: /OpenAI-compatible/ }).click();
     await page.getByLabel('Address').fill(`${mock.base}/openai/v1`);
     await page.getByRole('button', { name: 'Connect and test' }).click();
@@ -73,7 +73,7 @@ test('live: a real local model answers through the FlowCompanion UI', async () =
   const l = await launch();
   try {
     const { page } = l;
-    await page.getByRole('button', { name: 'AI Workspace' }).click();
+    await nav(page, 'AI Workspace').click();
     await page.getByRole('button', { name: /OpenAI-compatible/ }).click();
     await page.getByLabel('Address').fill(live!);
     await page.getByRole('button', { name: 'Connect and test' }).click();

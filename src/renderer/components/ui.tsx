@@ -430,3 +430,64 @@ export function Menu({ label, icon, items }: { label: string; icon: ReactNode; i
     </div>
   );
 }
+
+// ─────────── Text prompt dialog (Electron has no window.prompt) ───────────
+
+interface PromptOptions {
+  title: string;
+  label: string;
+  initial?: string;
+  confirmLabel?: string;
+}
+type PromptFn = (o: PromptOptions) => Promise<string | null>;
+const PromptCtx = createContext<PromptFn>(async () => null);
+
+export function PromptProvider({ children }: { children: ReactNode }) {
+  const [pending, setPending] = useState<(PromptOptions & { resolve: (v: string | null) => void }) | null>(null);
+  const [value, setValue] = useState('');
+  const ask = useCallback<PromptFn>(
+    (o) =>
+      new Promise((resolve) => {
+        setValue(o.initial ?? '');
+        setPending({ ...o, resolve });
+      }),
+    [],
+  );
+  const close = (v: string | null) => {
+    pending?.resolve(v);
+    setPending(null);
+  };
+  return (
+    <PromptCtx.Provider value={ask}>
+      {children}
+      {pending ? (
+        <Modal
+          title={pending.title}
+          onClose={() => close(null)}
+          initialFocus="input"
+          footer={
+            <>
+              <Button onClick={() => close(null)}>Cancel</Button>
+              <Button variant="primary" disabled={!value.trim()} onClick={() => close(value.trim())}>
+                {pending.confirmLabel ?? 'OK'}
+              </Button>
+            </>
+          }
+        >
+          <Field label={pending.label} htmlFor="prompt-input">
+            <Input
+              id="prompt-input"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && value.trim()) close(value.trim());
+              }}
+            />
+          </Field>
+        </Modal>
+      ) : null}
+    </PromptCtx.Provider>
+  );
+}
+
+export const usePrompt = () => useContext(PromptCtx);

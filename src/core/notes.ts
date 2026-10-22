@@ -72,6 +72,12 @@ function isIsoDate(s: string | undefined): s is string {
   return !!s && !Number.isNaN(Date.parse(s));
 }
 
+/** Drops a leading "# Title" line when it repeats the note title, so excerpts show new text. */
+function stripTitleHeading(body: string, title: string): string {
+  const m = /^\s*#{1,6}\s+(.+)\n?/.exec(body);
+  return m && m[1]!.trim().toLowerCase() === title.trim().toLowerCase() ? body.slice(m[0].length) : body;
+}
+
 export function titleFromBody(body: string, fallback = 'Untitled'): string {
   const first = body.split('\n').find((l) => l.trim().length > 0) ?? '';
   return cleanLine(first.replace(/^#+\s*/, ''), 120) || fallback;
@@ -100,7 +106,7 @@ export class NotesService {
     return {
       id: r.id,
       title: r.title,
-      excerpt: excerpt(r.body),
+      excerpt: excerpt(stripTitleHeading(r.body, r.title)),
       format: r.format,
       folderId: r.folder_id,
       tags: r.tags ? (JSON.parse(r.tags) as string[]).sort() : [],

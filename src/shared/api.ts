@@ -6,11 +6,13 @@ import type {
   AiTaskState,
   AppInfo,
   Bookmark,
+  CalendarEvent,
   Capabilities,
   CaptureKind,
   CaptureResult,
   Conversation,
   EntityLink,
+  EventOccurrence,
   FocusSession,
   FocusStats,
   Folder,
@@ -27,6 +29,8 @@ import type {
   ProviderConfig,
   ProviderKind,
   ProviderStatus,
+  RecurrenceRule,
+  ReminderRecord,
   SearchHit,
   SendMessageInput,
   StartupReport,
@@ -66,6 +70,23 @@ export interface TaskInput {
   priority?: TaskPriority;
   dueAt?: string | null;
 }
+
+export interface EventInputData {
+  title: string;
+  notes?: string;
+  location?: string;
+  meetingUrl?: string;
+  category?: string;
+  allDay?: boolean;
+  start: string;
+  end: string;
+  timeZone: string;
+  recurrence?: RecurrenceRule | null;
+  checklist?: { id: string; text: string; done: boolean }[];
+  reminders?: number[];
+}
+
+export type OccurrenceScope = 'this' | 'following' | 'all';
 
 export type ProviderView = ProviderConfig & { options: Record<string, unknown> };
 
@@ -131,6 +152,38 @@ export interface FlowApi {
     pause(minutes: number): string;
     resume(): void;
     pausedUntil(): string | null;
+    snooze(notificationId: string, minutes?: number): ReminderRecord;
+  };
+  data: {
+    inventory(): { table: string; label: string; description: string; rows: number }[];
+    exportAll(): Promise<SaveResult>;
+    backups(): { file: string; size: number; createdAt: string }[];
+    createBackup(): { file: string };
+    restoreBackup(file: string): void;
+    deleteAll(confirmation: string): void;
+    openFolder(): void;
+  };
+  calendar: {
+    occurrences(fromIso: string, toIso: string): EventOccurrence[];
+    get(id: string): CalendarEvent;
+    create(input: EventInputData): CalendarEvent;
+    update(id: string, patch: Partial<EventInputData>): CalendarEvent;
+    delete(id: string): void;
+    updateOccurrence(id: string, key: string, patch: { title?: string; start?: string; end?: string; location?: string; notes?: string }, scope: OccurrenceScope): CalendarEvent;
+    deleteOccurrence(id: string, key: string, scope: OccurrenceScope): void;
+    restoreOccurrence(id: string, key: string): CalendarEvent;
+    categories(): string[];
+    exportIcs(): Promise<SaveResult>;
+  };
+  reminders: {
+    list(includeDone?: boolean): ReminderRecord[];
+    overdue(): ReminderRecord[];
+    create(input: { title: string; body?: string; fireAt: string; refType?: ReminderRecord['refType']; refId?: string | null }): ReminderRecord;
+    update(id: string, patch: { title?: string; body?: string; fireAt?: string }): ReminderRecord;
+    complete(id: string): void;
+    dismiss(id: string): void;
+    delete(id: string): void;
+    snooze(id: string, minutes: number): ReminderRecord;
   };
   notes: {
     list(query?: NoteQuery): NoteSummary[];

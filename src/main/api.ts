@@ -1,7 +1,9 @@
-import { app } from 'electron';
+import { app, shell } from 'electron';
 import { titleFromBody } from '../core/notes';
 import { UserError, cleanLine } from '../core/util';
-import type { FlowApi, ImportReport } from '../shared/api';
+import type { FlowApi, ImportReport, OccurrenceScope } from '../shared/api';
+import { CATEGORIES } from '../core/calendar/events';
+import { toIcs } from '../core/calendar/ics';
 import { APP_MODES, type AppMode } from '../shared/settings';
 import type { AppInfo } from '../shared/types';
 import type { AppContext } from './context';
@@ -40,9 +42,24 @@ export function createApi(ctx: AppContext): FlowApi {
     ctx.changed(entity);
     return value;
   };
+  const tasksChanged = <T>(v: T): T => {
+    ctx.changed('tasks');
+    ctx.scheduler.wake();
+    return v;
+  };
   const changedNote = <T extends { id: string }>(n: T): T => {
     ctx.changed('notes', n.id);
     return n;
+  };
+  const calendarChanged = <T>(v?: T): T => {
+    ctx.changed('calendar');
+    ctx.changed('reminders');
+    ctx.scheduler.wake();
+    return v as T;
+  };
+  const scopeOf = (s: unknown): OccurrenceScope => {
+    if (s !== 'this' && s !== 'following' && s !== 'all') throw new UserError('Unknown scope.');
+    return s;
   };
   const focusChanged = <T>(v: T): T => {
     ctx.emit('focus.tick', ctx.focus.current());
@@ -90,6 +107,50 @@ export function createApi(ctx: AppContext): FlowApi {
         ctx.tray.refresh();
       },
       pausedUntil: () => ctx.notifications.pausedUntil(),
+      snooze: (notificationId, minutes) => {
+        const n = ctx.notifications.get(str(notificationId, 'id', 100));
+        if (!n || !n.snoozable || !n.sourceRef) throw new UserError('This notification cannot be snoozed.');
+        const r = ctx.reminders.snoozeNotification(n.sourceRef, n.title.replace(/^Missed: /, ''), n.body, minutes ?? ctx.settings.get().notifications.snoozeMinutes);
+        ctx.notifications.markRead(n.id);
+        calendarChanged();
+        return r;
+      },
+    },
+    data: {
+      inventory: () => ctx.data.inventory(),
+      exportAll: async () =>
+        saveFile(`flowcompanion-export-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(ctx.data.exportAll(new Date(), app.getVersion()), null, 2), [{ name: 'JSON', extensions: ['json'] }]),
+      backups: () => ctx.backups(),
+      createBackup: () => ({ file: ctx.createBackup() }),
+      restoreBackup: (file) => ctx.restoreBackup(str(file, 'Backup', 300)),
+      deleteAll: (confirmation) => {
+        if (confirmation !== 'DELETE') throw new UserError('Type DELETE to confirm.');
+        ctx.deleteAllData();
+      },
+      openFolder: () => void shell.openPath(ctx.paths.dataDir),
+    },
+    calendar: {
+      occurrences: (from, to) => ctx.events.occurrences(str(from, 'from', 40), str(to, 'to', 40)),
+      get: (id) => ctx.events.get(id),
+      create: (input) => calendarChanged(ctx.events.create(input)),
+      update: (id, patch) => calendarChanged(ctx.events.update(id, patch)),
+      delete: (id) => calendarChanged(ctx.events.delete(id)),
+      updateOccurrence: (id, key, patch, scope) => calendarChanged(ctx.events.updateOccurrence(id, key, patch, scopeOf(scope))),
+      deleteOccurrence: (id, key, scope) => calendarChanged(ctx.events.deleteOccurrence(id, key, scopeOf(scope))),
+      restoreOccurrence: (id, key) => calendarChanged(ctx.events.restoreOccurrence(id, key)),
+      categories: () => [...CATEGORIES],
+      exportIcs: async () =>
+        saveFile(`flowcompanion-calendar-${new Date().toISOString().slice(0, 10)}.ics`, toIcs(ctx.events.all(), new Date()), [{ name: 'iCalendar', extensions: ['ics'] }]),
+    },
+    reminders: {
+      list: (includeDone) => ctx.reminders.list({ includeDone: includeDone === true }),
+      overdue: () => ctx.reminders.overdue(),
+      create: (input) => calendarChanged(ctx.reminders.create(input)),
+      update: (id, patch) => calendarChanged(ctx.reminders.update(id, patch)),
+      complete: (id) => calendarChanged(ctx.reminders.complete(id)),
+      dismiss: (id) => calendarChanged(ctx.reminders.dismiss(id)),
+      delete: (id) => calendarChanged(ctx.reminders.delete(id)),
+      snooze: (id, minutes) => calendarChanged(ctx.reminders.snooze(id, minutes)),
     },
     settings: {
       get: () => ctx.settings.get(),
@@ -220,8 +281,8 @@ export function createApi(ctx: AppContext): FlowApi {
       deleteList: (id) => changed('tasks', ctx.tasks.deleteList(id)),
       list: (q) => ctx.tasks.list(q ?? {}),
       get: (id) => ctx.tasks.get(id),
-      create: (input) => changed('tasks', ctx.tasks.create(input)),
-      update: (id, patch) => changed('tasks', ctx.tasks.update(id, patch)),
+      create: (input) => tasksChanged(ctx.tasks.create(input)),
+      update: (id, patch) => tasksChanged(ctx.tasks.update(id, patch)),
       toggle: (id, done) => changed('tasks', ctx.tasks.toggle(id, done === true)),
       delete: (id) => changed('tasks', ctx.tasks.delete(id)),
       move: (id, beforeId, afterId) => changed('tasks', ctx.tasks.move(id, beforeId, afterId)),
