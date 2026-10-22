@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>FlowCompanion</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <img src="icons/icon-32.png" alt="" width="20" height="20" />
+      <strong>FlowCompanion</strong>
+      <span id="dot" class="dot" aria-hidden="true"></span>
+    </header>
+    <p id="status" role="status" class="muted">Checking…</p>
+
+    <section id="pair" hidden>
+      <p>In FlowCompanion, open <b>Settings → Browser</b>, turn on the browser bridge and choose <b>Pair a browser</b>. Then enter the code here.</p>
+      <label for="code">Pairing code</label>
+      <input id="code" autocomplete="off" placeholder="ABCD-EFGH" />
+      <button id="pairBtn" class="primary">Pair</button>
+    </section>
+
+    <section id="actions" hidden>
+      <button id="savePage" class="primary">Save this page to reading queue</button>
+      <button id="saveSel">Save selected text as a note</button>
+      <button id="askSel">Ask FlowCompanion AI about the selection</button>
+      <p class="muted small">Nothing is sent to an AI service until you press Send in the app.</p>
+    </section>
+
+    <details>
+      <summary>Connection</summary>
+      <label for="port">Port</label>
+      <input id="port" type="number" min="1024" max="65535" />
+      <button id="savePort">Save</button>
+      <button id="forget" class="link">Forget this pairing</button>
+    </details>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

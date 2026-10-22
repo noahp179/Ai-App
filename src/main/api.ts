@@ -1,0 +1,689 @@
+import { app, shell } from 'electron';
+import { titleFromBody } from '../core/notes';
+import { UserError, cleanLine } from '../core/util';
+import type { FlowApi, ImportReport, OccurrenceScope } from '../shared/api';
+import { CATEGORIES } from '../core/calendar/events';
+import { toIcs } from '../core/calendar/ics';
+import { APP_MODES, type AppMode } from '../shared/settings';
+import type { AppInfo } from '../shared/types';
+import type { AppContext } from './context';
+import { openExternalSafe } from './security';
+import { openTextFiles, parseJsonFile, saveFile } from './files';
+
+function clampInt(v: unknown, min: number, max: number, fallback: number): number {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(v)));
+}
+
+function str(v: unknown, name: string, max = 10_000): string {
+  if (typeof v !== 'string') throw new UserError(`${name} must be text.`);
+  if (v.length > max) throw new UserError(`${name} is too long.`);
+  return v;
+}
+
+/** Builds the IPC-facing API from the app context. Arguments from the UI are validated here or in services. */
+export function createApi(ctx: AppContext): FlowApi {
+  const info = (): AppInfo => ({
+    name: 'FlowCompanion',
+    version: app.getVersion(),
+    platform: process.platform,
+    arch: process.arch,
+    electron: process.versions.electron ?? '',
+    chrome: process.versions.chrome ?? '',
+    node: process.versions.node,
+    sqlite: ctx.db.get<{ v: string }>('SELECT sqlite_version() AS v')?.v ?? '',
+    dataDir: ctx.paths.dataDir,
+    dbPath: ctx.paths.dbPath,
+    isPackaged: app.isPackaged,
+    systemTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  });
+
+  const changed = <T>(entity: string, value: T): T => {
+    ctx.changed(entity);
+    return value;
+  };
+  const tasksChanged = <T>(v: T): T => {
+    ctx.changed('tasks');
+    ctx.scheduler.wake();
+    return v;
+  };
+  const changedNote = <T extends { id: string }>(n: T): T => {
+    ctx.changed('notes', n.id);
+    return n;
+  };
+  const calendarChanged = <T>(v?: T): T => {
+    ctx.changed('calendar');
+    ctx.changed('reminders');
+    ctx.scheduler.wake();
+    return v as T;
+  };
+  /** Parental locks are enforced here too, not only by hiding the UI. */
+  const aiOpen = () => {
+    const why = ctx.parental.lockReason('ai');
+    if (why) throw new UserError(why, 'locked');
+  };
+  const scopeOf = (s: unknown): OccurrenceScope => {
+    if (s !== 'this' && s !== 'following' && s !== 'all') throw new UserError('Unknown scope.');
+    return s;
+  };
+  const focusChanged = <T>(v: T): T => {
+    ctx.emit('focus.tick', ctx.focus.current());
+    ctx.scheduler.wake();
+    return v;
+  };
+
+  return {
+    app: {
+      info,
+      capabilities: () => ctx.capabilities,
+      startupReport: () => ctx.startup,
+      openExternal: (url) => openExternalSafe(str(url, 'URL', 4000)),
+      copyText: (text, context) => {
+        str(text, 'Text', 2_000_000);
+        const blocked = ctx.copyBlockedReason?.(context) ?? null;
+        if (blocked) return { copied: false, reason: blocked };
+        ctx.copyText(text);
+        return { copied: true, reason: null };
+      },
+      relaunch: () => {
+        app.relaunch();
+        app.quit();
+      },
+      quit: () => app.quit(),
+      setLastRoute: (route) => {
+        const r = str(route, 'Route', 500);
+        if (r.startsWith('/') && !r.startsWith('/companion')) ctx.kv.set('ui:lastRoute', r);
+      },
+    },
+    inbox: {
+      list: (limit) => ctx.notifications.list(typeof limit === 'number' ? limit : 100),
+      unreadCount: () => ctx.notifications.unreadCount(),
+      markRead: (id) => ctx.notifications.markRead(str(id, 'id', 100)),
+      markAllRead: () => ctx.notifications.markAllRead(),
+      clear: () => ctx.notifications.clear(),
+      pause: (minutes) => {
+        if (typeof minutes !== 'number' || !Number.isFinite(minutes) || minutes <= 0 || minutes > 7 * 24 * 60) throw new UserError('Pause must be between 1 minute and 7 days.');
+        const until = ctx.notifications.pause(minutes);
+        ctx.tray.refresh();
+        return until;
+      },
+      resume: () => {
+        ctx.notifications.resume();
+        ctx.tray.refresh();
+      },
+      pausedUntil: () => ctx.notifications.pausedUntil(),
+      snooze: (notificationId, minutes) => {
+        const n = ctx.notifications.get(str(notificationId, 'id', 100));
+        if (!n || !n.snoozable || !n.sourceRef) throw new UserError('This notification cannot be snoozed.');
+        const r = ctx.reminders.snoozeNotification(n.sourceRef, n.title.replace(/^Missed: /, ''), n.body, minutes ?? ctx.settings.get().notifications.snoozeMinutes);
+        ctx.notifications.markRead(n.id);
+        calendarChanged();
+        return r;
+      },
+    },
+    data: {
+      inventory: () => ctx.data.inventory(),
+      exportAll: async () =>
+        saveFile(`flowcompanion-export-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(ctx.data.exportAll(new Date(), app.getVersion()), null, 2), [{ name: 'JSON', extensions: ['json'] }]),
+      backups: () => ctx.backups(),
+      createBackup: () => ({ file: ctx.createBackup() }),
+      restoreBackup: (file) => ctx.restoreBackup(str(file, 'Backup', 300)),
+      deleteAll: (confirmation) => {
+        if (confirmation !== 'DELETE') throw new UserError('Type DELETE to confirm.');
+        ctx.deleteAllData();
+      },
+      openFolder: () => void shell.openPath(ctx.paths.dataDir),
+    },
+    news: {
+      categories: () => ctx.feed.categories(),
+      sources: () => ctx.feed.sources(),
+      addSource: async (input) => {
+        const r = await ctx.feed.addSource(input);
+        ctx.changed('news');
+        return r;
+      },
+      updateSource: (id, patch) => changed('news', ctx.feed.updateSource(id, patch)),
+      removeSource: (id) => changed('news', ctx.feed.removeSource(id)),
+      refresh: async (ids) => {
+        const r = await ctx.feed.refresh(Array.isArray(ids) ? ids : undefined, { force: Array.isArray(ids) });
+        ctx.changed('news');
+        ctx.scheduler.wake();
+        return r;
+      },
+      lastRefresh: () => ctx.feed.lastRefresh(),
+      items: (q) => ctx.feed.items(q ?? {}),
+      duplicates: (id) => ctx.feed.duplicatesOf(id),
+      markRead: (id, read) => changed('news', ctx.feed.markRead(id, read === true)),
+      markAllRead: (category) => changed('news', ctx.feed.markAllRead(category)),
+      setSaved: (id, saved) => changed('news', ctx.feed.setSaved(id, saved === true)),
+      addToReadingQueue: (id) => {
+        const item = ctx.feed.get(id);
+        const existing = ctx.bookmarks.list({ queue: 'all' }).find((b) => b.url === item.url);
+        const b = existing ? ctx.bookmarks.update(existing.id, { queue: 'unread' }) : ctx.bookmarks.create({ url: item.url, title: item.title, description: `${item.sourceName}${item.summary ? ` — ${item.summary}` : ''}`.slice(0, 500), tags: ['news'], queue: 'unread' });
+        ctx.changed('bookmarks');
+        return b;
+      },
+      unreadCount: () => ctx.feed.unreadCount(),
+      alerts: () => ctx.feed.alerts(),
+      addAlert: (k) => changed('news', ctx.feed.addAlert(k)),
+      setAlertEnabled: (id, enabled) => changed('news', ctx.feed.setAlertEnabled(id, enabled === true)),
+      removeAlert: (id) => changed('news', ctx.feed.removeAlert(id)),
+    },
+    games: {
+      stats: (game, filter) => ctx.games.stats(game, filter),
+      all: () => ctx.games.all(),
+      record: (game, score, detail) => changed('games', ctx.games.record(game, Number(score), detail ?? {})),
+      saveState: (game, state) => ctx.games.saveState(game, state),
+      loadState: (game) => ctx.games.loadState(game),
+      clearState: (game) => ctx.games.clearState(game),
+      resetScores: (game) => changed('games', ctx.games.resetScores(game)),
+    },
+    learning: {
+      overview: () => ctx.learning.overview(),
+      resources: (q) => ctx.learning.resources(q ?? {}),
+      resource: (id) => ctx.learning.get(str(id, 'id', 100)),
+      paths: () => ctx.learning.paths(),
+      path: (id) => ctx.learning.path(str(id, 'id', 100)),
+      recommendations: () => ctx.learning.recommendations(),
+      setSaved: (id, saved) => changed('learning', ctx.learning.setSaved(str(id, 'id', 100), saved === true)),
+      setStatus: (id, status) => changed('learning', ctx.learning.setStatus(str(id, 'id', 100), status)),
+      setNotes: (id, notes) => changed('learning', ctx.learning.setNotes(str(id, 'id', 100), str(notes, 'Notes', 20_000))),
+      open: async (id) => {
+        const url = ctx.learning.url(str(id, 'id', 100));
+        await openExternalSafe(url);
+        changed('learning', ctx.learning.markOpened(id));
+      },
+      schedule: (id, input) => {
+        const r = ctx.learning.get(str(id, 'id', 100));
+        const ev = ctx.events.create({
+          title: `Study: ${r.title}`,
+          notes: `${r.publisher}\n${r.url}\n\n${r.summary}`,
+          category: 'study',
+          start: str(input?.start, 'Start', 40),
+          end: str(input?.end, 'End', 40),
+          timeZone: str(input?.timeZone, 'Time zone', 64),
+          recurrence: input?.recurrence ?? null,
+          reminders: [ctx.settings.get().learning.studyReminderMinutes],
+        });
+        ctx.links.link('event', ev.id, 'resource', r.id);
+        ctx.changed('links');
+        return calendarChanged(ev);
+      },
+      createNote: (id) => {
+        const r = ctx.learning.get(str(id, 'id', 100));
+        const n = ctx.notes.create(
+          { title: `Notes: ${r.title}`, body: `# Notes: ${r.title}\n\n[${r.publisher}](${r.url})\n\n`, format: 'markdown', tags: ['learning'] },
+          { defaultFormat: 'markdown' },
+        );
+        ctx.links.link('note', n.id, 'resource', r.id);
+        ctx.changed('links');
+        return changedNote(n);
+      },
+      exportData: () =>
+        saveFile(`flowcompanion-learning-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(ctx.learning.exportData(), null, 2), [{ name: 'JSON', extensions: ['json'] }]),
+      deleteData: () => {
+        const n = ctx.learning.deleteData();
+        ctx.changed('learning');
+        ctx.changed('links');
+        return n;
+      },
+    },
+    prompts: {
+      list: (q) => ctx.prompts.list(q ?? {}),
+      get: (id) => ctx.prompts.get(str(id, 'id', 100)),
+      create: (input) => changed('prompts', ctx.prompts.create(input)),
+      update: (id, patch, note) => changed('prompts', ctx.prompts.update(str(id, 'id', 100), patch, typeof note === 'string' ? note : '')),
+      setFavorite: (id, fav) => changed('prompts', ctx.prompts.setFavorite(str(id, 'id', 100), fav === true)),
+      versions: (id) => ctx.prompts.versions(str(id, 'id', 100)),
+      restoreVersion: (id, v) => changed('prompts', ctx.prompts.restoreVersion(str(id, 'id', 100), clampInt(v, 1, 1_000_000, 1))),
+      duplicate: (id) => changed('prompts', ctx.prompts.duplicate(str(id, 'id', 100))),
+      delete: (id) => {
+        ctx.prompts.delete(str(id, 'id', 100));
+        ctx.changed('prompts');
+        ctx.changed('links');
+      },
+      recordUse: (id) => changed('prompts', ctx.prompts.recordUse(str(id, 'id', 100))),
+      categories: () => ctx.prompts.categories(),
+      exportFile: (ids) =>
+        saveFile(`flowcompanion-prompts-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(ctx.prompts.exportDoc(Array.isArray(ids) ? ids.map((x) => str(x, 'id', 100)) : undefined), null, 2), [
+          { name: 'JSON', extensions: ['json'] },
+        ]),
+      importFile: async () => {
+        const files = await openTextFiles([{ name: 'Prompts', extensions: ['json'] }]);
+        if (!files) return null;
+        const total: ImportReport = { imported: 0, skipped: 0, errors: [] };
+        for (const f of files) {
+          const r = ctx.prompts.importDoc(parseJsonFile(f.name, f.content));
+          total.imported += r.imported;
+          total.skipped += r.skipped;
+          total.errors.push(...r.errors.map((e) => `${f.name}: ${e}`));
+        }
+        ctx.changed('prompts');
+        return total;
+      },
+    },
+    marketplace: {
+      status: () => ctx.marketplace.status(),
+      listings: (q) => ctx.marketplace.listings(q ?? {}),
+      listing: (key) => ctx.marketplace.listing(str(key, 'key', 120)),
+      creator: (key) => ctx.marketplace.creator(str(key, 'key', 120)),
+      promptText: async (key, use) => {
+        const t = await ctx.marketplace.promptText(str(key, 'key', 120), use === 'insert' ? 'insert' : 'copy');
+        ctx.changed('marketplace');
+        return t;
+      },
+      saveToLibrary: async (key) => {
+        const p = await ctx.marketplace.saveToLibrary(str(key, 'key', 120));
+        ctx.changed('prompts');
+        ctx.changed('marketplace');
+        return p;
+      },
+      startTrial: async (key, ack) => {
+        const d = await ctx.marketplace.startTrial(str(key, 'key', 120), ack === true);
+        ctx.changed('marketplace');
+        ctx.scheduler.wake();
+        return d;
+      },
+      purchase: async (key) => {
+        await ctx.marketplace.purchase(str(key, 'key', 120));
+      },
+      addReview: async (key, input) => {
+        await ctx.marketplace.addReview(str(key, 'key', 120), input);
+        ctx.changed('marketplace');
+      },
+      report: async (key, input) => {
+        const r = await ctx.marketplace.report(str(key, 'key', 120), input);
+        ctx.changed('marketplace');
+        return r;
+      },
+      myReports: () => ctx.marketplace.myReports(),
+      resolveLocalReport: (id, action) => changed('marketplace', ctx.marketplace.resolveLocalReport(str(id, 'id', 100), action)),
+      register: async (input) => {
+        const a = await ctx.marketplace.register(input);
+        ctx.changed('marketplace');
+        return a;
+      },
+      login: async (input) => {
+        const a = await ctx.marketplace.login(input);
+        ctx.changed('marketplace');
+        return a;
+      },
+      logout: async () => {
+        await ctx.marketplace.logout();
+        ctx.changed('marketplace');
+      },
+      moderationQueue: () => ctx.marketplace.moderationQueue(),
+      moderate: async (id, action, note) => {
+        const l = await ctx.marketplace.moderate(str(id, 'id', 100), action, str(note ?? '', 'Note', 1000));
+        ctx.changed('marketplace');
+        return l;
+      },
+      resolveServerReport: async (id, action) => {
+        await ctx.marketplace.resolveServerReport(str(id, 'id', 100), action === 'dismissed' ? 'dismissed' : 'reviewed');
+        ctx.changed('marketplace');
+      },
+    },
+    creator: {
+      profile: () => ctx.marketplace.selfProfile(),
+      saveProfile: async (input) => {
+        const p = await ctx.marketplace.saveProfile(input);
+        ctx.changed('creator');
+        return p;
+      },
+      listings: () => ctx.marketplace.myListings(),
+      sync: async () => {
+        const l = await ctx.marketplace.syncMyListings();
+        ctx.changed('creator');
+        return l;
+      },
+      createDraft: (input) => changed('creator', ctx.marketplace.createDraft(input ?? {})),
+      fromPrompt: (promptId) => changed('creator', ctx.marketplace.draftFromPrompt(str(promptId, 'id', 100))),
+      draft: (id) => ctx.marketplace.draft(str(id, 'id', 100)),
+      updateDraft: (id, patch) => changed('creator', ctx.marketplace.updateDraft(str(id, 'id', 100), patch ?? {})),
+      deleteDraft: (id) => changed('creator', ctx.marketplace.deleteDraft(str(id, 'id', 100))),
+      checks: (id) => ctx.marketplace.checks(str(id, 'id', 100)),
+      publish: async (id) => {
+        const l = await ctx.marketplace.publish(str(id, 'id', 100));
+        ctx.changed('creator');
+        return l;
+      },
+      unpublish: async (id) => {
+        const l = await ctx.marketplace.unpublish(str(id, 'id', 100));
+        ctx.changed('creator');
+        return l;
+      },
+      analytics: (id) => ctx.marketplace.analytics(str(id, 'id', 100)),
+      exportPackage: (id) => {
+        const doc = ctx.marketplace.exportPackage(str(id, 'id', 100)) as { listing: { title: string } };
+        const name = doc.listing.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50) || 'listing';
+        return saveFile(`${name}.flowprompt.json`, JSON.stringify(doc, null, 2), [{ name: 'FlowCompanion listing', extensions: ['json'] }]);
+      },
+      importPackage: async () => {
+        const files = await openTextFiles([{ name: 'FlowCompanion listing', extensions: ['json'] }], false);
+        if (!files?.[0]) return null;
+        const l = ctx.marketplace.importPackage(parseJsonFile(files[0].name, files[0].content));
+        ctx.changed('marketplace');
+        return l;
+      },
+    },
+    parental: {
+      status: () => ctx.parental.status(ctx.parentalPlatform()),
+      setup: (input) => {
+        const r = ctx.parental.setup(input);
+        ctx.applyParental();
+        return r;
+      },
+      updateConfig: (pin, patch) => {
+        const c = ctx.parental.updateConfig(pin, patch);
+        ctx.applyParental();
+        return c;
+      },
+      changePin: (pin, newPin) => ctx.parental.changePin(pin, newPin),
+      recover: (code, newPin) => {
+        const r = ctx.parental.recover(code, newPin);
+        ctx.changed('parental');
+        return r;
+      },
+      disable: (pin) => {
+        ctx.parental.disable(pin);
+        ctx.applyParental();
+      },
+      startSession: (pin, input) => {
+        const s = ctx.parental.startSession(pin, input);
+        ctx.changed('parental');
+        ctx.scheduler.wake();
+        return s;
+      },
+      endSession: (pin) => {
+        const s = ctx.parental.endSession(pin);
+        ctx.changed('parental');
+        ctx.scheduler.wake();
+        return s;
+      },
+      recentSessions: () => ctx.parental.recentSessions(),
+    },
+    browser: {
+      status: () => ctx.bridge.status(ctx.settings.get().browser.bridgeEnabled),
+      startPairing: () => changed('browser', ctx.bridge.startPairing()),
+      cancelPairing: () => changed('browser', ctx.bridge.cancelPairing()),
+      unpair: (id) => changed('browser', ctx.bridge.unpair(str(id, 'id', 100))),
+      extensionFolder: () => ctx.paths.extensionDir,
+      openExtensionFolder: () => void shell.openPath(ctx.paths.extensionDir),
+    },
+    calendar: {
+      occurrences: (from, to) => ctx.events.occurrences(str(from, 'from', 40), str(to, 'to', 40)),
+      get: (id) => ctx.events.get(id),
+      create: (input) => calendarChanged(ctx.events.create(input)),
+      update: (id, patch) => calendarChanged(ctx.events.update(id, patch)),
+      delete: (id) => calendarChanged(ctx.events.delete(id)),
+      updateOccurrence: (id, key, patch, scope) => calendarChanged(ctx.events.updateOccurrence(id, key, patch, scopeOf(scope))),
+      deleteOccurrence: (id, key, scope) => calendarChanged(ctx.events.deleteOccurrence(id, key, scopeOf(scope))),
+      restoreOccurrence: (id, key) => calendarChanged(ctx.events.restoreOccurrence(id, key)),
+      categories: () => [...CATEGORIES],
+      exportIcs: async () =>
+        saveFile(`flowcompanion-calendar-${new Date().toISOString().slice(0, 10)}.ics`, toIcs(ctx.events.all(), new Date()), [{ name: 'iCalendar', extensions: ['ics'] }]),
+    },
+    reminders: {
+      list: (includeDone) => ctx.reminders.list({ includeDone: includeDone === true }),
+      overdue: () => ctx.reminders.overdue(),
+      create: (input) => calendarChanged(ctx.reminders.create(input)),
+      update: (id, patch) => calendarChanged(ctx.reminders.update(id, patch)),
+      complete: (id) => calendarChanged(ctx.reminders.complete(id)),
+      dismiss: (id) => calendarChanged(ctx.reminders.dismiss(id)),
+      delete: (id) => calendarChanged(ctx.reminders.delete(id)),
+      snooze: (id, minutes) => calendarChanged(ctx.reminders.snooze(id, minutes)),
+    },
+    settings: {
+      get: () => ctx.settings.get(),
+      update: (patch) => ctx.settings.update(patch),
+      applyMode: (mode) => {
+        if (!APP_MODES.includes(mode as AppMode)) throw new UserError('Unknown mode.');
+        return ctx.settings.applyMode(mode);
+      },
+      reset: (section) => ctx.settings.reset(section),
+      timeZones: () => Intl.supportedValuesOf('timeZone'),
+      shortcutStatus: () => ctx.shortcutStatus,
+    },
+    window: {
+      showMain: (route) => ctx.windows.showMain(route === undefined ? undefined : str(route, 'Route', 500)),
+      toggleCompanion: () => ctx.windows.toggleCompanion(true),
+      companionState: () => ctx.windows.companionState(),
+      setCompanionCollapsed: (collapsed) => ctx.windows.setCompanionCollapsed(collapsed === true),
+      setCompanionDock: (dock) => {
+        if (!['floating', 'left', 'right'].includes(dock)) throw new UserError('Unknown dock position.');
+        ctx.settings.update({ companion: { dock } });
+        return ctx.windows.companionState();
+      },
+      hideCompanion: () => ctx.windows.hideCompanion(),
+      minimizeCompanion: () => ctx.windows.minimizeCompanion(),
+      expandToMain: (route) => {
+        ctx.windows.hideCompanion();
+        ctx.windows.showMain(route === undefined ? undefined : str(route, 'Route', 500));
+      },
+    },
+    notes: {
+      list: (q) => ctx.notes.list(q ?? {}),
+      get: (id) => ctx.notes.get(str(id, 'id', 100)),
+      create: (input) => {
+        const n = ctx.notes.create(input ?? {}, { defaultFormat: ctx.settings.get().notes.defaultFormat });
+        ctx.changed('notes', n.id);
+        return n;
+      },
+      update: (id, patch) => {
+        const n = ctx.notes.update(str(id, 'id', 100), patch);
+        ctx.changed('notes', n.id);
+        return n;
+      },
+      duplicate: (id) => changedNote(ctx.notes.duplicate(id)),
+      archive: (id) => changedNote(ctx.notes.archive(id)),
+      unarchive: (id) => changedNote(ctx.notes.unarchive(id)),
+      trash: (id) => {
+        ctx.notes.trash(id);
+        ctx.changed('notes', id);
+      },
+      restore: (id) => changedNote(ctx.notes.restore(id)),
+      deletePermanently: (id) => {
+        ctx.notes.deletePermanently(id);
+        ctx.changed('notes', id);
+      },
+      emptyTrash: () => {
+        const n = ctx.notes.emptyTrash();
+        ctx.changed('notes');
+        return n;
+      },
+      tags: () => ctx.notes.tags(),
+      folders: () => ctx.notes.folders(),
+      createFolder: (name, parentId) => {
+        const f = ctx.notes.createFolder(name, parentId ?? null);
+        ctx.changed('notes');
+        return f;
+      },
+      renameFolder: (id, name) => {
+        ctx.notes.renameFolder(id, name);
+        ctx.changed('notes');
+      },
+      deleteFolder: (id) => {
+        ctx.notes.deleteFolder(id);
+        ctx.changed('notes');
+      },
+      saveDraft: (noteId, title, body, baseRevision) => ctx.notes.saveDraft(noteId, title, body, baseRevision),
+      drafts: () => ctx.notes.drafts(),
+      draftFor: (noteId) => ctx.notes.draftFor(noteId),
+      discardDraft: (noteId) => ctx.notes.discardDraft(noteId),
+      recoverDraft: (noteId) => changedNote(ctx.notes.recoverDraft(noteId)),
+      exportNote: async (id, format) => {
+        if (!['markdown', 'text', 'json'].includes(format)) throw new UserError('Unknown export format.');
+        const f = ctx.notes.exportNote(id, format);
+        const ext = format === 'json' ? 'json' : format === 'text' ? 'txt' : 'md';
+        return saveFile(f.filename, f.content, [{ name: format === 'json' ? 'JSON' : format === 'text' ? 'Text' : 'Markdown', extensions: [ext] }]);
+      },
+      exportAll: async () => {
+        const doc = ctx.notes.exportAll();
+        return saveFile(`flowcompanion-notes-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(doc, null, 2), [{ name: 'JSON', extensions: ['json'] }]);
+      },
+      importFiles: async () => {
+        const files = await openTextFiles([{ name: 'Notes', extensions: ['json', 'md', 'markdown', 'txt'] }]);
+        if (!files) return null;
+        const total: ImportReport = { imported: 0, skipped: 0, errors: [] };
+        const json = files.filter((f) => f.name.toLowerCase().endsWith('.json'));
+        const text = files.filter((f) => !f.name.toLowerCase().endsWith('.json'));
+        for (const f of json) {
+          const r = ctx.notes.importJson(parseJsonFile(f.name, f.content));
+          total.imported += r.imported;
+          total.skipped += r.skipped;
+          total.errors.push(...r.errors);
+        }
+        if (text.length) {
+          const r = ctx.notes.importFiles(text);
+          total.imported += r.imported;
+          total.skipped += r.skipped;
+          total.errors.push(...r.errors);
+        }
+        ctx.changed('notes');
+        return total;
+      },
+    },
+    links: {
+      link: (fromType, fromId, toType, toId) => {
+        const l = ctx.links.link(fromType, fromId, toType, toId);
+        ctx.changed('links');
+        return l;
+      },
+      unlink: (id) => {
+        ctx.links.unlink(id);
+        ctx.changed('links');
+      },
+      for: (type, id) => ctx.links.linksFor(type, id),
+    },
+    tasks: {
+      lists: () => ctx.tasks.lists(),
+      createList: (name) => changed('tasks', ctx.tasks.createList(name)),
+      renameList: (id, name) => changed('tasks', ctx.tasks.renameList(id, name)),
+      deleteList: (id) => changed('tasks', ctx.tasks.deleteList(id)),
+      list: (q) => ctx.tasks.list(q ?? {}),
+      get: (id) => ctx.tasks.get(id),
+      create: (input) => tasksChanged(ctx.tasks.create(input)),
+      update: (id, patch) => tasksChanged(ctx.tasks.update(id, patch)),
+      toggle: (id, done) => changed('tasks', ctx.tasks.toggle(id, done === true)),
+      delete: (id) => changed('tasks', ctx.tasks.delete(id)),
+      move: (id, beforeId, afterId) => changed('tasks', ctx.tasks.move(id, beforeId, afterId)),
+      clearCompleted: (listId) => changed('tasks', ctx.tasks.clearCompleted(listId)),
+      counts: () => ctx.tasks.counts(),
+    },
+    bookmarks: {
+      list: (q) => ctx.bookmarks.list(q ?? {}),
+      create: (input) => changed('bookmarks', ctx.bookmarks.create(input)),
+      update: (id, patch) => changed('bookmarks', ctx.bookmarks.update(id, patch)),
+      setRead: (id, read) => changed('bookmarks', ctx.bookmarks.setRead(id, read === true)),
+      delete: (id) => changed('bookmarks', ctx.bookmarks.delete(id)),
+      tags: () => ctx.bookmarks.tags(),
+    },
+    time: {
+      running: () => ctx.time.running(),
+      start: (label, taskId) => changed('time', ctx.time.start(label, taskId ?? null)),
+      stop: () => changed('time', ctx.time.stop()),
+      list: (days) => ctx.time.list(clampInt(days, 1, 366, 7)),
+      update: (id, patch) => changed('time', ctx.time.update(id, patch)),
+      delete: (id) => changed('time', ctx.time.delete(id)),
+      summary: (days) => ctx.time.summary(clampInt(days, 1, 366, 7)),
+    },
+    focus: {
+      current: () => ctx.focus.current(),
+      start: (kind, minutes, label) => focusChanged(ctx.focus.start(kind ?? 'focus', minutes, label ?? '')),
+      pause: () => focusChanged(ctx.focus.pause()),
+      resume: () => focusChanged(ctx.focus.resume()),
+      stop: () => focusChanged(ctx.focus.stop(false)),
+      stats: () => ctx.focus.stats(),
+      history: (limit) => ctx.focus.history(clampInt(limit, 1, 200, 20)),
+      nextKind: () => ctx.focus.nextKind(),
+    },
+    search: {
+      query: (q, types) => ctx.search.search(str(q, 'Search', 500), { types, limit: 40 }),
+    },
+    capture: {
+      capture: (input) => {
+        const r = ctx.capture.capture(input);
+        ctx.changed(r.kind === 'note' ? 'notes' : r.kind === 'task' ? 'tasks' : 'bookmarks', r.id);
+        return r;
+      },
+    },
+    ai: {
+      status: () => ({ ...ctx.ai.status(), secureStorage: ctx.secrets.secureAvailable }),
+      catalog: () => ctx.ai.catalog(),
+      providers: () => ctx.ai.providers(),
+      createProvider: (input) => {
+        const p = ctx.ai.createProvider(input);
+        if (ctx.ai.firstProviderCreated) {
+          ctx.settings.update({ ai: { defaultProviderId: ctx.ai.firstProviderCreated } });
+          ctx.ai.firstProviderCreated = null;
+        }
+        return p;
+      },
+      updateProvider: (id, patch) => ctx.ai.updateProvider(id, patch),
+      deleteProvider: (id) => {
+        ctx.ai.deleteProvider(id);
+        if (ctx.settings.get().ai.defaultProviderId === id) ctx.settings.update({ ai: { defaultProviderId: ctx.ai.providers()[0]?.id ?? null } });
+      },
+      setApiKey: (id, key) => ctx.ai.setApiKey(id, key),
+      testProvider: (id) => ctx.ai.testProvider(id),
+      models: (id) => ctx.ai.models(id),
+      conversations: (q) => ctx.ai.listConversations(q ?? {}),
+      conversation: (id) => ctx.ai.conversation(id),
+      messages: (id) => ctx.ai.messages(id),
+      createConversation: (input) => ctx.ai.createConversation(input ?? {}),
+      updateConversation: (id, patch) => ctx.ai.updateConversation(id, patch),
+      archiveConversation: (id, archived) => ctx.ai.archiveConversation(id, archived === true),
+      deleteConversation: (id) => ctx.ai.deleteConversation(id),
+      deleteAllConversations: () => ctx.ai.deleteAllConversations(),
+      send: (input) => {
+        aiOpen();
+        return ctx.ai.send(input);
+      },
+      retry: (id, opts) => {
+        aiOpen();
+        return ctx.ai.retry(id, opts ?? {});
+      },
+      cancel: (id) => ctx.ai.cancel(id),
+      exportConversation: async (id, format) => {
+        if (format !== 'markdown' && format !== 'json') throw new UserError('Unknown export format.');
+        const f = ctx.ai.exportConversation(id, format);
+        return saveFile(f.filename, f.content, [{ name: format === 'json' ? 'JSON' : 'Markdown', extensions: [format === 'json' ? 'json' : 'md'] }]);
+      },
+      toNote: (conversationId, messageId) => {
+        const conv = ctx.ai.conversation(conversationId);
+        let note;
+        if (messageId) {
+          const m = ctx.ai.messages(conversationId).find((x) => x.id === messageId);
+          if (!m) throw new UserError('That message no longer exists.');
+          note = ctx.notes.create({ title: `${conv.title} — ${titleFromBody(m.content, 'AI answer').slice(0, 60)}`, body: m.content, tags: ['ai'] });
+        } else {
+          note = ctx.notes.create({ title: conv.title, body: ctx.ai.exportConversation(conversationId, 'markdown').content, tags: ['ai'] });
+        }
+        ctx.links.link('note', note.id, 'conversation', conversationId);
+        ctx.changed('notes', note.id);
+        return note;
+      },
+      toTask: (messageId) => {
+        const row = ctx.db.get<{ conversation_id: string; content: string }>('SELECT conversation_id, content FROM messages WHERE id = ?', [str(messageId, 'id', 100)]);
+        if (!row) throw new UserError('That message no longer exists.');
+        const title = cleanLine(titleFromBody(row.content, 'Follow up on AI answer').replace(/^[-*\d.)\s]+/, ''), 200);
+        const task = ctx.tasks.create({ title, notes: row.content.slice(0, 20_000) });
+        ctx.links.link('task', task.id, 'conversation', row.conversation_id);
+        ctx.changed('tasks', task.id);
+        return task;
+      },
+      tasks: (active) => ctx.aiTasks.list({ active: active === true, limit: 100 }),
+      startTimer: (title, minutes, url) => ctx.aiTasks.startTimer(str(title, 'Title', 200), Number(minutes), url ?? null),
+      setTaskState: (id, state) => ctx.aiTasks.setManual(id, state),
+      deleteTask: (id) => {
+        ctx.aiTasks.delete(id);
+        ctx.changed('aiTasks');
+      },
+      clearFinishedTasks: () => {
+        const n = ctx.aiTasks.clearFinished();
+        ctx.changed('aiTasks');
+        return n;
+      },
+    },
+  };
+}

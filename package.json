@@ -1,34 +1,136 @@
 {
-  "name": "synapse",
+  "name": "flowcompanion",
+  "productName": "FlowCompanion",
   "version": "1.0.0",
   "private": true,
-  "description": "Synapse — an all-levels learning platform for AI, ML, deep learning, and generative AI. iOS, Android, and macOS.",
+  "description": "A standalone desktop workspace for AI, productivity, learning and personal organization.",
   "license": "MIT",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
+  "author": "FlowCompanion contributors",
+  "homepage": "https://github.com/noahp179/Ai-App",
+  "main": "dist/main/index.js",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   },
   "scripts": {
-    "build": "npm run build --workspace @synapse/core --workspace @synapse/ui",
-    "test": "npm run test --workspace @synapse/core",
-    "typecheck": "tsc --build --force",
-    "lint": "eslint . --ext .ts,.tsx",
-    "mobile": "npm run start --workspace @synapse/mobile",
-    "ios": "npm run ios --workspace @synapse/mobile",
-    "android": "npm run android --workspace @synapse/mobile",
-    "web": "npm run web --workspace @synapse/mobile",
-    "desktop": "npm run dev --workspace @synapse/desktop",
-    "desktop:dist": "npm run dist --workspace @synapse/desktop"
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "npm run build && electron .",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.web.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "npm run build && playwright test",
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "server": "node scripts/build.mjs --only=server && node dist/server/main.js",
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:linux": "npm run build && electron-builder --linux --publish never",
+    "dist:win": "npm run build && electron-builder --win --publish never",
+    "dist:mac": "npm run build && electron-builder --mac --publish never",
+    "verify:links": "node scripts/verify-links.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0",
+    "fast-xml-parser": "^5.11.2",
+    "lucide-react": "^1.61.0",
+    "luxon": "^3.7.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "@typescript-eslint/eslint-plugin": "^8.18.0",
-    "@typescript-eslint/parser": "^8.18.0",
-    "eslint": "^8.57.1",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
-  }
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.1",
+    "@types/luxon": "^3.7.6",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^44.9.3",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^16.5.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0",
+    "vite": "^7.3.7",
+    "vitest": "^4.1.12"
+  },
+  "build": {
+    "appId": "org.flowcompanion.desktop",
+    "productName": "FlowCompanion",
+    "copyright": "Copyright \u00a9 2026 FlowCompanion contributors",
+    "directories": {
+      "output": "release",
+      "buildResources": "resources"
+    },
+    "files": [
+      "dist/main/**/*",
+      "dist/preload/**/*",
+      "dist/renderer/**/*",
+      "resources/icon.png",
+      "resources/tray.png",
+      "package.json",
+      "!**/*.map",
+      "!**/node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "extension",
+        "to": "extension",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "asar": true,
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "grantFileProtocolExtraPrivileges": false
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Office",
+      "icon": "resources/icon.png",
+      "synopsis": "AI, productivity and learning workspace",
+      "maintainer": "FlowCompanion contributors <noreply@flowcompanion.invalid>",
+      "syncDesktopName": true
+    },
+    "deb": {
+      "packageCategory": "office"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "resources/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "resources/icon.png",
+      "hardenedRuntime": true
+    },
+    "publish": null
+  },
+  "desktopName": "flowcompanion.desktop"
 }

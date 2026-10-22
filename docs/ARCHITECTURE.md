@@ -1,120 +1,77 @@
 # Architecture
 
-## The core rule
+## Platform choice: Electron vs Tauri
 
-Every learning rule lives in `@synapse/core` as a pure function. Grading,
-scheduling, XP, streaks, entitlements, and session state are all decided there
-and nowhere else.
+Both were evaluated against what FlowCompanion actually needs.
 
-The consequence is that the entire behaviour of the app is testable under plain
-Node in about a second, with no simulator, no component mounting, and no mocking
-of native modules. That is why the test suite is worth having: it tests the
-things that are actually hard to get right.
+| Need | Electron (chosen) | Tauri |
+| --- | --- | --- |
+| Embedded SQLite with FTS5, no native modules to compile | `node:sqlite` ships inside Electron's Node 24 (SQLite 3.53, FTS5) | Rust `rusqlite` — fine, but all services would be written in Rust or run as a Node sidecar |
+| One rendering engine on every OS | Chromium everywhere | WebView2 / WKWebView / WebKitGTK — three engines to test |
+| OS secure storage | `safeStorage` (Keychain, DPAPI, libsecret/kwallet) | Plugins (stronghold/keyring) |
+| Local HTTP for the browser bridge and marketplace client | Node `http` / `fetch` | Rust (axum/reqwest) |
+| Window features: always-on-top panel, content protection, tray, global shortcuts | All built in | Mostly available; content protection less uniform |
+| End-to-end testing of the real app | Playwright drives Electron directly | WebDriver, platform-dependent |
+| Packaging for Windows, macOS, Linux | electron-builder | tauri-bundler |
+| Footprint | ~100 MB+ installers, higher memory | Much smaller |
 
-The apps are rendering layers. When a screen needs to know something, it calls
-core. When a screen needs to change something, it calls a store action that calls
-core and persists the result.
+Electron was selected because it lets one TypeScript codebase hold the services, the UI and the tests, with SQLite and secure storage built in and a single rendering engine to verify. The cost is size and memory, accepted for this product. TypeScript and React are used throughout.
+
+## Processes and layers
 
 ```
-┌──────────────────────────────────────────────┐
-│  apps/mobile (Expo Router)                   │
-│  apps/desktop (Electron shell → web build)   │
-└───────────────────┬──────────────────────────┘
-                    │  reads tokens, renders components
-┌───────────────────▼──────────────────────────┐
-│  packages/ui — tokens + 12 components        │
-└───────────────────┬──────────────────────────┘
-                    │  imports types and helpers
-┌───────────────────▼──────────────────────────┐
-│  packages/core — pure TypeScript, no React   │
-│  domain · engine · content · monetization    │
-└──────────────────────────────────────────────┘
+┌──────────────────────── Electron main process (Node) ────────────────────────┐
+│ src/main      app lifecycle, windows, tray, shortcuts, protocol, security,   │
+│               IPC registry (single fc:invoke channel), file dialogs, OS glue │
+│ src/core      business logic, no Electron imports — unit-tested directly:    │
+│               db + migrations, notes, tasks, calendar, reminders, scheduler, │
+│               notifications, AI service + adapters, feeds, learning, games,  │
+│               prompts, marketplace client, parental controls, bridge, data   │
+└──────────────▲──────────────────────────────────────────────────────▲────────┘
+               │ contextBridge (preload, sandboxed)                    │ 127.0.0.1 only
+┌──────────────┴──────────────┐                     ┌──────────────────┴────────┐
+│ Renderer (React 19, Vite)   │                     │ Browser extension (MV3)   │
+│ src/renderer: shell, modules│                     │ extension/                │
+│ app://flowcompanion, CSP    │                     └───────────────────────────┘
+└─────────────────────────────┘
+        optional ↕ HTTPS                              optional ↕ HTTPS
+┌─────────────────────────────┐                     ┌───────────────────────────┐
+│ AI providers (your keys)    │                     │ Marketplace server        │
+│ RSS/Atom feeds              │                     │ server/ (reference impl.) │
+└─────────────────────────────┘                     └───────────────────────────┘
 ```
 
-Dependencies point one way only. `packages/ui` never imports from an app.
-`packages/core` imports nothing from either.
+- **Renderer** has no Node access and no network access: CSP `connect-src 'self'`. Every request goes through the main process.
+- **IPC**: one channel, `fc:invoke`, with a method registry built from `src/main/api.ts` (`namespace.method`). Sender frames are validated; arguments are validated in the API layer and again in services (zod schemas).
+- **Events** flow main → renderer as `fc:event` (`data.changed`, `ai.stream`, `notification`, …). The renderer's small query cache (`lib/query.ts`) invalidates by key prefix.
+- **`src/shared`** holds types, settings schema, pure logic (games, prompt variables, protocol schemas, learning catalog) used by both sides.
 
-## State
+## Data
 
-Two zustand stores in the mobile app, both thin:
+- SQLite file in the user data folder, WAL mode, foreign keys on. Migrations v1–v11 in `src/core/db/migrations.ts`, each in its own transaction; a backup is taken before migrating, and a corrupted database is quarantined and restored from the newest good backup.
+- Full-text search: one FTS5 table (`search_index`) maintained by triggers for notes, tasks, prompts, conversations, events, bookmarks and saved articles. Learning resources are searched in memory and merged into global search.
+- Settings: one validated document (zod) in the key-value table; invalid fields are repaired on load and reported.
+- Secrets (API keys, marketplace token): encrypted with Electron `safeStorage` when the OS provides real encryption; otherwise kept in memory for the session only, and the UI says so.
 
-- **`useProgress`** — the learner's durable state. Owns persistence
-  (`AsyncStorage`, debounced 400ms) and hydration. Every mutation delegates to a
-  pure function in `core/store/progress.ts`.
-- **`useSession`** — the active lesson. Wraps `SessionRunner` and republishes its
-  snapshot.
+## Scheduling and notifications
 
-Persisted state carries a schema version and goes through `migrateProgress()` on
-load, which returns fresh state rather than throwing when the blob is unusable.
-Losing progress is bad; crashing on launch is worse.
+A single wake-on-demand timer (`core/scheduler.ts`) asks each source for its next due time — reminders, feed refresh, focus timer, AI timers, study-session end, trial reminders — and sleeps until the earliest (at most one hour; it also wakes on system resume). Notifications go through `NotificationCenter`, which records a dedupe key per logical notification so nothing is delivered twice, honours quiet hours, and marks reminders that fell due while the app was closed as "missed".
 
-## Content pipeline
+## AI service
 
-Curriculum is TypeScript data, not a CMS. Files in `content/tracks/` use terse
-constructors from `content/builders.ts` so a lesson reads like an outline.
+`core/ai/service.ts` runs requests with provider adapters (`adapters/openai.ts`, `anthropic.ts` using the official `@anthropic-ai/sdk`, `gemini.ts`, `ollama.ts`). Adapters report capabilities, stream through an SSE parser, use idle timeouts, and normalise errors (auth, rate limit, model not found, network, refused, …). The AI task-status engine (`core/aitasks.ts`) tracks requests as idle/running/waiting/completed/failed/canceled/unknown and separates confirmed states from estimates and manual timers — it never claims external work finished because time passed.
 
-`validateCatalog()` runs in the test suite and checks:
+## Marketplace
 
-- id uniqueness across tracks, lessons, and steps
-- every `skillIds` reference resolves to a defined skill
-- exercise wellformedness (answer indices in range, blank counts matching the
-  template, non-empty explanations)
-- track and skill prerequisite graphs are acyclic
-- no declared skill goes unpractised by any exercise
+- Desktop side (`core/marketplace/service.ts`): bundled starter listings, imported listing files, your own drafts, local review/report records, and a validated HTTP client (`remote.ts`) for an optional server.
+- Server side (`server/`): node:http + SQLite, accounts (scrypt), hashed bearer tokens, moderation queue, verified reviews, abuse reports, analytics from server-side events, server-authoritative 7-day trials. Purchase requests return 501: no payment provider is integrated.
+- The wire format is defined once in `src/shared/marketplace/protocol.ts` and validated on both ends.
 
-Plus a test that grades every exercise's own stated answer and asserts it comes
-back correct — which catches the class of authoring error that is otherwise
-invisible until a learner hits it.
+## Parental controls and browser bridge
 
-## Interactive widgets
+- `core/parental.ts`: PIN/recovery (scrypt), lockouts, config, sessions; exposes enforcement hooks used by the main process (copy blocking, tutor prompt, module allow-list, content protection).
+- `core/bridge.ts`: loopback HTTP server for the extension; Host and Origin checks, pairing, hashed tokens, size/rate limits.
 
-100 widgets live in `apps/mobile/src/components/interactives/`, split by subject
-(`foundations`, `classic`, `deep`, `language`, `applied`, `core`) with a
-dispatcher in `index.tsx`.
+## Testing layers
 
-Content references a widget by name from the `InteractiveWidget` union in
-`@synapse/core`; the dispatcher's switch is exhaustive over that union, so
-declaring a widget without implementing it is a compile error rather than a
-blank screen a learner discovers. The reverse direction is covered by a test:
-every declared widget must appear in content at least once, and every track must
-contain at least one hands-on step.
-
-`interactives/shared.tsx` holds the primitives — `PlotCanvas` (reports taps in
-unit coordinates and hands its measured size to children), `Dot`, `Line`,
-`Path`, `Bar`, `Readout`, `SegmentedControl`, `ActionRow`, `Note`, and a seeded
-PRNG so generated datasets stay stable across re-renders. A scatter plot that
-reshuffles on every state change is unusable: you cannot reason about a change
-you made if the data moved too.
-
-## Cross-platform strategy
-
-One React Native codebase. iOS and Android build natively through Expo; macOS
-runs the Expo **web** export inside an Electron shell.
-
-This constrains component choices: anything that only works as a native module
-breaks the desktop build. That is why the slider is hand-built on `PanResponder`
-and the progress ring is drawn with rotated views rather than SVG. The
-interactive widgets are the most memorable part of the product, so they need to
-work everywhere.
-
-The desktop shell adds what macOS expects — a real menu bar with keyboard
-shortcuts, persisted window state, `hiddenInset` traffic lights — and nothing
-else. Menu commands reach the renderer through a preload bridge exposing exactly
-one method over a fixed channel allowlist.
-
-## Security posture
-
-- **No model provider key ever reaches the client.** The app calls our own
-  gateway, which holds the credential and enforces per-user rate limits against
-  the learner's entitlement. A key shipped in a mobile binary is a published key.
-- **Entitlements are re-validated server-side.** The local copy is a cache for UI
-  responsiveness; a tampered local state gets you a nicer-looking button, not
-  free content.
-- **Electron renderer is sandboxed** — context isolation on, node integration
-  off, `devTools` disabled in packaged builds, navigation pinned to an origin
-  allowlist with everything else handed to the system browser, and all permission
-  requests refused.
-- **macOS entitlements request only outbound networking.** No camera, microphone,
-  location, or filesystem access, because the app has no use for any of them.
-- **Analytics carry no learner-authored text**, no email, and no answer content.
-  Enforced by the typed event union rather than by policy.
+Unit and integration tests (Vitest) exercise `src/core`, `src/shared` and `server/` without Electron. End-to-end tests (Playwright) launch the built Electron app with an isolated data folder, and load the real extension into Chromium. Live tests (opt-in) hit real feeds and a real local model. See [TEST_REPORT.md](TEST_REPORT.md).

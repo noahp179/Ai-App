@@ -1,59 +1,13 @@
-# Dependencies
 node_modules/
-.pnp/
-.pnp.js
-
-# Build output
 dist/
-build/
-out/
-*.tsbuildinfo
 release/
-
-# Expo
-.expo/
-.expo-shared/
-web-build/
-apps/mobile/dist/
-apps/mobile/ios/
-apps/mobile/android/
-
-# Native
-*.ipa
-*.apk
-*.aab
-*.app
-*.dmg
-*.xcworkspace/xcuserdata/
-
-# Env & secrets
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
-*.pem
-*.p8
-*.p12
-*.mobileprovision
-google-services.json
-GoogleService-Info.plist
-
-# Editors / OS
 .DS_Store
-.idea/
-# .vscode is committed deliberately — the tasks, recommended extensions, and
-# workspace TypeScript setting are how you run this project from the editor.
-# Only personal, machine-specific overrides are ignored.
-.vscode/*.local.json
-*.swp
-
-# Logs & coverage
 *.log
-npm-debug.log*
-yarn-error.log*
-coverage/
-.nyc_output/
-
-# Seeded design canvas — a 2.3MB copy of the Claude Design editor payload with
-# the artboards below injected. Regenerate it from design/*.dc.html rather than
-# committing it.
-design/synapse-screens.html
+.flowcompanion-dev/

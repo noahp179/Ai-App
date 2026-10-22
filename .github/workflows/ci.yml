@@ -3,36 +3,68 @@ name: CI
 on:
   push:
     branches: ['**']
+    tags: ['v*']
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  verify:
-    name: Test and typecheck
-    runs-on: ubuntu-latest
+  check:
+    name: Typecheck, lint, tests
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm audit --omit=dev
+      - run: npm run build
+      # Electron's sandbox needs unprivileged user namespaces, which Ubuntu 24.04 restricts by default.
+      - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - run: npx playwright install --with-deps chromium
+      - run: xvfb-run -a npx playwright test
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
 
-      - name: Install
-        run: npm ci
-
-      - name: Test core
-        run: npm test --workspace @synapse/core
-
-      # Core must be built first — the UI and app packages consume its
-      # declaration output through TypeScript project references.
-      - name: Build core
-        run: npm run build --workspace @synapse/core
-
-      - name: Typecheck UI
-        run: npx tsc --noEmit -p packages/ui/tsconfig.json
-
-      - name: Typecheck mobile
-        run: npx tsc --noEmit -p apps/mobile/tsconfig.json
-
-      - name: Typecheck desktop
-        run: npx tsc --noEmit -p apps/desktop/tsconfig.json
+  package:
+    name: Package (${{ matrix.os }})
+    needs: check
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # Unsigned unless signing secrets are configured (CSC_LINK / CSC_KEY_PASSWORD, APPLE_ID ...). See docs/RELEASE.md.
+      - run: npx electron-builder --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flowcompanion-${{ matrix.os }}
+          path: |
+            release/*.AppImage
+            release/*.deb
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+          if-no-files-found: error

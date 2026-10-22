@@ -1,9 +1,0 @@
-{
-  "recommendations": [
-    "expo.vscode-expo-tools",
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "ms-vscode.vscode-typescript-next",
-    "ms-vscode.live-server"
-  ]
-}
