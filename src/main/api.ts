@@ -173,6 +173,56 @@ export function createApi(ctx: AppContext): FlowApi {
       clearState: (game) => ctx.games.clearState(game),
       resetScores: (game) => changed('games', ctx.games.resetScores(game)),
     },
+    learning: {
+      overview: () => ctx.learning.overview(),
+      resources: (q) => ctx.learning.resources(q ?? {}),
+      resource: (id) => ctx.learning.get(str(id, 'id', 100)),
+      paths: () => ctx.learning.paths(),
+      path: (id) => ctx.learning.path(str(id, 'id', 100)),
+      recommendations: () => ctx.learning.recommendations(),
+      setSaved: (id, saved) => changed('learning', ctx.learning.setSaved(str(id, 'id', 100), saved === true)),
+      setStatus: (id, status) => changed('learning', ctx.learning.setStatus(str(id, 'id', 100), status)),
+      setNotes: (id, notes) => changed('learning', ctx.learning.setNotes(str(id, 'id', 100), str(notes, 'Notes', 20_000))),
+      open: async (id) => {
+        const url = ctx.learning.url(str(id, 'id', 100));
+        await openExternalSafe(url);
+        changed('learning', ctx.learning.markOpened(id));
+      },
+      schedule: (id, input) => {
+        const r = ctx.learning.get(str(id, 'id', 100));
+        const ev = ctx.events.create({
+          title: `Study: ${r.title}`,
+          notes: `${r.publisher}\n${r.url}\n\n${r.summary}`,
+          category: 'study',
+          start: str(input?.start, 'Start', 40),
+          end: str(input?.end, 'End', 40),
+          timeZone: str(input?.timeZone, 'Time zone', 64),
+          recurrence: input?.recurrence ?? null,
+          reminders: [ctx.settings.get().learning.studyReminderMinutes],
+        });
+        ctx.links.link('event', ev.id, 'resource', r.id);
+        ctx.changed('links');
+        return calendarChanged(ev);
+      },
+      createNote: (id) => {
+        const r = ctx.learning.get(str(id, 'id', 100));
+        const n = ctx.notes.create(
+          { title: `Notes: ${r.title}`, body: `# Notes: ${r.title}\n\n[${r.publisher}](${r.url})\n\n`, format: 'markdown', tags: ['learning'] },
+          { defaultFormat: 'markdown' },
+        );
+        ctx.links.link('note', n.id, 'resource', r.id);
+        ctx.changed('links');
+        return changedNote(n);
+      },
+      exportData: () =>
+        saveFile(`flowcompanion-learning-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(ctx.learning.exportData(), null, 2), [{ name: 'JSON', extensions: ['json'] }]),
+      deleteData: () => {
+        const n = ctx.learning.deleteData();
+        ctx.changed('learning');
+        ctx.changed('links');
+        return n;
+      },
+    },
     calendar: {
       occurrences: (from, to) => ctx.events.occurrences(str(from, 'from', 40), str(to, 'to', 40)),
       get: (id) => ctx.events.get(id),

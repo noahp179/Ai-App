@@ -402,6 +402,15 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--border-st
 .code-block-header { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px 4px 12px; border-bottom: 1px solid var(--border); font-size: 0.78rem; color: var(--text-faint); background: var(--surface); }
 .code-block pre { margin: 0; padding: 12px; overflow-x: auto; font-size: 0.86rem; line-height: 1.5; }
 
+/* Text-style buttons and fact lists (learning hub, detail pages) */
+.link-button { background: none; border: 0; padding: 0; color: var(--text); font: inherit; cursor: pointer; text-align: inherit; }
+.link-button:hover { color: var(--accent); text-decoration: underline; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; margin: 0; }
+.facts dt { color: var(--text-faint); }
+.facts dd { margin: 0; }
+.step-dot { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 0.78rem; font-weight: 600; background: var(--surface-2); border: 1px solid var(--border-strong); color: var(--text-muted); }
+.step-dot.done { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+
 /* Copy-restricted regions (parental learning controls) */
 [data-copy-restricted='true'] { user-select: none; -webkit-user-select: none; }
 

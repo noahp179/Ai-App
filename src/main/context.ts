@@ -14,6 +14,7 @@ import { FeedService } from '../core/feed/service';
 import { FocusService } from '../core/focus';
 import { GamesService } from '../core/games';
 import { KvStore } from '../core/kv';
+import { LearningService } from '../core/learning';
 import { LinksService } from '../core/links';
 import { NotesService } from '../core/notes';
 import { NotificationCenter, resolveZone } from '../core/notifications';
@@ -65,6 +66,7 @@ export class AppContext {
   readonly data: DataService;
   readonly feed: FeedService;
   readonly games: GamesService;
+  readonly learning: LearningService;
   readonly reminders: RemindersService;
   readonly startup: StartupReport;
   capabilities!: Capabilities;
@@ -127,6 +129,7 @@ export class AppContext {
     this.events = new EventsService(db, this.clock, zone);
     this.data = new DataService(db);
     this.games = new GamesService(db, this.clock);
+    this.learning = new LearningService(db, this.clock, () => this.settings.get());
     this.feed = new FeedService({
       db,
       clock: this.clock,
@@ -197,9 +200,15 @@ export class AppContext {
     return ctx;
   }
 
-  /** Extension points filled in by later modules. */
-  resourceTitle: (id: string) => string | null = () => null;
-  extraSearch: (q: string, limit: number) => ReturnType<SearchService['search']> = () => [];
+  /** Titles for linkable items that live outside the database (learning resources). */
+  resourceTitle(id: string): string | null {
+    return this.learning.title(id);
+  }
+
+  /** Search sources that are not in the full-text index. */
+  extraSearch(q: string, limit: number): ReturnType<SearchService['search']> {
+    return this.learning.search(q, limit);
+  }
 
   private resolveAttachment(a: { type: 'note' | 'event' | 'task'; id: string }): { label: string; text: string } | null {
     try {

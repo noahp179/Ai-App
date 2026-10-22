@@ -25,6 +25,11 @@ import type {
   GameScore,
   GameStats,
   InboxNotification,
+  LearningOverview,
+  LearningPathView,
+  LearningQuery,
+  LearningRecommendation,
+  LearningResourceView,
   LinkableType,
   Message,
   ModelInfo,
@@ -39,6 +44,8 @@ import type {
   ProviderStatus,
   RecurrenceRule,
   ReminderRecord,
+  ResourceProgress,
+  ResourceStatus,
   SearchHit,
   SendMessageInput,
   StartupReport,
@@ -199,6 +206,25 @@ export interface FlowApi {
     loadState(game: GameId): unknown;
     clearState(game: GameId): void;
     resetScores(game?: GameId): void;
+  };
+  learning: {
+    overview(): LearningOverview;
+    resources(query?: LearningQuery): LearningResourceView[];
+    resource(id: string): LearningResourceView;
+    paths(): LearningPathView[];
+    path(id: string): LearningPathView & { resources: LearningResourceView[] };
+    recommendations(): { personalized: boolean; items: LearningRecommendation[] };
+    setSaved(id: string, saved: boolean): ResourceProgress;
+    setStatus(id: string, status: ResourceStatus): ResourceProgress;
+    setNotes(id: string, notes: string): ResourceProgress;
+    /** Opens the resource in the default browser and remembers when it was last opened. */
+    open(id: string): Promise<void>;
+    /** Adds a study session for this resource to the local calendar (category "study"), linked to the resource. */
+    schedule(id: string, input: { start: string; end: string; timeZone: string; recurrence?: RecurrenceRule | null }): CalendarEvent;
+    /** Creates a Markdown note about the resource, linked to it. */
+    createNote(id: string): Note;
+    exportData(): Promise<SaveResult>;
+    deleteData(): number;
   };
   calendar: {
     occurrences(fromIso: string, toIso: string): EventOccurrence[];

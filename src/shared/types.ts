@@ -559,6 +559,33 @@ export interface ResourceProgress {
   updatedAt: IsoTime;
 }
 
+export type LearningResourceView = LearningResource & { progress: ResourceProgress | null };
+
+export interface LearningPathView extends LearningPath {
+  total: number;
+  completed: number;
+  started: boolean;
+  nextResourceId: string | null;
+}
+
+export interface LearningRecommendation {
+  resourceId: string;
+  /** Plain-language reason shown next to the suggestion. */
+  reason: string;
+  pathId: string | null;
+}
+
+export interface LearningOverview {
+  /** When scripts/verify-links.mjs last checked the bundled links. */
+  checkedOn: string | null;
+  total: number;
+  verified: number;
+  topics: { id: string; label: string; count: number }[];
+  saved: number;
+  inProgress: number;
+  completed: number;
+}
+
 export interface LearningQuery {
   search?: string;
   topic?: string;
