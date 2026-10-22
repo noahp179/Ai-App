@@ -16,8 +16,10 @@ import { GamesService } from '../core/games';
 import { KvStore } from '../core/kv';
 import { LearningService } from '../core/learning';
 import { LinksService } from '../core/links';
+import { MarketplaceService } from '../core/marketplace/service';
 import { NotesService } from '../core/notes';
 import { NotificationCenter, resolveZone } from '../core/notifications';
+import { PromptsService } from '../core/prompts';
 import { Scheduler } from '../core/scheduler';
 import { SearchService } from '../core/search';
 import { SecretStore } from '../core/secrets';
@@ -67,6 +69,8 @@ export class AppContext {
   readonly feed: FeedService;
   readonly games: GamesService;
   readonly learning: LearningService;
+  readonly prompts: PromptsService;
+  readonly marketplace: MarketplaceService;
   readonly reminders: RemindersService;
   readonly startup: StartupReport;
   capabilities!: Capabilities;
@@ -130,6 +134,17 @@ export class AppContext {
     this.data = new DataService(db);
     this.games = new GamesService(db, this.clock);
     this.learning = new LearningService(db, this.clock, () => this.settings.get());
+    this.prompts = new PromptsService(db, this.clock);
+    this.marketplace = new MarketplaceService({
+      db,
+      clock: this.clock,
+      kv: this.kv,
+      secrets: this.secrets,
+      prompts: this.prompts,
+      settings: () => this.settings.get(),
+      fetch: ((input: Parameters<typeof fetch>[0], init?: RequestInit) => net.fetch(input instanceof URL ? input.toString() : (input as string), init)) as typeof fetch,
+      userAgent: `FlowCompanion/${app.getVersion()}`,
+    });
     this.feed = new FeedService({
       db,
       clock: this.clock,
@@ -200,6 +215,21 @@ export class AppContext {
     return ctx;
   }
 
+  private trialReminders(): { key: string; at: number; kind: 'soon' | 'ended'; trial: ReturnType<MarketplaceService['trials']>[number] }[] {
+    if (!this.settings.get().marketplace.trialExpiryReminders) return [];
+    const fired = new Set(this.kv.get<string[]>('trials:notified', []));
+    return this.marketplace
+      .trials()
+      .flatMap((t) => {
+        const end = new Date(t.expiresAt).getTime();
+        return [
+          { key: `trial-soon:${t.entitlementId}`, at: end - 86_400_000, kind: 'soon' as const, trial: t },
+          { key: `trial-ended:${t.entitlementId}`, at: end, kind: 'ended' as const, trial: t },
+        ];
+      })
+      .filter((d) => !fired.has(d.key));
+  }
+
   /** Titles for linkable items that live outside the database (learning resources). */
   resourceTitle(id: string): string | null {
     return this.learning.title(id);
@@ -258,6 +288,7 @@ export class AppContext {
   private housekeeping(): void {
     try {
       this.feed.seedDefaults();
+      this.marketplace.seedStarter();
       this.ai.housekeeping();
       this.notes.purgeTrash(this.settings.get().notes.trashRetentionDays);
       this.notifications.pruneLog(30);
@@ -307,6 +338,31 @@ export class AppContext {
       },
     });
     this.scheduler.add({
+      name: 'trials',
+      nextAt: () => {
+        const due = this.trialReminders();
+        return due.length ? new Date(Math.min(...due.map((d) => d.at))) : null;
+      },
+      run: () => {
+        const now = this.clock.now().getTime();
+        const fired = new Set(this.kv.get<string[]>('trials:notified', []));
+        for (const d of this.trialReminders().filter((x) => x.at <= now)) {
+          fired.add(d.key);
+          // A "1 day left" reminder that would arrive after the trial ended is skipped; the "ended" one covers it.
+          if (d.kind === 'soon' && now >= new Date(d.trial.expiresAt).getTime()) continue;
+          this.notifications.notify({
+            dedupeKey: d.key,
+            kind: 'trial',
+            title: d.kind === 'soon' ? `Trial ends in about a day: ${d.trial.title}` : `Trial ended: ${d.trial.title}`,
+            body: d.kind === 'soon' ? 'After it ends you lose access to the prompt. Nothing will be charged.' : 'Access has ended. You were not charged.',
+            action: { route: `/marketplace/listing/${d.trial.listingKey}` },
+          });
+        }
+        this.kv.set('trials:notified', [...fired].slice(-500));
+        this.changed('marketplace');
+      },
+    });
+    this.scheduler.add({
       name: 'ai-timers',
       nextAt: () => {
         const t = this.aiTasks.nextTimerAt();
@@ -343,6 +399,11 @@ export class AppContext {
     }
     if (prev && prev.data.backupsToKeep !== s.data.backupsToKeep) pruneBackups(this.paths.backupDir, s.data.backupsToKeep);
     if (prev) this.windows.applySettings(s);
+    if (prev && prev.marketplace.serverUrl !== s.marketplace.serverUrl) {
+      // An account belongs to one server; switching servers signs you out.
+      this.marketplace.forgetAccount();
+      this.changed('marketplace');
+    }
     if (prev) this.scheduler.wake();
   }
 

@@ -675,6 +675,62 @@ export interface Listing {
   rating: { average: number; count: number } | null;
   /** Clearly-labelled sample listing (e.g. seeded on the reference server). */
   demo: boolean;
+  /** `${origin}:${id}` — unique across bundled, local and server listings. */
+  key: string;
+  /** Imported from a listing file; nobody has reviewed it. */
+  imported: boolean;
+  /** Created by you in Creator Studio. */
+  isMine: boolean;
+  /** You reported it; hidden from browsing on this device. */
+  hidden: boolean;
+  /** For your own listings: id and review status on the marketplace server, once published there. */
+  remoteId: string | null;
+  remoteStatus: ListingStatus | null;
+}
+
+export interface ListingDetail extends Listing {
+  access: EntitlementStatus;
+  reviews: Review[];
+  /** Server reviews come from people who had access. Local reviews are yours, kept on this device. */
+  reviewsScope: 'server' | 'this_device';
+  canReview: boolean;
+  reviewBlockedReason: string | null;
+  myReport: AbuseReport | null;
+  /** Your own use of this listing on this device. */
+  yourUsage: { views: number; copies: number; inserts: number; saves: number };
+  versions: { version: string; changelog: string; createdAt: IsoTime }[];
+  /** Prompt id if you already saved it to your library. */
+  inLibrary: Id | null;
+}
+
+export interface MarketplaceStatus {
+  serverUrl: string;
+  info: { name: string; version: string; paymentsEnabled: boolean; trialDays: number; registrationOpen: boolean; demoContent: boolean } | null;
+  error: string | null;
+  account: (MarketplaceAccount & { role: 'user' | 'admin' }) | null;
+  /** Where the sign-in token is kept: OS-encrypted storage, or memory only for this session. */
+  tokenStorage: 'secure' | 'session' | null;
+}
+
+export interface ListingDraftInput {
+  title: string;
+  summary: string;
+  preview: string;
+  body: string;
+  category: string;
+  tags: string[];
+  providers: ProviderLabel[];
+  pricing: { type: 'free' } | { type: 'paid'; priceCents: number; currency: 'USD' | 'EUR' | 'GBP' };
+  trialEligible: boolean;
+  version: string;
+  changelog: string;
+}
+
+export interface PublishCheck {
+  id: string;
+  label: string;
+  ok: boolean;
+  detail: string | null;
 }
 
 export interface ListingQuery {

@@ -524,6 +524,44 @@ export const MIGRATIONS: Migration[] = [
         ALTER TABLE messages ADD COLUMN notices TEXT NOT NULL DEFAULT '[]';
       `),
   },
+  {
+    version: 11,
+    name: 'marketplace: remote ids, imported packages, locally hidden listings, review targets',
+    up: (db) =>
+      db.exec(`
+        ALTER TABLE listings ADD COLUMN remote_id TEXT;
+        ALTER TABLE listings ADD COLUMN remote_status TEXT;
+        ALTER TABLE listings ADD COLUMN imported INTEGER NOT NULL DEFAULT 0;
+        ALTER TABLE listings ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0;
+        CREATE INDEX listing_events_at ON listing_events(at);
+
+        -- Reviews and reports are keyed by "origin:id" so they can refer to server listings too.
+        CREATE TABLE reviews_v11 (
+          id TEXT PRIMARY KEY,
+          listing_id TEXT NOT NULL,
+          author_name TEXT NOT NULL,
+          rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+          text TEXT NOT NULL DEFAULT '',
+          verified INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL
+        );
+        INSERT INTO reviews_v11 SELECT r.id, l.origin || ':' || r.listing_id, r.author_name, r.rating, r.text, r.verified, r.created_at FROM reviews r JOIN listings l ON l.id = r.listing_id;
+        DROP TABLE reviews;
+        ALTER TABLE reviews_v11 RENAME TO reviews;
+        CREATE INDEX reviews_listing ON reviews(listing_id);
+        CREATE TABLE abuse_reports_v11 (
+          id TEXT PRIMARY KEY,
+          listing_id TEXT NOT NULL,
+          reason TEXT NOT NULL,
+          details TEXT NOT NULL DEFAULT '',
+          status TEXT NOT NULL DEFAULT 'open',
+          created_at TEXT NOT NULL
+        );
+        INSERT INTO abuse_reports_v11 SELECT a.id, l.origin || ':' || a.listing_id, a.reason, a.details, a.status, a.created_at FROM abuse_reports a JOIN listings l ON l.id = a.listing_id;
+        DROP TABLE abuse_reports;
+        ALTER TABLE abuse_reports_v11 RENAME TO abuse_reports;
+      `),
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;

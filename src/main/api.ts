@@ -223,6 +223,144 @@ export function createApi(ctx: AppContext): FlowApi {
         return n;
       },
     },
+    prompts: {
+      list: (q) => ctx.prompts.list(q ?? {}),
+      get: (id) => ctx.prompts.get(str(id, 'id', 100)),
+      create: (input) => changed('prompts', ctx.prompts.create(input)),
+      update: (id, patch, note) => changed('prompts', ctx.prompts.update(str(id, 'id', 100), patch, typeof note === 'string' ? note : '')),
+      setFavorite: (id, fav) => changed('prompts', ctx.prompts.setFavorite(str(id, 'id', 100), fav === true)),
+      versions: (id) => ctx.prompts.versions(str(id, 'id', 100)),
+      restoreVersion: (id, v) => changed('prompts', ctx.prompts.restoreVersion(str(id, 'id', 100), clampInt(v, 1, 1_000_000, 1))),
+      duplicate: (id) => changed('prompts', ctx.prompts.duplicate(str(id, 'id', 100))),
+      delete: (id) => {
+        ctx.prompts.delete(str(id, 'id', 100));
+        ctx.changed('prompts');
+        ctx.changed('links');
+      },
+      recordUse: (id) => changed('prompts', ctx.prompts.recordUse(str(id, 'id', 100))),
+      categories: () => ctx.prompts.categories(),
+      exportFile: (ids) =>
+        saveFile(`flowcompanion-prompts-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(ctx.prompts.exportDoc(Array.isArray(ids) ? ids.map((x) => str(x, 'id', 100)) : undefined), null, 2), [
+          { name: 'JSON', extensions: ['json'] },
+        ]),
+      importFile: async () => {
+        const files = await openTextFiles([{ name: 'Prompts', extensions: ['json'] }]);
+        if (!files) return null;
+        const total: ImportReport = { imported: 0, skipped: 0, errors: [] };
+        for (const f of files) {
+          const r = ctx.prompts.importDoc(parseJsonFile(f.name, f.content));
+          total.imported += r.imported;
+          total.skipped += r.skipped;
+          total.errors.push(...r.errors.map((e) => `${f.name}: ${e}`));
+        }
+        ctx.changed('prompts');
+        return total;
+      },
+    },
+    marketplace: {
+      status: () => ctx.marketplace.status(),
+      listings: (q) => ctx.marketplace.listings(q ?? {}),
+      listing: (key) => ctx.marketplace.listing(str(key, 'key', 120)),
+      creator: (key) => ctx.marketplace.creator(str(key, 'key', 120)),
+      promptText: async (key, use) => {
+        const t = await ctx.marketplace.promptText(str(key, 'key', 120), use === 'insert' ? 'insert' : 'copy');
+        ctx.changed('marketplace');
+        return t;
+      },
+      saveToLibrary: async (key) => {
+        const p = await ctx.marketplace.saveToLibrary(str(key, 'key', 120));
+        ctx.changed('prompts');
+        ctx.changed('marketplace');
+        return p;
+      },
+      startTrial: async (key, ack) => {
+        const d = await ctx.marketplace.startTrial(str(key, 'key', 120), ack === true);
+        ctx.changed('marketplace');
+        ctx.scheduler.wake();
+        return d;
+      },
+      purchase: async (key) => {
+        await ctx.marketplace.purchase(str(key, 'key', 120));
+      },
+      addReview: async (key, input) => {
+        await ctx.marketplace.addReview(str(key, 'key', 120), input);
+        ctx.changed('marketplace');
+      },
+      report: async (key, input) => {
+        const r = await ctx.marketplace.report(str(key, 'key', 120), input);
+        ctx.changed('marketplace');
+        return r;
+      },
+      myReports: () => ctx.marketplace.myReports(),
+      resolveLocalReport: (id, action) => changed('marketplace', ctx.marketplace.resolveLocalReport(str(id, 'id', 100), action)),
+      register: async (input) => {
+        const a = await ctx.marketplace.register(input);
+        ctx.changed('marketplace');
+        return a;
+      },
+      login: async (input) => {
+        const a = await ctx.marketplace.login(input);
+        ctx.changed('marketplace');
+        return a;
+      },
+      logout: async () => {
+        await ctx.marketplace.logout();
+        ctx.changed('marketplace');
+      },
+      moderationQueue: () => ctx.marketplace.moderationQueue(),
+      moderate: async (id, action, note) => {
+        const l = await ctx.marketplace.moderate(str(id, 'id', 100), action, str(note ?? '', 'Note', 1000));
+        ctx.changed('marketplace');
+        return l;
+      },
+      resolveServerReport: async (id, action) => {
+        await ctx.marketplace.resolveServerReport(str(id, 'id', 100), action === 'dismissed' ? 'dismissed' : 'reviewed');
+        ctx.changed('marketplace');
+      },
+    },
+    creator: {
+      profile: () => ctx.marketplace.selfProfile(),
+      saveProfile: async (input) => {
+        const p = await ctx.marketplace.saveProfile(input);
+        ctx.changed('creator');
+        return p;
+      },
+      listings: () => ctx.marketplace.myListings(),
+      sync: async () => {
+        const l = await ctx.marketplace.syncMyListings();
+        ctx.changed('creator');
+        return l;
+      },
+      createDraft: (input) => changed('creator', ctx.marketplace.createDraft(input ?? {})),
+      fromPrompt: (promptId) => changed('creator', ctx.marketplace.draftFromPrompt(str(promptId, 'id', 100))),
+      draft: (id) => ctx.marketplace.draft(str(id, 'id', 100)),
+      updateDraft: (id, patch) => changed('creator', ctx.marketplace.updateDraft(str(id, 'id', 100), patch ?? {})),
+      deleteDraft: (id) => changed('creator', ctx.marketplace.deleteDraft(str(id, 'id', 100))),
+      checks: (id) => ctx.marketplace.checks(str(id, 'id', 100)),
+      publish: async (id) => {
+        const l = await ctx.marketplace.publish(str(id, 'id', 100));
+        ctx.changed('creator');
+        return l;
+      },
+      unpublish: async (id) => {
+        const l = await ctx.marketplace.unpublish(str(id, 'id', 100));
+        ctx.changed('creator');
+        return l;
+      },
+      analytics: (id) => ctx.marketplace.analytics(str(id, 'id', 100)),
+      exportPackage: (id) => {
+        const doc = ctx.marketplace.exportPackage(str(id, 'id', 100)) as { listing: { title: string } };
+        const name = doc.listing.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50) || 'listing';
+        return saveFile(`${name}.flowprompt.json`, JSON.stringify(doc, null, 2), [{ name: 'FlowCompanion listing', extensions: ['json'] }]);
+      },
+      importPackage: async () => {
+        const files = await openTextFiles([{ name: 'FlowCompanion listing', extensions: ['json'] }], false);
+        if (!files?.[0]) return null;
+        const l = ctx.marketplace.importPackage(parseJsonFile(files[0].name, files[0].content));
+        ctx.changed('marketplace');
+        return l;
+      },
+    },
     calendar: {
       occurrences: (from, to) => ctx.events.occurrences(str(from, 'from', 40), str(to, 'to', 40)),
       get: (id) => ctx.events.get(id),

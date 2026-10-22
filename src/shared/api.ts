@@ -24,7 +24,20 @@ import type {
   GameId,
   GameScore,
   GameStats,
+  AbuseReport,
+  CreatorProfile,
   InboxNotification,
+  Listing,
+  ListingDetail,
+  ListingDraftInput,
+  ListingQuery,
+  ListingStatus,
+  MarketplaceAccount,
+  MarketplaceStatus,
+  Prompt,
+  PromptVersion,
+  ProviderLabel,
+  PublishCheck,
   LearningOverview,
   LearningPathView,
   LearningQuery,
@@ -75,6 +88,24 @@ export interface NoteInput {
   tags?: string[];
   pinned?: boolean;
   favorite?: boolean;
+}
+
+export interface PromptInput {
+  title?: string;
+  description?: string;
+  body?: string;
+  category?: string;
+  tags?: string[];
+  providers?: ProviderLabel[];
+  favorite?: boolean;
+}
+
+export interface PromptQuery {
+  search?: string;
+  category?: string;
+  favorite?: boolean;
+  provider?: ProviderLabel;
+  sort?: 'recent' | 'used' | 'title';
 }
 
 export interface TaskInput {
@@ -225,6 +256,61 @@ export interface FlowApi {
     createNote(id: string): Note;
     exportData(): Promise<SaveResult>;
     deleteData(): number;
+  };
+  prompts: {
+    list(query?: PromptQuery): Prompt[];
+    get(id: string): Prompt;
+    create(input: PromptInput): Prompt;
+    /** Changing title or text creates a new version; `note` describes the change. */
+    update(id: string, patch: PromptInput, note?: string): Prompt;
+    setFavorite(id: string, favorite: boolean): Prompt;
+    versions(id: string): PromptVersion[];
+    restoreVersion(id: string, version: number): Prompt;
+    duplicate(id: string): Prompt;
+    delete(id: string): void;
+    recordUse(id: string): Prompt;
+    categories(): { category: string; count: number }[];
+    exportFile(ids?: string[]): Promise<SaveResult>;
+    importFile(): Promise<ImportReport | null>;
+  };
+  marketplace: {
+    status(): Promise<MarketplaceStatus>;
+    listings(query?: ListingQuery): Promise<{ items: Listing[]; remoteError: string | null }>;
+    listing(key: string): Promise<ListingDetail>;
+    creator(key: string): Promise<{ creator: CreatorProfile; listings: Listing[] }>;
+    /** The prompt text when you have access; records a copy/insert on this device. */
+    promptText(key: string, use: 'copy' | 'insert'): Promise<string>;
+    saveToLibrary(key: string): Promise<Prompt>;
+    /** Server-enforced trial. `acknowledged` confirms the user accepted the disclosure. */
+    startTrial(key: string, acknowledged: boolean): Promise<ListingDetail>;
+    purchase(key: string): Promise<void>;
+    addReview(key: string, input: { rating: number; text: string }): Promise<void>;
+    report(key: string, input: { reason: AbuseReport['reason']; details: string }): Promise<{ sentTo: 'server' | 'this_device' }>;
+    myReports(): (AbuseReport & { listingTitle: string | null })[];
+    resolveLocalReport(id: string, action: 'restore' | 'remove_listing' | 'dismiss'): void;
+    register(input: { email: string; password: string; displayName: string }): Promise<MarketplaceAccount>;
+    login(input: { email: string; password: string }): Promise<MarketplaceAccount>;
+    logout(): Promise<void>;
+    moderationQueue(): Promise<{ pending: Listing[]; reports: { id: string; listingId: string; listingTitle: string; reason: string; details: string; status: string; createdAt: string }[] }>;
+    moderate(remoteId: string, action: 'approve' | 'reject' | 'remove', note: string): Promise<Listing>;
+    resolveServerReport(id: string, action: 'reviewed' | 'dismissed'): Promise<void>;
+  };
+  creator: {
+    profile(): CreatorProfile;
+    saveProfile(input: { displayName: string; bio: string; website: string }): Promise<CreatorProfile>;
+    listings(): Listing[];
+    sync(): Promise<Listing[]>;
+    createDraft(input?: Partial<ListingDraftInput>): Listing;
+    fromPrompt(promptId: string): Listing;
+    draft(id: string): ListingDraftInput & { id: string; status: ListingStatus; remoteId: string | null; remoteStatus: ListingStatus | null; moderationNote: string | null };
+    updateDraft(id: string, patch: Partial<ListingDraftInput>): Listing;
+    deleteDraft(id: string): void;
+    checks(id: string): PublishCheck[];
+    publish(id: string): Promise<Listing>;
+    unpublish(id: string): Promise<Listing>;
+    analytics(id: string): Promise<{ server: { views: number; trialStarts: number; acquisitions: number; reviews: number; averageRating: number | null } | null; note: string }>;
+    exportPackage(id: string): Promise<SaveResult>;
+    importPackage(): Promise<Listing | null>;
   };
   calendar: {
     occurrences(fromIso: string, toIso: string): EventOccurrence[];
