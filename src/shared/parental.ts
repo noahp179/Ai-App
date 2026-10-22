@@ -5,7 +5,7 @@ import type { ParentalConfig, SearchHit, StudySession } from './types';
 export const ALWAYS_ALLOWED_MODULES: readonly ModuleId[] = ['home', 'settings'];
 
 /** Sections a parent can lock. Optional extras are listed first. */
-export const LOCKABLE_MODULES: readonly ModuleId[] = (['news', 'games', 'marketplace', 'creator', 'prompts', 'ai', 'learning', 'notes', 'productivity', 'calendar'] as ModuleId[]).filter((m) =>
+export const LOCKABLE_MODULES: readonly ModuleId[] = (['news', 'games', 'marketplace', 'creator', 'prompts', 'ai', 'learning', 'study', 'notes', 'productivity', 'calendar'] as ModuleId[]).filter((m) =>
   MODULE_IDS.includes(m),
 );
 

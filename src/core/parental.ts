@@ -19,7 +19,7 @@ export const DEFAULT_PARENTAL_CONFIG: ParentalConfig = {
   screenCapturePrivacy: false,
   tutorMode: true,
   lockedModules: [],
-  sessionAllowedModules: ['learning', 'notes', 'ai', 'calendar', 'productivity'],
+  sessionAllowedModules: ['study', 'learning', 'notes', 'ai', 'calendar', 'productivity'],
 };
 
 export const TUTOR_PROMPT = [
@@ -170,6 +170,11 @@ export class ParentalService {
     const fresh = { ...s, failedAttempts: 0, lockouts: 0, lockedUntil: null };
     this.save(fresh);
     return fresh;
+  }
+
+  /** Checks the parent PIN for features that need it (e.g. parent progress reports). Wrong PINs count towards the lockout. */
+  verifyPin(pin: unknown): void {
+    this.authorize(pin, 'pin');
   }
 
   /** Turns the controls on. Requires reading the scope explanation (acknowledged) and a PIN. Returns a one-time recovery code. */

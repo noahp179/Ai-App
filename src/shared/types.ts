@@ -324,7 +324,7 @@ export interface AiTask {
   source: AiTaskSource;
   state: AiTaskState;
   confidence: AiTaskConfidence;
-  refType: 'conversation' | 'url' | null;
+  refType: 'conversation' | 'url' | 'study' | null;
   refId: string | null;
   startedAt: IsoTime;
   updatedAt: IsoTime;

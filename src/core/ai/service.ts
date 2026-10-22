@@ -666,6 +666,64 @@ export class AiService {
     }
   }
 
+  // ─────────── One-off requests ───────────
+
+  /**
+   * A request outside any conversation (student lessons and tutoring). Uses the default provider unless one is
+   * given, honours the same key, timeout and error handling as chats, and shows up in AI task status.
+   * Nothing is stored here; the caller decides what to keep.
+   */
+  async complete(input: {
+    title: string;
+    system: string;
+    messages: ChatTurn[];
+    maxTokens?: number | null;
+    providerId?: string | null;
+    model?: string | null;
+    onDelta?: (delta: string) => void;
+    signal?: AbortSignal;
+  }): Promise<{ text: string; providerId: string; providerName: string; model: string; notices: string[] }> {
+    const id = input.providerId ?? this.d.settings().ai.defaultProviderId;
+    const provider = id ? this.db.get<ProviderRow>('SELECT * FROM providers WHERE id = ?', [id]) : undefined;
+    if (!provider) throw new UserError('No AI provider is connected. Connect one in Settings → AI providers, or keep studying with the offline lessons.', 'not_configured');
+    if (!bool(provider.enabled)) throw new UserError(`${provider.name} is turned off. Turn it on in Settings → AI providers.`, 'not_configured');
+    const model = (input.model ?? provider.default_model)?.trim();
+    if (!model) throw new UserError(`Choose a model for ${provider.name} in Settings → AI providers.`, 'not_configured');
+    const runtime = this.runtime(provider);
+    const s = this.d.settings();
+    const task = this.d.tasks.create({ title: input.title, source: 'native', confidence: 'confirmed', refType: 'study', detail: `${provider.name} · ${model}` });
+    const ctrl = new AbortController();
+    const onAbort = () => ctrl.abort();
+    input.signal?.addEventListener('abort', onAbort);
+    try {
+      let streamed = '';
+      const result = await adapterFor(provider.kind).chat(
+        runtime,
+        {
+          model,
+          system: input.system,
+          messages: input.messages,
+          maxTokens: input.maxTokens ?? (s.ai.maxOutputTokens > 0 ? s.ai.maxOutputTokens : null),
+          temperature: provider.kind === 'anthropic' ? null : s.ai.temperature,
+          stream: !!input.onDelta && s.ai.streaming,
+        },
+        (delta) => {
+          streamed += delta;
+          input.onDelta?.(delta);
+        },
+        ctrl.signal,
+      );
+      this.d.tasks.setState(task.id, 'completed', 'confirmed', `${provider.name} · ${result.servedModel ?? model}`);
+      return { text: result.text || streamed, providerId: provider.id, providerName: provider.name, model: result.servedModel ?? model, notices: result.notices };
+    } catch (err) {
+      const e = err instanceof AiError ? err : new AiError('unknown', err instanceof Error ? err.message : String(err));
+      this.d.tasks.setState(task.id, e.code === 'canceled' ? 'canceled' : 'failed', 'confirmed', e.message.slice(0, 300));
+      throw e.code === 'canceled' ? new UserError('Stopped.', 'canceled') : new UserError(e.message, e.code);
+    } finally {
+      input.signal?.removeEventListener('abort', onAbort);
+    }
+  }
+
   // ─────────── Housekeeping ───────────
 
   /**

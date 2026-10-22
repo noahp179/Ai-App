@@ -562,6 +562,149 @@ export const MIGRATIONS: Migration[] = [
         ALTER TABLE abuse_reports_v11 RENAME TO abuse_reports;
       `),
   },
+  {
+    version: 12,
+    name: 'student learning: profiles, lessons, quizzes, evidence, mastery, plans, assignments, assessments, tutor',
+    up: (db) =>
+      db.exec(`
+        -- Everything below belongs to one student profile and is deleted with it. None of it is in the shared search index.
+        CREATE TABLE students (
+          id TEXT PRIMARY KEY,
+          display_name TEXT NOT NULL,
+          grade INTEGER NOT NULL CHECK (grade BETWEEN 6 AND 12),
+          profile TEXT NOT NULL,
+          pin_hash TEXT,
+          pin_failures INTEGER NOT NULL DEFAULT 0,
+          pin_locked_until TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE TABLE study_lessons (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          expectation_id TEXT NOT NULL,
+          mode TEXT NOT NULL,
+          status TEXT NOT NULL,
+          data TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          completed_at TEXT
+        );
+        CREATE INDEX study_lessons_student ON study_lessons(student_id, updated_at);
+        CREATE TABLE study_quizzes (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          kind TEXT NOT NULL,
+          status TEXT NOT NULL,
+          data TEXT NOT NULL,
+          started_at TEXT NOT NULL,
+          finished_at TEXT
+        );
+        CREATE INDEX study_quizzes_student ON study_quizzes(student_id, started_at);
+        CREATE TABLE study_evidence (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          expectation_id TEXT NOT NULL,
+          at TEXT NOT NULL,
+          correct INTEGER NOT NULL,
+          score REAL NOT NULL,
+          difficulty INTEGER NOT NULL,
+          cognitive TEXT NOT NULL,
+          hinted INTEGER NOT NULL,
+          weight REAL NOT NULL,
+          source TEXT NOT NULL,
+          source_id TEXT,
+          question_id TEXT,
+          misconception TEXT
+        );
+        CREATE INDEX study_evidence_student ON study_evidence(student_id, expectation_id, at);
+        CREATE TABLE study_mastery (
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          expectation_id TEXT NOT NULL,
+          status TEXT NOT NULL,
+          next_review_at TEXT,
+          data TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          PRIMARY KEY (student_id, expectation_id)
+        );
+        CREATE TABLE study_plans (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          status TEXT NOT NULL,
+          data TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE TABLE study_assignments (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          status TEXT NOT NULL,
+          due_at TEXT,
+          data TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        -- Assessments built for practice; owner_student_id is NULL for the shared library (no student data).
+        CREATE TABLE study_assessments (
+          id TEXT PRIMARY KEY,
+          owner_student_id TEXT REFERENCES students(id) ON DELETE CASCADE,
+          data TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE TABLE study_tutor_sessions (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          data TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE TABLE study_tutor_messages (
+          id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL REFERENCES study_tutor_sessions(id) ON DELETE CASCADE,
+          role TEXT NOT NULL,
+          content TEXT NOT NULL,
+          status TEXT NOT NULL,
+          error TEXT,
+          model TEXT,
+          created_at TEXT NOT NULL
+        );
+        CREATE INDEX study_tutor_messages_session ON study_tutor_messages(session_id, created_at);
+        -- AI-generated lessons and question sets, cached per student with how they were made.
+        CREATE TABLE study_ai_cache (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          kind TEXT NOT NULL,
+          cache_key TEXT NOT NULL,
+          expectation_id TEXT NOT NULL,
+          data TEXT NOT NULL,
+          meta TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          UNIQUE (student_id, kind, cache_key)
+        );
+        CREATE TABLE study_activity (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          student_id TEXT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+          at TEXT NOT NULL,
+          kind TEXT NOT NULL,
+          ref_id TEXT,
+          expectation_id TEXT,
+          detail TEXT NOT NULL,
+          seconds INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX study_activity_student ON study_activity(student_id, at);
+        -- Reports of inaccurate or inappropriate educational content. Kept locally; student_id is NULL when anonymous.
+        CREATE TABLE study_content_reports (
+          id TEXT PRIMARY KEY,
+          student_id TEXT REFERENCES students(id) ON DELETE SET NULL,
+          kind TEXT NOT NULL,
+          target TEXT NOT NULL,
+          detail TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'open',
+          created_at TEXT NOT NULL
+        );
+      `),
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;

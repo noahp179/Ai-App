@@ -14,6 +14,7 @@ export const MODULE_IDS = [
   'prompts',
   'marketplace',
   'learning',
+  'study',
   'news',
   'games',
   'creator',
@@ -163,6 +164,23 @@ export const SettingsSchema = z.object({
       studyReminderMinutes: z.number().int().min(0).max(1440).default(10),
     })
     .prefault({}),
+  study: z
+    .object({
+      /** Default number of questions for practice and pop quizzes. */
+      quizLength: z.union([z.literal(3), z.literal(5), z.literal(10), z.literal(15)]).default(5),
+      /** Practice tests start with a timer. Off by default: timed work is not right for every learner. */
+      timedPracticeTests: z.boolean().default(false),
+      /** Show the numeric estimate next to mastery statuses. */
+      showEstimates: z.boolean().default(true),
+      proficientThreshold: z.number().min(0.6).max(0.95).default(0.8),
+      minIndependentCorrect: z.number().int().min(2).max(6).default(3),
+      /** A daily notification when spaced reviews are due. */
+      reviewReminders: z.boolean().default(true),
+      reviewReminderTime: hhmm.default('16:30'),
+      /** Allow AI-written lessons and the AI tutor in Student Learning (each student also has to agree). */
+      aiTutor: z.boolean().default(true),
+    })
+    .prefault({}),
   marketplace: z
     .object({
       serverUrl: z
@@ -216,7 +234,7 @@ export const MODE_PRESETS: Record<AppMode, { label: string; description: string;
   },
   student: {
     label: 'Student learning',
-    description: 'Learning hub, notes, calendar and AI up front. Marketplace and creator tools hidden.',
+    description: 'Student Learning, learning hub, notes, calendar and AI up front. Marketplace and creator tools hidden.',
     modules: { marketplace: false, creator: false },
   },
   creator: {
@@ -232,12 +250,12 @@ export const MODE_PRESETS: Record<AppMode, { label: string; description: string;
   parent: {
     label: 'Parent-managed learning',
     description:
-      'Learning hub, notes, calendar and AI. Games, news, marketplace and creator tools hidden. Use Settings → Parental Learning Controls for supervised sessions.',
+      'Student Learning, learning hub, notes, calendar and AI. Games, news, marketplace and creator tools hidden. Use Settings → Parental Learning Controls for supervised sessions.',
     modules: { games: false, news: false, marketplace: false, creator: false },
   },
   educator: {
     label: 'Educator or supervised learning',
-    description: 'Learning hub, prompt library, calendar and AI up front. Games and marketplace hidden.',
+    description: 'Student Learning (including the assessment builder), learning hub, prompt library, calendar and AI up front. Games and marketplace hidden.',
     modules: { games: false, marketplace: false, creator: false },
   },
 };

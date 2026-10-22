@@ -31,6 +31,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",
     "fast-xml-parser": "^5.11.2",
+    "katex": "^0.19.0",
     "lucide-react": "^1.61.0",
     "luxon": "^3.7.2",
     "react": "^19.3.1",
@@ -61,7 +62,7 @@
   "build": {
     "appId": "org.flowcompanion.desktop",
     "productName": "FlowCompanion",
-    "copyright": "Copyright \u00a9 2026 FlowCompanion contributors",
+    "copyright": "Copyright © 2026 FlowCompanion contributors",
     "directories": {
       "output": "release",
       "buildResources": "resources"
