@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import { ArrowLeft, CalendarPlus, ExternalLink, NotebookPen, ShieldCheck, Sparkles, TriangleAlert } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Weekday } from '../../../shared/types';
 import { topicLabel } from '../../../shared/learning';
 import { LinksPanel } from '../../components/LinksPanel';
@@ -107,22 +107,38 @@ function NotesEditor({ id, initial }: { id: string; initial: string }) {
   const [state, setState] = useState<'saved' | 'saving' | 'dirty' | 'error'>('saved');
   const latest = useRef(text);
   latest.current = text;
+  const saved = useRef(initial);
+  const save = useCallback(() => {
+    const value = latest.current;
+    if (value === saved.current) return;
+    const previous = saved.current;
+    saved.current = value;
+    setState('saving');
+    api.learning
+      .setNotes(id, value)
+      .then(() => latest.current === value && setState('saved'))
+      .catch(() => {
+        saved.current = previous;
+        setState('error');
+      });
+  }, [id]);
   useEffect(() => {
-    if (text === initial) return;
+    if (text === saved.current) return;
     setState('dirty');
-    const t = setTimeout(() => {
-      setState('saving');
-      api.learning
-        .setNotes(id, latest.current)
-        .then(() => setState('saved'))
-        .catch(() => setState('error'));
-    }, 600);
+    const t = setTimeout(save, 600);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text]);
+  }, [text, save]);
+  // Save straight away when leaving the page or closing the app, so the last words typed are not lost.
+  useEffect(() => {
+    window.addEventListener('beforeunload', save);
+    return () => {
+      window.removeEventListener('beforeunload', save);
+      save();
+    };
+  }, [save]);
   return (
     <div className="stack-2">
-      <Textarea aria-label="Your notes on this resource" rows={6} value={text} placeholder="What did you learn? Questions to follow up?" onChange={(e) => setText(e.target.value)} />
+      <Textarea aria-label="Your notes on this resource" rows={6} value={text} placeholder="What did you learn? Questions to follow up?" onChange={(e) => setText(e.target.value)} onBlur={save} />
       <span className="tiny faint" role="status" data-testid="learning-notes-status">
         {state === 'saved' ? 'Saved' : state === 'saving' ? 'Saving…' : state === 'dirty' ? 'Unsaved changes' : 'Could not save — check your disk space and try again.'}
       </span>

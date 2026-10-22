@@ -51,7 +51,7 @@ Electron was chosen over Tauri for built-in SQLite (`node:sqlite`, no native mod
 | --- | --- |
 | `npm run typecheck`, `npm run lint` | Pass |
 | `npm test` | 209 passed, 0 failed (23 opt-in live tests skipped) |
-| `xvfb-run -a npx playwright test` | 21 passed, 0 failed; the live-model test passed in the previous run |
+| `xvfb-run -a npx playwright test` | 22 passed, 0 failed; the live-model test passed in an earlier run |
 | Live local model (llama.cpp + Qwen2.5-0.5B) | 2/2 passed; also answered through the app UI |
 | Live news feeds | 21/21 earlier today; 11/21 in the final run (10 blocked by this environment's network policy) |
 | Learning links | 72/72 verified |

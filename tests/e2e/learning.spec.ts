@@ -12,6 +12,10 @@ async function invoke<T>(page: Page, method: string, ...args: unknown[]): Promis
   ) as Promise<T>;
 }
 
+function storedNotes(page: Page, id: string): Promise<string> {
+  return invoke<{ progress: { notes: string } | null }>(page, 'learning.resource', id).then((r) => r.progress?.notes ?? '');
+}
+
 test('learning hub: browse, track progress, take notes, schedule study time, survive restart', async () => {
   const l = await launch();
   try {
@@ -30,7 +34,9 @@ test('learning hub: browse, track progress, take notes, schedule study time, sur
     await expect(page.getByText(/Link checked on \d{4}-\d{2}-\d{2}/)).toBeVisible();
     await page.getByRole('radio', { name: 'In progress' }).or(page.getByRole('button', { name: 'In progress', exact: true })).first().click();
     await page.getByLabel('Your notes on this resource').fill('Self-attention compares every token with every other token.');
-    await expect(page.getByTestId('learning-notes-status')).toHaveText('Saved', { timeout: 10_000 });
+    // The status starts out as "Saved", so wait for the note to actually be stored.
+    await expect.poll(() => storedNotes(page, 'illustrated-transformer'), { timeout: 10_000 }).toContain('Self-attention');
+    await expect(page.getByTestId('learning-notes-status')).toHaveText('Saved');
 
     await page.getByRole('button', { name: 'Schedule study time' }).click();
     const dialog = page.getByRole('dialog', { name: 'Schedule study time' });
@@ -58,6 +64,27 @@ test('learning hub: browse, track progress, take notes, schedule study time, sur
     await page.getByRole('tab', { name: 'In progress' }).click();
     await page.getByRole('article', { name: 'The Illustrated Transformer' }).getByRole('button', { name: 'The Illustrated Transformer', exact: true }).click();
     await expect(page.getByLabel('Your notes on this resource')).toHaveValue(/Self-attention/);
+  } finally {
+    await close(again);
+  }
+});
+
+test('learning notes typed just before quitting are kept', async () => {
+  const l = await launch();
+  try {
+    const { page } = l;
+    await nav(page, 'Learning Hub').click();
+    await page.getByRole('tab', { name: 'Library' }).click();
+    await page.getByLabel('Search learning resources').fill('illustrated transformer');
+    await page.getByRole('article', { name: 'The Illustrated Transformer' }).getByRole('button', { name: 'The Illustrated Transformer', exact: true }).click();
+    await page.getByLabel('Your notes on this resource').fill('Written a moment before closing.');
+    // Quit immediately, inside the autosave delay.
+  } finally {
+    await close(l);
+  }
+  const again = await launch(l.dataDir);
+  try {
+    expect(await storedNotes(again.page, 'illustrated-transformer')).toBe('Written a moment before closing.');
   } finally {
     await close(again);
   }

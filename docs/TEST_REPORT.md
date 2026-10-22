@@ -11,7 +11,7 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | Type checking (Node side + renderer) | `npm run typecheck` | Pass |
 | Lint | `npm run lint` | Pass (0 problems) |
 | Unit + integration | `npm test` | **209 passed**, 0 failed, 23 skipped (the live tests below, which skip themselves without their environment variables) |
-| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` | **21 passed**, 0 failed, 1 skipped (the live-model test, which needs `FC_LIVE_OPENAI_COMPAT_URL`; it passed in the previous full run the same day) |
+| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` | **22 passed**, 0 failed, 1 skipped (the live-model test, which needs `FC_LIVE_OPENAI_COMPAT_URL`; it passed in the previous full run the same day) |
 | Live: real local model | `FC_LIVE_OPENAI_COMPAT_URL=http://127.0.0.1:8080/v1 npx vitest run tests/live/local-model.test.ts` | **2 passed** (llama.cpp `llama-server`, Qwen2.5-0.5B-Instruct Q4_K_M) |
 | Live: built-in news feeds | `FC_LIVE_FEEDS=1 npx vitest run tests/live/feeds.test.ts` | **11 passed, 10 failed** — every failure is `403 Blocked by egress policy` from this environment's outbound proxy (feeds.bbci.co.uk, arstechnica.com, theverge.com, espn.com), not from the publishers. Earlier the same day all 21 passed. The packaged app (Electron's network stack) loaded BBC, Hacker News and NASA feeds at 06:43 (see `docs/images/home.png`). |
 | Learning Hub links | `node scripts/verify-links.mjs --dry` | **72/72 verified** (HTTP 2xx and expected page text) |
@@ -48,7 +48,7 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | ai.spec.ts | Honest setup screen, then chat through a (mock) provider, save the answer as a note and as a task, search after restart; provider errors with guidance and retry on another model; **live: a real local model answers through the UI** |
 | core.spec.ts | Settings persist and apply; notes create/autosave/search/restart/trash/restore; unsaved edits recovered after the app is killed (SIGKILL); Markdown export; tasks and quick capture; calendar event survives restart; reminders delivered once across restarts; floating companion opens without stealing focus, collapses, remembers position |
 | discover.spec.ts | News: add a local feed, search, save; games: trivia round score, sudoku progress survives restart; word guess, memory and reaction time played with keyboard and mouse |
-| learning.spec.ts | Browse, progress, notes autosave, study session scheduled into the calendar, global search, restart; paths and goals change suggestions |
+| learning.spec.ts | Browse, progress, notes autosave, study session scheduled into the calendar, global search, restart; notes typed just before quitting are kept; paths and goals change suggestions |
 | marketplace.spec.ts | Prompt versions/restore/variables/copy; bundled listing saved to library; reference server: sign-up, trial disclosure gate, server trial, purchase refused, publish for review |
 | parental.spec.ts | PA–PO in the app: off by default, setup with recovery code, banner, AI copy blocked, wrong PIN, session locks sections, survives restart, end early, turn off; a parent locks News, Games and AI (locked screens, Home, command palette, AI refused by the main process), locks persist and unlock with the PIN |
 | browser.spec.ts | Bridge off by default, turned on from Settings, pairing code, page saved to the reading queue |
@@ -76,6 +76,7 @@ Background activity: one timer that sleeps until the next due job (max 1 hour); 
 - The marketplace reviews/reports tables could not record server listings (foreign key), fixed with migration v11.
 - The preview check rejected valid descriptions of short prompts; replaced with a word-sequence overlap check.
 - Oversized request bodies reset the connection instead of returning 413 (server and bridge).
+- Learning-resource notes typed less than 0.6 s before quitting or leaving the page were lost (the debounced save was cancelled). Found by the first GitHub Actions run; notes now save immediately on blur, page leave and window close.
 - An end-to-end test used a loose label locator (`Source`) that sometimes also matched a listing titled "…sources"; made exact and re-run 10 times without failure.
 
 ## Not executed
