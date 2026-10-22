@@ -62,3 +62,9 @@ export function fmtMoney(cents: number, currency: string): string {
     return `${(cents / 100).toFixed(2)} ${currency}`;
   }
 }
+
+/** Model IDs from local servers are sometimes file paths; show just the file name. */
+export function modelLabel(id: string | null | undefined): string {
+  if (!id) return '';
+  return /[\\/]/.test(id) ? (id.split(/[\\/]/).pop() ?? id) : id;
+}

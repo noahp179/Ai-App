@@ -1,6 +1,92 @@
 import type { AppMode, Settings, SettingsPatch } from './settings';
 import type { CompanionState } from './ipc';
-import type { AppInfo, Capabilities, InboxNotification, StartupReport } from './types';
+import type {
+  AiStreamEvent,
+  AiTask,
+  AiTaskState,
+  AppInfo,
+  Bookmark,
+  Capabilities,
+  CaptureKind,
+  CaptureResult,
+  Conversation,
+  EntityLink,
+  FocusSession,
+  FocusStats,
+  Folder,
+  InboxNotification,
+  LinkableType,
+  Message,
+  ModelInfo,
+  Note,
+  NoteDraft,
+  NoteFormat,
+  NoteQuery,
+  NoteSummary,
+  ProviderCapabilities,
+  ProviderConfig,
+  ProviderKind,
+  ProviderStatus,
+  SearchHit,
+  SendMessageInput,
+  StartupReport,
+  Task,
+  TaskList,
+  TaskPriority,
+  TaskQuery,
+  TimeEntry,
+} from './types';
+
+export interface ImportReport {
+  imported: number;
+  skipped: number;
+  errors: string[];
+}
+
+export interface SaveResult {
+  saved: boolean;
+  path: string | null;
+}
+
+export interface NoteInput {
+  title?: string;
+  body?: string;
+  format?: NoteFormat;
+  folderId?: string | null;
+  tags?: string[];
+  pinned?: boolean;
+  favorite?: boolean;
+}
+
+export interface TaskInput {
+  title: string;
+  listId?: string | null;
+  parentId?: string | null;
+  notes?: string;
+  priority?: TaskPriority;
+  dueAt?: string | null;
+}
+
+export type ProviderView = ProviderConfig & { options: Record<string, unknown> };
+
+export interface ProviderInputData {
+  kind: ProviderKind;
+  name?: string;
+  baseUrl?: string;
+  defaultModel?: string | null;
+  enabled?: boolean;
+  apiKey?: string | null;
+  options?: Record<string, unknown>;
+}
+
+export interface ProviderCatalogEntry {
+  kind: ProviderKind;
+  label: string;
+  defaultBaseUrl: string;
+  capabilities: ProviderCapabilities;
+  suggestedModels: ModelInfo[];
+  setupHelp: string;
+}
 
 /**
  * The complete surface the UI can call. The main process implements this
@@ -17,16 +103,6 @@ export interface FlowApi {
     relaunch(): void;
     quit(): void;
     setLastRoute(route: string): void;
-  };
-  inbox: {
-    list(limit?: number): InboxNotification[];
-    unreadCount(): number;
-    markRead(id: string): void;
-    markAllRead(): void;
-    clear(): void;
-    pause(minutes: number): string;
-    resume(): void;
-    pausedUntil(): string | null;
   };
   settings: {
     get(): Settings;
@@ -46,6 +122,125 @@ export interface FlowApi {
     minimizeCompanion(): void;
     expandToMain(route?: string): void;
   };
+  inbox: {
+    list(limit?: number): InboxNotification[];
+    unreadCount(): number;
+    markRead(id: string): void;
+    markAllRead(): void;
+    clear(): void;
+    pause(minutes: number): string;
+    resume(): void;
+    pausedUntil(): string | null;
+  };
+  notes: {
+    list(query?: NoteQuery): NoteSummary[];
+    get(id: string): Note;
+    create(input?: NoteInput): Note;
+    update(id: string, patch: NoteInput & { expectedRevision?: number }): Note;
+    duplicate(id: string): Note;
+    archive(id: string): Note;
+    unarchive(id: string): Note;
+    trash(id: string): void;
+    restore(id: string): Note;
+    deletePermanently(id: string): void;
+    emptyTrash(): number;
+    tags(): { tag: string; count: number }[];
+    folders(): (Folder & { noteCount: number })[];
+    createFolder(name: string, parentId?: string | null): Folder;
+    renameFolder(id: string, name: string): void;
+    deleteFolder(id: string): void;
+    saveDraft(noteId: string, title: string, body: string, baseRevision: number): void;
+    drafts(): (NoteDraft & { noteTitle: string; differs: boolean })[];
+    draftFor(noteId: string): NoteDraft | null;
+    discardDraft(noteId: string): void;
+    recoverDraft(noteId: string): Note;
+    exportNote(id: string, format: 'markdown' | 'text' | 'json'): Promise<SaveResult>;
+    exportAll(): Promise<SaveResult>;
+    importFiles(): Promise<ImportReport | null>;
+  };
+  links: {
+    link(fromType: LinkableType, fromId: string, toType: LinkableType, toId: string): EntityLink;
+    unlink(id: string): void;
+    for(type: LinkableType, id: string): EntityLink[];
+  };
+  tasks: {
+    lists(): TaskList[];
+    createList(name: string): TaskList;
+    renameList(id: string, name: string): void;
+    deleteList(id: string): void;
+    list(query?: TaskQuery): Task[];
+    get(id: string): Task;
+    create(input: TaskInput): Task;
+    update(id: string, patch: Partial<TaskInput> & { done?: boolean }): Task;
+    toggle(id: string, done: boolean): Task;
+    delete(id: string): void;
+    move(id: string, beforeId: string | null, afterId: string | null): void;
+    clearCompleted(listId: string | null): number;
+    counts(): { open: number; dueToday: number; overdue: number; doneToday: number };
+  };
+  bookmarks: {
+    list(query?: { search?: string; tag?: string; queue?: 'reading' | 'unread' | 'read' | 'all' }): Bookmark[];
+    create(input: { url: string; title?: string; description?: string; tags?: string[]; queue?: Bookmark['queue'] }): Bookmark;
+    update(id: string, patch: { url?: string; title?: string; description?: string; tags?: string[]; queue?: Bookmark['queue'] }): Bookmark;
+    setRead(id: string, read: boolean): Bookmark;
+    delete(id: string): void;
+    tags(): string[];
+  };
+  time: {
+    running(): TimeEntry | null;
+    start(label: string, taskId?: string | null): TimeEntry;
+    stop(): TimeEntry | null;
+    list(days?: number): TimeEntry[];
+    update(id: string, patch: { label?: string; startedAt?: string; endedAt?: string | null }): TimeEntry;
+    delete(id: string): void;
+    summary(days?: number): { byLabel: { label: string; minutes: number }[]; byDay: { date: string; minutes: number }[]; totalMinutes: number };
+  };
+  focus: {
+    current(): FocusSession | null;
+    start(kind?: FocusSession['kind'], minutes?: number, label?: string): FocusSession;
+    pause(): FocusSession | null;
+    resume(): FocusSession | null;
+    stop(): FocusSession | null;
+    stats(): FocusStats;
+    history(limit?: number): FocusSession[];
+    nextKind(): FocusSession['kind'];
+  };
+  search: {
+    query(q: string, types?: SearchHit['type'][]): SearchHit[];
+  };
+  capture: {
+    capture(input: { text: string; kind?: CaptureKind | null; dueAt?: string | null }): CaptureResult;
+  };
+  ai: {
+    status(): { configured: boolean; providerCount: number; defaultProviderId: string | null; activeRequests: number; secureStorage: boolean };
+    catalog(): ProviderCatalogEntry[];
+    providers(): ProviderView[];
+    createProvider(input: ProviderInputData): ProviderView;
+    updateProvider(id: string, patch: Partial<ProviderInputData>): ProviderView;
+    deleteProvider(id: string): void;
+    setApiKey(id: string, key: string | null): 'secure' | 'session' | 'none';
+    testProvider(id: string): Promise<ProviderStatus>;
+    models(id: string): ModelInfo[];
+    conversations(query?: { archived?: boolean; search?: string }): Conversation[];
+    conversation(id: string): Conversation;
+    messages(conversationId: string): Message[];
+    createConversation(input?: { title?: string; providerId?: string | null; model?: string | null; systemPrompt?: string }): Conversation;
+    updateConversation(id: string, patch: { title?: string; providerId?: string | null; model?: string | null; systemPrompt?: string }): Conversation;
+    archiveConversation(id: string, archived: boolean): Conversation;
+    deleteConversation(id: string): void;
+    deleteAllConversations(): number;
+    send(input: SendMessageInput): { userMessage: Message; assistantMessage: Message };
+    retry(messageId: string, opts?: { providerId?: string | null; model?: string | null }): Message;
+    cancel(messageId: string): boolean;
+    exportConversation(id: string, format: 'markdown' | 'json'): Promise<SaveResult>;
+    toNote(conversationId: string, messageId?: string | null): Note;
+    toTask(messageId: string): Task;
+    tasks(active?: boolean): AiTask[];
+    startTimer(title: string, minutes: number, url?: string | null): AiTask;
+    setTaskState(id: string, state: AiTaskState): AiTask;
+    deleteTask(id: string): void;
+    clearFinishedTasks(): number;
+  };
 }
 
 /** Where a copy request came from; parental copy restrictions apply per context. */
@@ -61,6 +256,8 @@ export interface ShortcutStatus {
   registered: boolean;
   error: string | null;
 }
+
+export type { AiStreamEvent };
 
 type Fn = (...args: never[]) => unknown;
 /** UI-side view of the API: every call is async. */

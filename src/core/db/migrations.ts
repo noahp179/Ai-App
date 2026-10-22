@@ -513,6 +513,17 @@ export const MIGRATIONS: Migration[] = [
         );
       `),
   },
+  {
+    version: 10,
+    name: 'provider options and raw assistant payloads for faithful history replay',
+    up: (db) =>
+      db.exec(`
+        ALTER TABLE providers ADD COLUMN options TEXT NOT NULL DEFAULT '{}';
+        ALTER TABLE messages ADD COLUMN provider_payload TEXT;
+        ALTER TABLE messages ADD COLUMN served_model TEXT;
+        ALTER TABLE messages ADD COLUMN notices TEXT NOT NULL DEFAULT '[]';
+      `),
+  },
 ];
 
 export const LATEST_VERSION = MIGRATIONS[MIGRATIONS.length - 1]!.version;

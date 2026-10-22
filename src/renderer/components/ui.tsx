@@ -358,3 +358,75 @@ export function ProgressBar({ value, label }: { value: number; label: string }) 
     </div>
   );
 }
+
+// ─────────── Dropdown menu ───────────
+
+export interface MenuItem {
+  label: string;
+  icon?: ReactNode;
+  onSelect: () => void;
+  danger?: boolean;
+  disabled?: boolean;
+}
+
+/** A small accessible dropdown for secondary actions. */
+export function Menu({ label, icon, items }: { label: string; icon: ReactNode; items: (MenuItem | null)[] }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const list = items.filter((x): x is MenuItem => x !== null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const els = [...(ref.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)') ?? [])];
+        const i = els.indexOf(document.activeElement as HTMLButtonElement);
+        els[(i + (e.key === 'ArrowDown' ? 1 : -1) + els.length) % els.length]?.focus();
+      }
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    ref.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <IconButton label={label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        {icon}
+      </IconButton>
+      {open ? (
+        <div
+          role="menu"
+          aria-label={label}
+          className="card"
+          style={{ position: 'absolute', right: 0, top: 34, zIndex: 40, padding: 4, minWidth: 210, boxShadow: 'var(--shadow)' }}
+        >
+          {list.map((it) => (
+            <button
+              key={it.label}
+              type="button"
+              role="menuitem"
+              className="list-item"
+              disabled={it.disabled}
+              style={{ color: it.danger ? 'var(--danger)' : undefined, padding: '7px 10px' }}
+              onClick={() => {
+                setOpen(false);
+                it.onSelect();
+              }}
+            >
+              {it.icon}
+              {it.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}

@@ -248,6 +248,7 @@ export type AiErrorCode =
   | 'timeout'
   | 'canceled'
   | 'server'
+  | 'refused'
   | 'unknown';
 
 export interface AiErrorInfo {
@@ -285,6 +286,10 @@ export interface Message {
   providerKind: ProviderKind | null;
   model: string | null;
   usage: { inputTokens?: number; outputTokens?: number } | null;
+  /** The model that actually answered, when the provider reports it (can differ after a fallback). */
+  servedModel: string | null;
+  /** Notes about this response: fallbacks, truncation, recovered errors. */
+  notices: string[];
   createdAt: IsoTime;
   finishedAt: IsoTime | null;
 }

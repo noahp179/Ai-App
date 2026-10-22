@@ -98,7 +98,7 @@ export const SettingsSchema = z.object({
       storeConversations: z.boolean().default(true),
       retentionDays: z.number().int().min(0).max(3650).default(0),
       requestTimeoutSeconds: z.number().int().min(15).max(600).default(120),
-      maxOutputTokens: z.number().int().min(64).max(64000).default(2048),
+      maxOutputTokens: z.number().int().min(0).max(128000).default(0),
       temperature: z.number().min(0).max(2).nullable().default(null),
       notifyOnCompletion: z.boolean().default(true),
     })

@@ -1,10 +1,21 @@
-import { Notification, app, clipboard, dialog, nativeTheme, powerMonitor, screen } from 'electron';
-import { listBackups, openDatabase, pruneBackups } from '../core/db/open';
+import { Notification, app, clipboard, dialog, nativeTheme, net, powerMonitor, screen } from 'electron';
+import { AiTasksService } from '../core/aitasks';
+import { AiService } from '../core/ai/service';
+import { BookmarksService } from '../core/bookmarks';
+import { CaptureService } from '../core/capture';
 import type { Db } from '../core/db/database';
+import { listBackups, openDatabase, pruneBackups } from '../core/db/open';
+import { FocusService } from '../core/focus';
 import { KvStore } from '../core/kv';
-import { NotificationCenter } from '../core/notifications';
+import { LinksService } from '../core/links';
+import { NotesService } from '../core/notes';
+import { NotificationCenter, resolveZone } from '../core/notifications';
+import { Scheduler } from '../core/scheduler';
+import { SearchService } from '../core/search';
 import { SecretStore } from '../core/secrets';
 import { SettingsService } from '../core/settings';
+import { TasksService } from '../core/tasks';
+import { TimeTrackingService } from '../core/timetracking';
 import { type Clock, systemClock } from '../core/util';
 import type { CopyContext, ShortcutStatus } from '../shared/api';
 import type { AppEventName, AppEvents } from '../shared/ipc';
@@ -17,9 +28,11 @@ import { applyShortcuts } from './shortcuts';
 import { AppTray } from './tray';
 import { WindowManager } from './windows';
 
+const FOCUS_LABEL: Record<string, string> = { focus: 'Focus session', short_break: 'Short break', long_break: 'Long break' };
+
 /**
  * Owns every long-lived object in the main process. Services are created here
- * and handed to the IPC layer through src/main/api.ts.
+ * and exposed to the UI through src/main/api.ts.
  */
 export class AppContext {
   readonly clock: Clock = systemClock;
@@ -30,6 +43,17 @@ export class AppContext {
   readonly windows: WindowManager;
   readonly notifications: NotificationCenter;
   readonly tray: AppTray;
+  readonly scheduler: Scheduler;
+  readonly notes: NotesService;
+  readonly links: LinksService;
+  readonly tasks: TasksService;
+  readonly bookmarks: BookmarksService;
+  readonly time: TimeTrackingService;
+  readonly focus: FocusService;
+  readonly search: SearchService;
+  readonly capture: CaptureService;
+  readonly aiTasks: AiTasksService;
+  readonly ai: AiService;
   readonly startup: StartupReport;
   capabilities!: Capabilities;
   shortcutStatus: ShortcutStatus[] = [];
@@ -37,6 +61,10 @@ export class AppContext {
   launchAtLoginError: string | null = null;
   /** Set by parental controls; returns why a copy is blocked in a context, or null. */
   copyBlockedReason: ((context: CopyContext) => string | null) | null = null;
+  /** Set by parental controls when tutor mode is on. */
+  tutorPrompt: (() => string | null) | null = null;
+  /** Extra search sources (learning catalogue, etc.), registered by later modules. */
+  readonly resumeHandlers: (() => void)[] = [];
 
   private constructor(
     readonly paths: AppPaths,
@@ -45,6 +73,7 @@ export class AppContext {
   ) {
     this.db = db;
     this.startup = startup;
+    const zone = () => resolveZone(this.settings.get().calendar.timeZone);
     this.kv = new KvStore(db, this.clock);
     this.settings = new SettingsService(this.kv);
     this.secrets = new SecretStore(db, safeStorageCipher, this.clock);
@@ -74,6 +103,41 @@ export class AppContext {
       (n) => this.emit('notification', n),
       (n) => this.windows.showMain(n.action?.route ?? '/inbox'),
     );
+    this.scheduler = new Scheduler(this.clock);
+    this.notes = new NotesService(db, this.clock);
+    this.links = new LinksService(db, this.clock, (id) => this.resourceTitle(id));
+    this.tasks = new TasksService(db, this.clock, zone);
+    this.bookmarks = new BookmarksService(db, this.clock);
+    this.time = new TimeTrackingService(db, this.clock, zone);
+    this.focus = new FocusService(db, this.clock, () => this.settings.get(), zone);
+    this.search = new SearchService(db, [{ search: (q, limit) => this.extraSearch(q, limit) }]);
+    this.capture = new CaptureService(this.notes, this.tasks, this.bookmarks);
+    this.aiTasks = new AiTasksService(db, this.clock, (t) => {
+      this.emit('ai.task', t);
+      this.scheduler.wake();
+    });
+    this.ai = new AiService({
+      db,
+      clock: this.clock,
+      secrets: this.secrets,
+      settings: () => this.settings.get(),
+      tasks: this.aiTasks,
+      fetch: ((input: Parameters<typeof fetch>[0], init?: RequestInit) =>
+        net.fetch(input instanceof URL ? input.toString() : (input as string), init as RequestInit)) as typeof fetch,
+      emitStream: (e) => this.emit('ai.stream', e),
+      emitChanged: (entity, id) => this.emit('data.changed', { entity, id }),
+      notifyDone: (c, m) =>
+        this.notifications.notify({
+          dedupeKey: `ai-done:${m.id}`,
+          kind: 'ai_task',
+          title: 'AI response ready',
+          body: c.title,
+          action: { route: `/ai/${c.id}` },
+        }),
+      isFocused: () => this.windows.anyFocused(),
+      resolveAttachment: (a) => this.resolveAttachment(a),
+      extraSystemPrompt: () => this.tutorPrompt?.() ?? null,
+    });
     this.tray = new AppTray(paths.trayIconPath, {
       openMain: () => this.windows.showMain(),
       toggleCompanion: () => this.windows.toggleCompanion(true),
@@ -101,6 +165,30 @@ export class AppContext {
     return ctx;
   }
 
+  /** Extension points filled in by later modules. */
+  resourceTitle: (id: string) => string | null = () => null;
+  extraSearch: (q: string, limit: number) => ReturnType<SearchService['search']> = () => [];
+
+  private resolveAttachment(a: { type: 'note' | 'event' | 'task'; id: string }): { label: string; text: string } | null {
+    try {
+      if (a.type === 'note') {
+        const n = this.notes.get(a.id);
+        return { label: `note: ${n.title || 'Untitled'}`, text: n.body };
+      }
+      if (a.type === 'task') {
+        const t = this.tasks.get(a.id);
+        const due = t.dueAt ? `\nDue: ${t.dueAt}` : '';
+        const subs = t.subtasks?.length ? `\nChecklist:\n${t.subtasks.map((s) => `- [${s.done ? 'x' : ' '}] ${s.title}`).join('\n')}` : '';
+        return { label: `task: ${t.title}`, text: `${t.title}${due}${t.notes ? `\n\n${t.notes}` : ''}${subs}` };
+      }
+      return this.resolveEventAttachment(a.id);
+    } catch {
+      return null;
+    }
+  }
+
+  resolveEventAttachment: (id: string) => { label: string; text: string } | null = () => null;
+
   private init(): void {
     pruneBackups(this.paths.backupDir, this.settings.get().data.backupsToKeep);
     const traySupported = this.tray.create();
@@ -113,6 +201,62 @@ export class AppContext {
     screen.on('display-removed', () => this.windows.rehomeWindows());
     screen.on('display-metrics-changed', () => this.windows.rehomeWindows());
     powerMonitor.on('resume', () => this.onResume());
+    this.housekeeping();
+    this.registerSchedules();
+    this.scheduler.wake();
+  }
+
+  private housekeeping(): void {
+    try {
+      this.ai.housekeeping();
+      this.notes.purgeTrash(this.settings.get().notes.trashRetentionDays);
+      this.notifications.pruneLog(30);
+    } catch (err) {
+      console.error('housekeeping failed', err);
+    }
+  }
+
+  private registerSchedules(): void {
+    this.scheduler.add({
+      name: 'focus',
+      nextAt: () => {
+        const s = this.focus.current();
+        return s && !s.pausedAt ? new Date(s.endsAt) : null;
+      },
+      run: () => {
+        const done = this.focus.completeIfDue();
+        if (!done) return;
+        this.notifications.notify({
+          dedupeKey: `focus:${done.id}`,
+          kind: 'focus',
+          title: `${FOCUS_LABEL[done.kind]} complete`,
+          body: done.kind === 'focus' ? 'Time for a break.' : 'Ready for the next focus session?',
+          action: { route: '/productivity/focus' },
+        });
+        if (done.kind === 'focus' && this.settings.get().productivity.autoStartBreaks) this.focus.start(this.focus.nextKind());
+        this.emit('focus.tick', this.focus.current());
+      },
+    });
+    this.scheduler.add({
+      name: 'ai-timers',
+      nextAt: () => {
+        const t = this.aiTasks.nextTimerAt();
+        return t ? new Date(t) : null;
+      },
+      run: () => {
+        for (const t of this.aiTasks.expireTimers()) {
+          this.notifications.notify({
+            dedupeKey: `ai-timer:${t.id}`,
+            kind: 'ai_task',
+            title: `Timer ended: ${t.title}`,
+            body: 'FlowCompanion cannot see whether it finished. Check it, then mark it done.',
+            action: { route: '/ai/tasks' },
+          });
+          this.aiTasks.markNotified(t.id);
+          this.emit('ai.task', this.aiTasks.get(t.id));
+        }
+      },
+    });
   }
 
   /** Applies settings that live outside the UI: theme, shortcuts, login item, windows. */
@@ -128,23 +272,27 @@ export class AppContext {
     if (prev && prev.startup.launchAtLogin !== s.startup.launchAtLogin) {
       this.launchAtLoginError = applyLaunchAtLogin(s.startup.launchAtLogin);
     }
+    if (prev && prev.data.backupsToKeep !== s.data.backupsToKeep) pruneBackups(this.paths.backupDir, s.data.backupsToKeep);
     if (prev) this.windows.applySettings(s);
+    if (prev) this.scheduler.wake();
   }
 
   openQuickCapture(): void {
-    this.windows.showMain('/capture');
+    this.windows.showMain();
     this.emit('quickCapture.open', {});
   }
 
-  protected onResume(): void {
-    // Timers may have been suspended; schedulers re-arm here.
+  private onResume(): void {
+    this.scheduler.wake();
     this.resumeHandlers.forEach((fn) => fn());
   }
 
-  readonly resumeHandlers: (() => void)[] = [];
-
   emit<K extends AppEventName>(type: K, payload: AppEvents[K]): void {
     this.windows.broadcast(type, payload);
+  }
+
+  changed(entity: string, id?: string): void {
+    this.emit('data.changed', { entity, id });
   }
 
   copyText(text: string): void {
@@ -160,6 +308,7 @@ export class AppContext {
   }
 
   shutdown(): void {
+    this.scheduler.stop();
     this.tray.destroy();
     this.db.close();
   }
