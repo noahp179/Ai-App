@@ -74,6 +74,8 @@ export function computeMastery(
   const estimate = wsum ? total / wsum : 0;
   const independent = counted.filter((e) => e.correct && !e.hinted && e.weight >= 0.5);
   const assisted = counted.filter((e) => e.correct && e.hinted);
+  /** Right without hints, but on questions whose answer key was not checked by code (they count for less). */
+  const unverified = counted.filter((e) => e.correct && !e.hinted && e.weight < 0.5);
   const incorrect = counted.filter((e) => !e.correct);
   const days = new Set(independent.map((e) => e.at.slice(0, 10)));
   const coreOrHarder = independent.some((e) => e.difficulty >= 2);
@@ -85,8 +87,11 @@ export function computeMastery(
   base.lastIndependentSuccessAt = [...sorted].reverse().find((e) => e.correct && !e.hinted && e.weight >= 0.5)?.at ?? null;
 
   let status: MasteryStatus;
-  const reasons = [`Based on your last ${counted.length} answer${counted.length === 1 ? '' : 's'}: ${independent.length} right without hints, ${assisted.length} right with hints, ${incorrect.length} not yet right.`];
-  if (!independent.length && !assisted.length) {
+  const reasons = [
+    `Based on your last ${counted.length} answer${counted.length === 1 ? '' : 's'}: ${independent.length} right without hints, ${assisted.length} right with hints, ${incorrect.length} not yet right.`,
+    ...(unverified.length ? [`${unverified.length} right on AI-written questions, which count for less because their answers aren’t checked by FlowCompanion.`] : []),
+  ];
+  if (!independent.length && !assisted.length && !unverified.length) {
     status = 'not_yet';
     reasons.push('No correct answers yet.');
   } else if (estimate < 0.5) {

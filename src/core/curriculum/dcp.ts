@@ -383,6 +383,8 @@ export async function fetchDcpBundle(o: DcpOptions, now = new Date()): Promise<C
   }
 
   courses.sort((a, b) => a.grades[0]! - b.grades[0]! || (a.code ?? a.name).localeCompare(b.code ?? b.name));
+  // Documents with no course in the requested grades (e.g. Kindergarten) are not part of the bundle.
+  for (let i = documents.length - 1; i >= 0; i--) if (!courses.some((c) => c.documentId === documents[i]!.id)) documents.splice(i, 1);
   documents.sort((a, b) => a.level.localeCompare(b.level) || a.title.localeCompare(b.title));
   say(`Done: ${courses.length} courses, ${expectations.length} expectations, ${client.requestCount} requests.`);
   return {

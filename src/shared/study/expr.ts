@@ -244,7 +244,7 @@ export function toPoly(e: Expr): Poly | null {
       const a = toPoly(e.a);
       const b = toPoly(e.b);
       if (!a || !b || b.size !== 1) return null;
-      const [[bk, bc]] = [...b];
+      const [bk, bc] = [...b][0]!;
       const inv = keyToMono(bk!);
       for (const [v, pw] of inv) inv.set(v, -pw);
       return polyMul(a, new Map([[monoKey(inv), new Rational(1n).div(bc!)]]));
@@ -261,7 +261,7 @@ export function toPoly(e: Expr): Poly | null {
       const n = Number(ex.n);
       if (n < 0) {
         if (base.size !== 1) return null;
-        const [[k, c]] = [...base];
+        const [k, c] = [...base][0]!;
         const m = keyToMono(k!);
         for (const [v, pw] of m) m.set(v, pw * n);
         return new Map([[monoKey(m), c!.pow(n)]]);
