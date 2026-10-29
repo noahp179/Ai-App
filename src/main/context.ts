@@ -17,6 +17,11 @@ import { FocusService } from '../core/focus';
 import { GamesService } from '../core/games';
 import { KvStore } from '../core/kv';
 import { LearningService } from '../core/learning';
+import { readBundleFile } from '../core/curriculum/bundle';
+import { CurriculumService } from '../core/curriculum/service';
+import { Db as Database } from '../core/db/database';
+import { StudyService } from '../core/study/service';
+import { DateTime } from 'luxon';
 import { LinksService } from '../core/links';
 import { MarketplaceService } from '../core/marketplace/service';
 import { NotesService } from '../core/notes';
@@ -72,6 +77,9 @@ export class AppContext {
   readonly feed: FeedService;
   readonly games: GamesService;
   readonly learning: LearningService;
+  readonly curriculum: CurriculumService;
+  readonly curriculumDb: Database;
+  readonly study: StudyService;
   readonly prompts: PromptsService;
   readonly marketplace: MarketplaceService;
   readonly parental: ParentalService;
@@ -142,6 +150,14 @@ export class AppContext {
     this.learning = new LearningService(db, this.clock, () => this.settings.get(), () =>
       db.all<{ title: string }>("SELECT title FROM conversations WHERE archived_at IS NULL AND ephemeral = 0 AND title != '' AND title != 'New conversation' ORDER BY updated_at DESC LIMIT 15").map((r) => r.title),
     );
+    this.curriculumDb = openCurriculumDb(paths.curriculumDbPath);
+    this.curriculum = new CurriculumService({
+      db: this.curriculumDb,
+      clock: this.clock,
+      loadBundled: fs.existsSync(paths.curriculumBundlePath) ? () => readBundleFile(paths.curriculumBundlePath) : null,
+      fetch: ((input: Parameters<typeof fetch>[0], init?: RequestInit) => net.fetch(input instanceof URL ? input.toString() : (input as string), init)) as typeof fetch,
+      userAgent: `FlowCompanion/${app.getVersion()} curriculum check (+https://github.com/noahp179/Ai-App)`,
+    });
     this.prompts = new PromptsService(db, this.clock);
     this.parental = new ParentalService(db, this.kv, this.clock);
     this.copyBlockedReason = (c) => this.parental.copyBlockedReason(c);
@@ -214,6 +230,21 @@ export class AppContext {
       isFocused: () => this.windows.anyFocused(),
       resolveAttachment: (a) => this.resolveAttachment(a),
       extraSystemPrompt: () => this.tutorPrompt?.() ?? null,
+    });
+    this.study = new StudyService({
+      db,
+      clock: this.clock,
+      curriculum: this.curriculum,
+      settings: () => this.settings.get(),
+      events: this.events,
+      tasks: this.tasks,
+      links: this.links,
+      zone,
+      complete: () => (input) => this.ai.complete(input),
+      aiBlockedReason: () => this.parental.lockReason('ai') ?? this.ai.completeBlockedReason(),
+      verifyParentPin: (pin) => this.parental.verifyPin(pin),
+      parentalEnabled: () => this.parental.enabled,
+      emitTutor: (e) => this.emit('study.tutor', e),
     });
     this.tray = new AppTray(paths.trayIconPath, {
       openMain: () => this.windows.showMain(),
@@ -321,6 +352,12 @@ export class AppContext {
     pruneBackups(this.paths.backupDir, this.settings.get().data.backupsToKeep);
     const traySupported = this.tray.create();
     this.capabilities = detectCapabilities(traySupported);
+    try {
+      const imported = this.curriculum.ensureBundled();
+      if (imported) console.log(`curriculum: imported ${imported.counts.expectations} expectations (${imported.summary})`);
+    } catch (err) {
+      console.error('curriculum import failed', err);
+    }
     this.applySettings(this.settings.get(), null);
     this.settings.events.on('changed', ({ settings, previous }) => {
       this.applySettings(settings, previous);
@@ -429,6 +466,35 @@ export class AppContext {
       },
     });
     this.scheduler.add({
+      name: 'study-reviews',
+      nextAt: () => {
+        const s = this.settings.get().study;
+        if (!s.reviewReminders) return null;
+        const zoneName = resolveZone(this.settings.get().calendar.timeZone);
+        const [h, m] = s.reviewReminderTime.split(':').map(Number);
+        const now = DateTime.fromJSDate(this.clock.now()).setZone(zoneName);
+        let at = now.set({ hour: h!, minute: m!, second: 0, millisecond: 0 });
+        if (at <= now || this.kv.get<string | null>('study:reviewReminder', null) === now.toISODate()) at = at.plus({ days: 1 });
+        return at.toJSDate();
+      },
+      run: () => {
+        const zoneName = resolveZone(this.settings.get().calendar.timeZone);
+        const today = DateTime.fromJSDate(this.clock.now()).setZone(zoneName).toISODate()!;
+        if (this.kv.get<string | null>('study:reviewReminder', null) === today) return;
+        this.kv.set('study:reviewReminder', today);
+        const n = this.study.studentsWithReviewsDue();
+        // Names are left out: anyone at the computer can see notifications.
+        if (n > 0)
+          this.notifications.notify({
+            dedupeKey: `study-reviews:${today}`,
+            kind: 'system',
+            title: 'Spaced reviews are due',
+            body: n === 1 ? 'A student profile has reviews due in Student Learning.' : `${n} student profiles have reviews due in Student Learning.`,
+            action: { route: '/study/review' },
+          });
+      },
+    });
+    this.scheduler.add({
       name: 'ai-timers',
       nextAt: () => {
         const t = this.aiTasks.nextTimerAt();
@@ -525,7 +591,9 @@ export class AppContext {
     this.quitting = true;
     this.scheduler.stop();
     this.db.close();
+    this.curriculumDb.close();
     for (const ext of ['', '-wal', '-shm']) fs.rmSync(this.paths.dbPath + ext, { force: true });
+    for (const ext of ['', '-wal', '-shm']) fs.rmSync(this.paths.curriculumDbPath + ext, { force: true });
     fs.rmSync(this.paths.backupDir, { recursive: true, force: true });
     app.relaunch();
     app.exit(0);
@@ -540,5 +608,20 @@ export class AppContext {
     void this.bridge.stop();
     this.tray.destroy();
     this.db.close();
+    this.curriculumDb.close();
   }
+}
+
+/** The curriculum database is rebuilt from the shipped snapshot, so an unreadable file is simply replaced. */
+function openCurriculumDb(file: string): Database {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  try {
+    const db = new Database(file);
+    if (db.quickCheck() === 'ok') return db;
+    db.close();
+  } catch (err) {
+    console.error('curriculum database unreadable; rebuilding', err);
+  }
+  for (const ext of ['', '-wal', '-shm']) fs.rmSync(file + ext, { force: true });
+  return new Database(file);
 }

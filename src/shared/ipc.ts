@@ -18,6 +18,8 @@ export interface AppEvents {
   'focus.tick': import('./types').FocusSession | null;
   'feed.refreshed': import('./types').FeedRefreshResult[];
   'bridge.status': import('./types').BridgeStatus;
+  'study.tutor': import('./study/api').TutorStreamEvent;
+  'curriculum.progress': { message: string };
 }
 
 export type AppEventName = keyof AppEvents;

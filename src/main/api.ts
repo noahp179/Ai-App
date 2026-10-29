@@ -9,6 +9,7 @@ import type { AppInfo } from '../shared/types';
 import type { AppContext } from './context';
 import { openExternalSafe } from './security';
 import { openTextFiles, parseJsonFile, saveFile } from './files';
+import { createCurriculumApi, createStudyApi } from './studyApi';
 
 function clampInt(v: unknown, min: number, max: number, fallback: number): number {
   if (typeof v !== 'number' || !Number.isFinite(v)) return fallback;
@@ -73,6 +74,8 @@ export function createApi(ctx: AppContext): FlowApi {
   };
 
   return {
+    curriculum: createCurriculumApi(ctx),
+    study: createStudyApi(ctx),
     app: {
       info,
       capabilities: () => ctx.capabilities,

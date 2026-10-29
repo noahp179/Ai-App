@@ -438,6 +438,8 @@ interface PromptOptions {
   label: string;
   initial?: string;
   confirmLabel?: string;
+  /** Mask the typed value, for PINs. */
+  secret?: boolean;
 }
 type PromptFn = (o: PromptOptions) => Promise<string | null>;
 const PromptCtx = createContext<PromptFn>(async () => null);
@@ -477,6 +479,8 @@ export function PromptProvider({ children }: { children: ReactNode }) {
           <Field label={pending.label} htmlFor="prompt-input">
             <Input
               id="prompt-input"
+              type={pending.secret ? 'password' : 'text'}
+              autoComplete={pending.secret ? 'off' : undefined}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={(e) => {

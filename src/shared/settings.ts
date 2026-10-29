@@ -235,7 +235,7 @@ export const MODE_PRESETS: Record<AppMode, { label: string; description: string;
   student: {
     label: 'Student learning',
     description: 'Student Learning, learning hub, notes, calendar and AI up front. Marketplace and creator tools hidden.',
-    modules: { marketplace: false, creator: false },
+    modules: { study: true, marketplace: false, creator: false },
   },
   creator: {
     label: 'Creator and prompt publishing',
@@ -251,11 +251,11 @@ export const MODE_PRESETS: Record<AppMode, { label: string; description: string;
     label: 'Parent-managed learning',
     description:
       'Student Learning, learning hub, notes, calendar and AI. Games, news, marketplace and creator tools hidden. Use Settings → Parental Learning Controls for supervised sessions.',
-    modules: { games: false, news: false, marketplace: false, creator: false },
+    modules: { study: true, games: false, news: false, marketplace: false, creator: false },
   },
   educator: {
     label: 'Educator or supervised learning',
     description: 'Student Learning (including the assessment builder), learning hub, prompt library, calendar and AI up front. Games and marketplace hidden.',
-    modules: { games: false, marketplace: false, creator: false },
+    modules: { study: true, games: false, marketplace: false, creator: false },
   },
 };

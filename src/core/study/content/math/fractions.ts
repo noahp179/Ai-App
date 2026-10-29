@@ -1,6 +1,6 @@
 import { gcdNum, lcmNum, Rational, R } from '../../../../shared/study/rational';
 import type { Question } from '../../../../shared/study/types';
-import { choice, dec, frac, m, numeric, p, steps, tex, tip, warn, type SkillPack } from '../kit';
+import { choice, dec, frac, m, numeric, p, steps, tip, warn, type SkillPack } from '../kit';
 
 const G6 = 'on-elementary-mathematics-g6-math';
 const G7 = 'on-elementary-mathematics-g7-math';

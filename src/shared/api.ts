@@ -165,6 +165,8 @@ export interface ProviderCatalogEntry {
  * "namespace.method". Return values are wrapped in promises on the UI side.
  */
 export interface FlowApi {
+  curriculum: import('./study/api').CurriculumApi;
+  study: import('./study/api').StudyApi;
   app: {
     info(): AppInfo;
     capabilities(): Capabilities;

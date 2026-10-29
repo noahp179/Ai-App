@@ -673,6 +673,16 @@ export class AiService {
    * given, honours the same key, timeout and error handling as chats, and shows up in AI task status.
    * Nothing is stored here; the caller decides what to keep.
    */
+  /** Why complete() would refuse right now (no default provider, provider off, no model), or null when it can run. */
+  completeBlockedReason(): string | null {
+    const id = this.d.settings().ai.defaultProviderId;
+    const provider = id ? this.db.get<ProviderRow>('SELECT * FROM providers WHERE id = ?', [id]) : undefined;
+    if (!provider) return 'No AI provider is connected. Connect one in Settings → AI providers.';
+    if (!bool(provider.enabled)) return `${provider.name} is turned off. Turn it on in Settings → AI providers.`;
+    if (!provider.default_model?.trim()) return `Choose a default model for ${provider.name} in Settings → AI providers.`;
+    return null;
+  }
+
   async complete(input: {
     title: string;
     system: string;

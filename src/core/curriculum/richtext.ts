@@ -140,8 +140,9 @@ export function sanitizeRichText(input: string | null | undefined): Sanitized {
   }
   const text = textParts
     .join('')
-    .replace(/ /g, ' ')
+    .replace(/\u00a0/g, ' ')
     .split('\n')
+    // eslint-disable-next-line no-control-regex -- \u0001 marks list nesting depth
     .map((l) => l.replace(/[ \t]+/g, ' ').replace(/ +([,.;:)])/g, '$1').trim().replace(/^\u0001+/, (m) => '  '.repeat(m.length)))
     .filter((l, i, all) => l !== '' || (i > 0 && all[i - 1] !== ''))
     .join('\n')

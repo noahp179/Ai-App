@@ -23,7 +23,7 @@ export const VERIFICATION_LABEL: Record<VerificationStatus, string> = {
   removed_upstream: 'No longer published by the Ministry',
 };
 
-const RichTextSchema = z.object({
+export const RichTextSchema = z.object({
   /** Restricted HTML: p, ul, ol, li, em, strong, sup, sub, br and span.term only. */
   html: z.string(),
   text: z.string(),

@@ -10,6 +10,9 @@ export function resolvePaths() {
     dataDir,
     dbPath: path.join(dataDir, 'flowcompanion.db'),
     backupDir: path.join(dataDir, 'backups'),
+    /** Reference data rebuilt from the shipped snapshot if lost; kept out of backups. */
+    curriculumDbPath: path.join(dataDir, 'curriculum.db'),
+    curriculumBundlePath: path.join(__dirname, '..', '..', 'resources', 'curriculum', 'ontario.json.gz'),
     exportDir: app.getPath('documents'),
     rendererDir: path.join(__dirname, '..', 'renderer'),
     preloadPath: path.join(__dirname, '..', 'preload', 'index.js'),
