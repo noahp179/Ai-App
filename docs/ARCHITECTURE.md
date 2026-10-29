@@ -48,10 +48,17 @@ Electron was selected because it lets one TypeScript codebase hold the services,
 
 ## Data
 
-- SQLite file in the user data folder, WAL mode, foreign keys on. Migrations v1–v11 in `src/core/db/migrations.ts`, each in its own transaction; a backup is taken before migrating, and a corrupted database is quarantined and restored from the newest good backup.
+- SQLite file in the user data folder, WAL mode, foreign keys on. Migrations v1–v12 in `src/core/db/migrations.ts`, each in its own transaction; a backup is taken before migrating, and a corrupted database is quarantined and restored from the newest good backup.
 - Full-text search: one FTS5 table (`search_index`) maintained by triggers for notes, tasks, prompts, conversations, events, bookmarks and saved articles. Learning resources are searched in memory and merged into global search.
 - Settings: one validated document (zod) in the key-value table; invalid fields are repaired on load and reported.
 - Secrets (API keys, marketplace token): encrypted with Electron `safeStorage` when the OS provides real encryption; otherwise kept in memory for the session only, and the UI says so.
+
+## Student Learning
+
+- **Curriculum engine** (`src/core/curriculum`): `dcp.ts` reads the Ministry's public content API (only live curriculum documents, Grades 6–12) into a validated bundle (`src/shared/curriculum/types.ts`); `richtext.ts` reduces Ministry HTML to an allow-list; `bundle.ts` hashes, diffs and (de)serialises bundles; `service.ts` keeps the curriculum in its **own database, `curriculum.db`** (public reference data, no personal data, not in backups), with FTS search, revision history, verification states, update checks and coverage. The bundle ships in `resources/curriculum/` and is loaded on first start.
+- **Learning services** (`src/core/study`): `students.ts` (profiles, PINs), `lessons.ts` (nine-step lessons from authored packs, Ministry supports or AI), `quizzes.ts` (quizzes, redaction of answer keys, adaptive regeneration), `mastery.ts` (pure functions: weighted evidence, statuses, adaptive difficulty, gaps, spaced review), `progress.ts` (evidence store and recommendations), `planner.ts` (plans → calendar events, tasks and links after approval; assignments), `assessments.ts`, `ai.ts` (prompts, JSON validation with one retry, tutor streaming, cache) and `service.ts` (the facade the IPC layer calls; every call acts on the open profile only).
+- **Content** (`src/core/study/content`): 35 math skill packs built with `kit.ts`; `registry.ts` generates a question and accepts it only if the pack's independent `selfCheck` agrees with its key. Answers are checked by `src/shared/study/checking.ts` with exact rational arithmetic (`rational.ts`) and an expression parser (`expr.ts`).
+- Student records live in the main database (`students`, `study_*`, migration v12), outside the global search index and the app-wide export.
 
 ## Scheduling and notifications
 

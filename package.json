@@ -29,7 +29,8 @@
     "verify:links": "node scripts/verify-links.mjs",
     "curriculum:fetch": "node scripts/curriculum.mjs fetch",
     "curriculum:verify": "node scripts/curriculum.mjs verify",
-    "curriculum:summary": "node scripts/curriculum.mjs summary"
+    "curriculum:summary": "node scripts/curriculum.mjs summary",
+    "curriculum:coverage": "node scripts/curriculum.mjs coverage"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.1.0",

@@ -15,6 +15,7 @@ A standalone desktop workspace for AI, productivity, learning and personal organ
 | **Calendar** | Day/week/month/agenda views, recurrence with exceptions, time zones and DST, reminders that survive restarts and never repeat, quiet hours, snooze, ICS export. |
 | **News** | 21 publisher RSS/Atom feeds plus your own, attribution on every item, previews only, duplicate collapsing, search, saved items, blocked sources, keyword alerts. |
 | **Games** | Word guess, Sudoku, memory match, AI trivia, reaction time — with rules, difficulty levels, keyboard play, reduced-motion support and local scores. |
+| **Student Learning** | For Ontario students in Grades 6–12: the official curriculum (297 courses, 8,856 specific expectations, quoted from the Ministry site and checked against it), student profiles, nine-step lessons that pause and resume, checked practice and quizzes with hints and feedback, progress by expectation, gap detection, spaced review, study plans that go into the calendar after approval, an assessment builder and an optional AI tutor. Offline lessons and code-checked questions exist for 80 mathematics expectations (Grades 6–9); see [the coverage report](docs/CURRICULUM_COVERAGE.md). |
 | **Learning Hub** | 72 free AI learning resources from universities, non-profits, public bodies and companies, every link checked by a script; nine learning paths; progress, notes, study scheduling. No invented ratings or durations. |
 | **Prompt library** | Prompts with `{{variables}}`, versions you can restore, provider labels, import/export, “open in AI”. |
 | **Marketplace & Creator Studio** | Free bundled starter prompts, listing files, and an optional marketplace server (reference implementation in `server/`) with accounts, moderation, verified reviews and server-enforced 7-day trials. **No payments**: purchases are never simulated. |
@@ -42,11 +43,12 @@ npm start            # builds and launches the app
 
 Running as root on Linux (e.g. in a container) needs `npx electron . --no-sandbox` after `npm run build`.
 
-Other commands: `npm run check` (typecheck, lint, unit/integration tests), `npm run test:e2e` (Playwright, needs a display or `xvfb-run`), `npm run dist:linux` (AppImage + deb), `npm run server` (reference marketplace server), `npm run verify:links` (check every Learning Hub link).
+Other commands: `npm run check` (typecheck, lint, unit/integration tests), `npm run test:e2e` (Playwright, needs a display or `xvfb-run`), `npm run dist:linux` (AppImage + deb), `npm run server` (reference marketplace server), `npm run verify:links` (check every Learning Hub link), `npm run curriculum:verify` (compare the shipped Ontario curriculum with the Ministry site), `npm run curriculum:coverage` (regenerate the coverage report).
 
 ## Documentation
 
 - [Installation and configuration](docs/INSTALL.md)
+- [Student Learning guide](docs/STUDENT_LEARNING.md) and [curriculum coverage report](docs/CURRICULUM_COVERAGE.md)
 - [Developer setup](docs/DEVELOPMENT.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Privacy and data flows](docs/PRIVACY.md)
@@ -63,4 +65,4 @@ Other commands: `npm run check` (typecheck, lint, unit/integration tests), `npm 
 
 ## Licence
 
-MIT. Learning Hub resources and news articles belong to their publishers; FlowCompanion links to them and shows short previews only.
+MIT. Learning Hub resources and news articles belong to their publishers; FlowCompanion links to them and shows short previews only. Ontario curriculum text is © King's Printer for Ontario, reproduced without changes for non-commercial educational use; FlowCompanion is not affiliated with or endorsed by the Ontario Ministry of Education.

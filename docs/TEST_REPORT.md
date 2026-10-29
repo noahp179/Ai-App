@@ -1,6 +1,6 @@
 # Test report
 
-**Date:** 22 October 2026 · **Commit:** the commit that adds this file (branch `claude/busy-cerf-vb9w2a`) · **Environment:** Linux x64 container (kernel 6.18), Node 22.22 for Vitest, Electron 44.9.3 (Node 24.22, Chromium) for the app, Xvfb display, running as root (`--no-sandbox`).
+**Date:** 22 October 2026, updated 29 October 2026 for Student Learning · **Commit:** the commit that last changed this file (branch `claude/busy-cerf-vb9w2a`) · **Environment:** Linux x64 container (kernel 6.18), Node 22.22 for Vitest, Electron 44.9.3 (Node 24.22, Chromium) for the app, Xvfb display, running as root (`--no-sandbox`).
 
 Only results that were actually produced are listed. Nothing here was run on Windows or macOS.
 
@@ -10,12 +10,14 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | --- | --- | --- |
 | Type checking (Node side + renderer) | `npm run typecheck` | Pass |
 | Lint | `npm run lint` | Pass (0 problems) |
-| Unit + integration | `npm test` | **209 passed**, 0 failed, 23 skipped (the live tests below, which skip themselves without their environment variables) |
-| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` | **22 passed**, 0 failed, 1 skipped (the live-model test, which needs `FC_LIVE_OPENAI_COMPAT_URL`; it passed in the previous full run the same day) |
+| Unit + integration | `npm test` | **273 passed**, 0 failed, 23 skipped (the live tests below, which skip themselves without their environment variables) — 29 Oct 2026 |
+| Student Learning content harness, stress run | `FC_CONTENT_SEEDS=300 npx vitest run tests/unit/content.test.ts --testTimeout=1000000` | **Pass**: all 35 skill packs at every difficulty, 300 seeds per level; no generated question needed to be discarded by its self-check |
+| Live: Ontario curriculum against the Ministry site | `NODE_USE_ENV_PROXY=1 npm run curriculum:verify` | **No changes** between the shipped bundle (fetched 22 Oct 2026) and the live site (29 Oct 2026): 297 courses, 11,153 expectations, 37 requests |
+| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` | **24 passed**, 0 failed, 1 skipped (the live-model test, which needs `FC_LIVE_OPENAI_COMPAT_URL`) — 29 Oct 2026 |
 | Live: real local model | `FC_LIVE_OPENAI_COMPAT_URL=http://127.0.0.1:8080/v1 npx vitest run tests/live/local-model.test.ts` | **2 passed** (llama.cpp `llama-server`, Qwen2.5-0.5B-Instruct Q4_K_M) |
 | Live: built-in news feeds | `FC_LIVE_FEEDS=1 npx vitest run tests/live/feeds.test.ts` | **11 passed, 10 failed** — every failure is `403 Blocked by egress policy` from this environment's outbound proxy (feeds.bbci.co.uk, arstechnica.com, theverge.com, espn.com), not from the publishers. Earlier the same day all 21 passed. The packaged app (Electron's network stack) loaded BBC, Hacker News and NASA feeds at 06:43 (see `docs/images/home.png`). |
 | Learning Hub links | `node scripts/verify-links.mjs --dry` | **72/72 verified** (HTTP 2xx and expected page text) |
-| Dependency audit | `npm audit --omit=dev` | 0 vulnerabilities in runtime dependencies; 8 moderate in the build tool chain (see SECURITY.md) |
+| Dependency audit | `npm audit --omit=dev` | 0 vulnerabilities in runtime dependencies (re-checked 29 Oct 2026, after adding KaTeX 0.19.0); 8 moderate in the build tool chain (see SECURITY.md) |
 | Packaged app smoke test | Launch `release/linux-unpacked/flowcompanion` and the AppImage (`APPIMAGE_EXTRACT_AND_RUN=1`) under Xvfb with a fresh data folder | Both stayed running, created the database and backups, and rendered the Home screen |
 
 ## Unit and integration tests by file
@@ -35,6 +37,11 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | tests/unit/learning.test.ts | 16 | Catalog validity (no ratings/durations, every link verified), filters, progress, paths, consent-based recommendations, export/delete |
 | tests/unit/prompts.test.ts | 9 | Variables and defaults, versions and restore, search/filters, import/export, FTS indexing |
 | tests/unit/parental.test.ts | 19 | Acceptance tests PA–PO, plus locked sections (PIN, sessions, migration of the old games-only lock) |
+| tests/unit/curriculum.test.ts | 16 | Rich-text sanitising (allow-list, nested lists, whitespace), bundle parsing and validation, diffs, curriculum store: import, revisions, removed records, search, update check and apply, unverified file import, coverage |
+| tests/unit/content.test.ts | 4 | Every skill pack: mappings point at real expectations, generated keys mark themselves correct and pass the pack's independent recomputation, known wrong answers are recognised, text renders (no NaN/undefined, valid LaTeX) |
+| tests/unit/study-core.test.ts | 20 | Exact rational arithmetic, expression parsing/equivalence/simplification, answer checking for every question type, mastery statuses and weights, adaptive difficulty, gaps, spaced review |
+| tests/unit/study-service.test.ts | 23 | Profiles and PIN lockout, isolation, lessons (pause/resume/repeat), quizzes and redaction, evidence and mastery, plans → calendar events/tasks, assignments, assessments, AI paths with a fake provider (consent, name not sent, invalid JSON rejected), reports and parent sharing, export/delete |
+| tests/unit/data.test.ts | 2 | Export everything excludes secrets and Student Learning profiles |
 | tests/unit/protocol.test.ts | 3 | `app://` path-traversal refusal, CSP |
 | tests/integration/ai.test.ts | 33 | OpenAI, OpenAI-compatible, Anthropic (official SDK), Gemini and Ollama adapters against mock servers: no fabricated replies without a provider, key storage (encrypted or session-only), streaming, non-streaming, cancel, idle timeout, retry on another model, network, auth, rate-limit, missing-model and refusal errors, Claude refusal fallback and content-block replay, conversation management, retention, tutor prompt |
 | tests/integration/marketplace-server.test.ts | 11 | Accounts and scrypt, moderation flow, preview rule, verified reviews, server-enforced 7-day trial including expiry, 501 purchases, reports, malformed requests, demo seed, rate limiting |
@@ -51,6 +58,7 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | learning.spec.ts | Browse, progress, notes autosave, study session scheduled into the calendar, global search, restart; notes typed just before quitting are kept; paths and goals change suggestions |
 | marketplace.spec.ts | Prompt versions/restore/variables/copy; bundled listing saved to library; reference server: sign-up, trial disclosure gate, server trial, purchase refused, publish for review |
 | parental.spec.ts | PA–PO in the app: off by default, setup with recovery code, banner, AI copy blocked, wrong PIN, session locks sections, survives restart, end early, turn off; a parent locks News, Games and AI (locked screens, Home, command palette, AI refused by the main process), locks persist and unlock with the PIN |
+| study.spec.ts | Student Learning offline: onboarding, official expectation with source, coverage page, lesson paused and resumed after a restart at the same step, quiz with redacted keys, progress page, plan approval creating calendar events, a second profile with a PIN sees nothing of the first, typed confirmation to delete records, AI tutor honestly off; with a mock AI provider: consent dialog, tutor streams a reply, the student's name is absent from every request, invalid AI lesson output is reported and nothing is saved |
 | browser.spec.ts | Bridge off by default, turned on from Settings, pairing code, page saved to the reading queue |
 | extension.spec.ts | Real extension loaded in Chromium: popup pairing (wrong then right code), context-menu actions save page/selection, ask AI, non-web pages refused, a normal web page cannot use the bridge |
 
@@ -79,10 +87,16 @@ Background activity: one timer that sleeps until the next due job (max 1 hour); 
 - Learning-resource notes typed less than 0.6 s before quitting or leaving the page were lost (the debounced save was cancelled). Found by the first GitHub Actions run; notes now save immediately on blur, page leave and window close.
 - An end-to-end test used a loose label locator (`Source`) that sometimes also matched a listing titled "…sources"; made exact and re-run 10 times without failure.
 
+- Student Learning: the tutor screen crashed after a reply (`destroy is not a function`) because `scrollIntoView` returns a promise in current Chromium and an arrow-function effect returned it (found by study.spec.ts).
+- Student Learning: AI was reported as available when the provider had no default model, so the tutor failed later; the status now names the missing model (found by study.spec.ts).
+- Student Learning: a Grade 8 order-of-operations question negated a fraction object with JavaScript's unary minus, producing NaN (found by the content harness).
+- Student Learning: "Export everything" would have included student profiles (PIN hashes, records of PIN-protected profiles); they are now left out (found in review, unit-tested).
+
 ## Not executed
 
 - Anything on Windows or macOS: installers, tray, notifications, global shortcuts, launch at login, content protection, OS keychain storage.
 - Cloud AI providers with real accounts (OpenAI, Anthropic, Google): only mock servers; no API keys were available.
 - The Windows NSIS installer and macOS DMG builds (need Wine / macOS). The GitHub Actions workflow that builds them has not been run.
+- Pedagogical review of Student Learning lessons by an Ontario teacher; Student Learning with real cloud AI providers; the assessment builder and parent report through the UI (covered by unit tests only).
 - Screen-reader testing, manual accessibility audit, performance/load tests, penetration testing.
 - The tray icon and OS notifications on Linux (no tray or notification daemon under Xvfb); notifications were verified through the app's inbox and notification log.

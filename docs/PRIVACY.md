@@ -16,6 +16,7 @@ Everything is in one SQLite database (`flowcompanion.db`) in the app's user-data
 | Game scores, saved games | `game_scores`, `game_state` | |
 | Learning progress and notes | `learning_progress` | |
 | Prompts, versions, listings, reviews, reports, trials | `prompts`, `prompt_versions`, `listings`, `listing_versions`, `reviews`, `abuse_reports`, `entitlements`, `listing_events` | `listing_events` counts *your own* views/copies on this device |
+| Student Learning profiles and records | `students`, `study_lessons`, `study_quizzes`, `study_evidence`, `study_mastery`, `study_plans`, `study_assignments`, `study_assessments`, `study_tutor_sessions`, `study_tutor_messages`, `study_activity`, `study_ai_cache`, `study_content_reports` | Each row belongs to one student profile. Profile PINs are stored only as scrypt hashes. Not in the global search index, and left out of the app-wide export (see below). The public Ontario curriculum is in a separate `curriculum.db` with no personal data. |
 | Parental controls | `kv` (`parental:state`), `study_sessions` | PIN and recovery code stored only as scrypt hashes; sessions store goal, sections, start/end times — nothing else |
 | Browser bridge pairings | `kv` (`bridge:clients`) | Tokens stored only as SHA-256 hashes |
 | Secrets (API keys, marketplace sign-in) | `secrets` | Encrypted by the OS (Keychain, DPAPI, libsecret/kwallet). If the OS offers no real encryption, secrets are kept in memory for the session only and never written to disk; the UI tells you. |
@@ -26,11 +27,13 @@ Everything is in one SQLite database (`flowcompanion.db`) in the app's user-data
 | --- | --- | --- | --- |
 | AI requests | The provider **you** configure (OpenAI, Anthropic, Google, an OpenAI-compatible server, Ollama) | The conversation's messages, system instructions, any notes/tasks/events you attach (with a confirmation showing exactly what will be sent, on by default), your API key as the provider requires | Only when you press Send or Retry |
 | News feeds | Each enabled feed's publisher | A normal HTTP request with a `FlowCompanion/<version>` user agent and cache headers | On refresh (hourly by default, configurable, or manual) |
+| Student Learning AI tutor and AI lessons (optional, off until the student agrees) | The AI provider **you** configure | What the student types, the expectation being studied and its public Ministry text, grade, explanation and plain-language preferences, and — only with a separate switch — a short summary of verified progress on that expectation. **Never** the student's name, PIN or other profiles. | Only when the student uses the tutor, asks for an AI lesson, AI questions or AI feedback |
+| Curriculum update check (optional) | ws.api.dcp.edu.gov.on.ca (Ontario Ministry of Education) | Requests for public curriculum data, no personal information | Only when you press "Check the Ministry site for changes" |
 | Opening links | Your default browser | The link | When you click |
 | Marketplace server (optional) | The server address **you** enter | Your email/password when signing in (password never stored), listing searches, listing views, trials, reviews and reports you submit, listings you publish | Only after you configure a server; browsing works without an account |
 | Browser extension (optional) | FlowCompanion on this computer only (127.0.0.1) | Page title and URL, or the text you selected | Only when you click an extension action |
 
-Not sent anywhere: your notes, tasks, calendar, learning progress, game scores, prompt library, personalization signals, parental-control settings or study sessions.
+Not sent anywhere: your notes, tasks, calendar, learning progress, Student Learning answers and progress (except the optional summary above), game scores, prompt library, personalization signals, parental-control settings or study sessions.
 
 ## Personalization and consent
 
@@ -44,10 +47,12 @@ All of this runs locally; there is no profiling on any server.
 
 ## Your controls
 
-- **Export**: Settings → Data and backups → Export everything (JSON, excludes secrets). Notes, prompts, learning data and the calendar (ICS) also have their own exports.
+- **Export**: Settings → Data and backups → Export everything (JSON, excludes secrets and Student Learning profiles, because anyone on the computer can run it and a profile can have its own PIN). Each student exports their own records from Student Learning → Learning settings. Notes, prompts, learning data and the calendar (ICS) also have their own exports.
 - **Delete**: per item, per module (e.g. "Delete learning data", "Reset game scores"), or everything (type `DELETE`), which removes the database and backups and restarts the app.
 - **Retention**: AI conversation retention and note trash retention are configurable.
 
 ## Children and parental controls
+
+Student Learning profiles are separate from each other and optionally protected by a PIN. A parent sees a student's report only when Parental Learning Controls are set up, the parent enters its PIN, and the student has turned sharing on; tutor conversations, answers, written work and reflections are never shared. Details: [STUDENT_LEARNING.md](STUDENT_LEARNING.md).
 
 Parental Learning Controls are off by default, need an explicit setup by a parent, show a visible banner while on, and do not monitor or record activity. See [PARENTAL_CONTROLS.md](PARENTAL_CONTROLS.md).

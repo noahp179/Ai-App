@@ -180,6 +180,31 @@ Classifications, as defined in the brief:
 | Screen-capture privacy on Linux | Blocked | No documented OS mechanism; reported unavailable |
 | Supervised profiles (separate user profiles) | Not implemented | Sessions only |
 
+## Student Learning (Ontario Grades 6–12)
+
+| Feature | Status | Evidence / notes |
+| --- | --- | --- |
+| Curriculum import from the Ministry site (live documents, Grades 6–12), sanitising, validation, duplicate detection | Verified | unit (curriculum), live `curriculum:verify` on 29 Oct 2026: no differences |
+| Offline storage, versioning, revision history, update check and apply, unverified file import | Verified | unit |
+| Navigation by grade/subject/course with codes, types and prerequisites; search; official text with source links | Verified | unit, e2e |
+| Coverage report that does not overclaim (in app and `docs/CURRICULUM_COVERAGE.md`, generated) | Verified | unit, e2e |
+| Courses published only as PDF | Partial | Listed with links; expectations not imported |
+| Student profiles, onboarding, profile PIN with lockout, isolation between profiles | Verified | unit, e2e |
+| Nine-step lessons, modes, pause/resume across restart, repeat, alternative explanations | Verified | unit, e2e |
+| Offline lessons and checked practice | Partial | 35 math packs covering 80 expectations (Grades 6–9); other subjects use Ministry supports or AI |
+| Lessons from Ministry teacher supports | Verified | unit |
+| AI lessons, questions, feedback and tutor (streaming, consent, name never sent, invalid output rejected) | Verified | unit, int (mock), e2e (mock); not tested with real cloud providers |
+| Question types (11), deterministic checking, exact fractions, expression equivalence | Verified | unit (checking, content harness at 300 seeds per level) |
+| Hints, immediate feedback, misconception detection, similar questions | Verified | unit, content harness |
+| Quiz kinds (practice, pop, diagnostic, formative, unit review, practice test, reflection), optional timer, extra time, answer-key redaction | Verified | unit, e2e (redaction) |
+| Adaptive difficulty, mastery statuses, gap detection, spaced review, review reminders | Verified | unit; reminder notification not exercised in e2e |
+| Study plans (approval creates calendar events, tasks and links), rescheduling, assignments with step templates | Verified | unit, e2e (approval → calendar) |
+| Assessment builder with review, regenerate, export, practice rubric (Growing Success categories) | Verified | unit; UI not covered by e2e |
+| Dashboard, progress and activity, student report, parent report with consent and PIN | Verified | unit; parent report UI not covered by e2e |
+| Export and delete learning data; profile deletion | Verified | unit, e2e (delete) |
+| Accessibility options (text size, readable font, plain language, extra time) | Not fully verified | Implemented; no screen-reader test |
+| Pedagogical review by an Ontario teacher | Not implemented | Not done |
+
 ## Packaging and release
 
 | Item | Status | Evidence |

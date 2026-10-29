@@ -25,10 +25,22 @@ export const DATA_INVENTORY: { table: string; label: string; description: string
   { table: 'listings', label: 'Marketplace listings', description: 'Bundled listings and your own drafts.' },
   { table: 'entitlements', label: 'Trials and access', description: 'Trials you started and their expiry.' },
   { table: 'study_sessions', label: 'Supervised study sessions', description: 'Sessions started under parental learning controls.' },
+  { table: 'students', label: 'Student Learning profiles', description: 'Name or nickname, grade, courses and preferences of each student profile. PINs are stored only as hashes.' },
+  { table: 'study_lessons', label: 'Student lessons', description: 'Lessons started in Student Learning, with answers and progress through each one.' },
+  { table: 'study_quizzes', label: 'Student quizzes', description: 'Practice, quizzes and reviews, with answers.' },
+  { table: 'study_evidence', label: 'Student answers (progress evidence)', description: 'Each marked answer, used to work out progress on an expectation.' },
+  { table: 'study_plans', label: 'Study plans', description: 'Proposed and approved study plans.' },
+  { table: 'study_tutor_messages', label: 'AI tutor messages', description: 'What a student sent to and received from the AI tutor.' },
   { table: 'secrets', label: 'Encrypted secrets', description: 'API keys and pairing tokens, encrypted by the OS. Never exported.' },
 ];
 
 const EXCLUDED = new Set(['secrets', 'kv', 'search_index']);
+/**
+ * Student Learning records are left out of "Export everything": a profile can have its own PIN, and the app-wide
+ * export is open to anyone using this computer. Each student exports their own records from inside their profile.
+ * (study_sessions belongs to Parental Learning Controls, not to a student profile.)
+ */
+export const isStudentTable = (t: string): boolean => t === 'students' || (t.startsWith('study_') && t !== 'study_sessions');
 
 export class DataService {
   constructor(private readonly db: Db) {}
@@ -46,7 +58,7 @@ export class DataService {
     const tables = this.db
       .all<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'search_index%' ORDER BY name")
       .map((r) => r.name)
-      .filter((t) => !EXCLUDED.has(t));
+      .filter((t) => !EXCLUDED.has(t) && !isStudentTable(t));
     const out: Record<string, unknown[]> = {};
     for (const t of tables) {
       out[t] = this.db.all(`SELECT * FROM ${t}`).map((row) => {
@@ -62,7 +74,7 @@ export class DataService {
       appVersion,
       schemaVersion: this.db.userVersion,
       exportedAt: now.toISOString(),
-      note: 'API keys and other secrets are never included.',
+      note: 'API keys and other secrets are never included. Student Learning profiles are not included either: each student exports their own records from Student Learning → Learning settings.',
       settings: settings ? JSON.parse(settings.value) : null,
       tables: out,
     };

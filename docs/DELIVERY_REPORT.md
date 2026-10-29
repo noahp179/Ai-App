@@ -1,6 +1,6 @@
 # Delivery report — FlowCompanion 1.0.0
 
-22 October 2026 · repository `noahp179/Ai-App`, branch `claude/busy-cerf-vb9w2a`
+22 October 2026, updated 29 October 2026 · repository `noahp179/Ai-App`, branch `claude/busy-cerf-vb9w2a`
 
 ## 1. What was delivered
 
@@ -8,6 +8,7 @@ A standalone Electron desktop application (TypeScript, React 19, SQLite) that wo
 - **Core workspace:** an AI workspace, a floating companion, notes, productivity tools and a calendar with reminders.
 - **Content:** a news reader, five games and a Learning Hub of 72 verified free resources.
 - **Prompts:** a prompt library, a marketplace with a creator studio, and a reference marketplace server.
+- **Student Learning (added 29 October 2026):** an Ontario Grades 6–12 curriculum engine built from the Ministry's Curriculum and Resources site, student profiles, lessons, checked practice and quizzes, mastery tracking, spaced review, a study planner tied to the calendar, an assessment builder and an optional AI tutor. Offline lessons cover 80 mathematics expectations; see [STUDENT_LEARNING.md](STUDENT_LEARNING.md) and [CURRICULUM_COVERAGE.md](CURRICULUM_COVERAGE.md).
 - **Optional extras:** Parental Learning Controls, a browser bridge with a Chromium extension, and central settings, privacy and data tools.
 
 On request, the previous contents of this branch were removed and the app was built from scratch. The repository's default branch (`claude/ai-education-app-t3trrh`) still holds the earlier, unrelated "Synapse" code; nothing was merged into it.
@@ -50,8 +51,10 @@ Electron was chosen over Tauri for built-in SQLite (`node:sqlite`, no native mod
 | Command | Result |
 | --- | --- |
 | `npm run typecheck`, `npm run lint` | Pass |
-| `npm test` | 209 passed, 0 failed (23 opt-in live tests skipped) |
-| `xvfb-run -a npx playwright test` | 22 passed, 0 failed; the live-model test passed in an earlier run |
+| `npm test` | 273 passed, 0 failed (23 opt-in live tests skipped) — 29 Oct 2026 |
+| Student Learning content harness at 300 seeds per level | Pass, all 35 packs, no discarded questions |
+| `npm run curriculum:verify` (live Ministry site) | No differences, 29 Oct 2026 |
+| `xvfb-run -a npx playwright test` | 24 passed, 0 failed, 1 skipped (live model) — 29 Oct 2026 |
 | Live local model (llama.cpp + Qwen2.5-0.5B) | 2/2 passed; also answered through the app UI |
 | Live news feeds | 21/21 earlier today; 11/21 in the final run (10 blocked by this environment's network policy) |
 | Learning links | 72/72 verified |
@@ -133,6 +136,7 @@ See [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md). The main ones:
 - **Untested platforms:** Windows and macOS are untested and unsigned.
 - **AI providers:** cloud providers were tested only against mocks.
 - **Not built:** payments, sync, auto-update and calendar import/sync.
+- **Student Learning:** offline lessons for 80 of 8,856 specific expectations (math only); 106 PDF-only courses not imported; no review by an Ontario teacher; AI tested with mocks only.
 - **Missing tests:** no screen-reader audit; some UI paths have no automated test (other calendar views, the study planner tab, moderator screens, trial reminders, delete everything).
 
 ## 14. Recommended next milestone
@@ -143,5 +147,7 @@ See [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md). The main ones:
 3. Verify each cloud provider with real test accounts and record results.
 4. Run an accessibility audit with NVDA and VoiceOver, and add e2e tests for the remaining untested UI paths.
 5. Add an update channel (signed auto-update) before any public distribution.
+
+For Student Learning, the next steps are a review of the existing lessons by an Ontario mathematics teacher, then skill packs for Grade 9–10 science and Grade 10–12 mathematics, each mapped with notes and checked by the content harness, and the French-language curriculum.
 
 Payments should only follow later, after legal review and with a real payment provider.
