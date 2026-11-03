@@ -266,7 +266,17 @@ export class StudyService {
       plansWithMissed: missed,
       reviewsDue: this.progress.dueReviews(me.id).length,
       gaps: this.progress.gaps(me.id).slice(0, 5),
-      recommendations: recs,
+      recommendations: recs.map((r) => {
+        const e = this.d.curriculum.find(r.expectationId);
+        const text = e?.text.replace(/\s+/g, ' ').trim() ?? '';
+        return {
+          ...r,
+          course: e?.courseLabel,
+          text: text.length > 180 ? `${text.slice(0, 177).replace(/\s+\S*$/, '')}…` : text,
+          offline: skillsFor(r.expectationId).length > 0,
+          supports: this.d.curriculum.supportsOf(r.expectationId).length > 0,
+        };
+      }),
       mastered: records.filter((r) => r.status === 'proficient' || r.status === 'extension_ready').map((r) => r.expectationId).slice(0, 12),
       needsPractice: records.filter((r) => ['not_yet', 'in_progress', 'developing', 'review'].includes(r.status)).map((r) => r.expectationId).slice(0, 12),
       byStatus,

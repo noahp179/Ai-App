@@ -10,10 +10,10 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | --- | --- | --- |
 | Type checking (Node side + renderer) | `npm run typecheck` | Pass |
 | Lint | `npm run lint` | Pass (0 problems) |
-| Unit + integration | `npm test` | **273 passed**, 0 failed, 23 skipped (the live tests below, which skip themselves without their environment variables) — 29 Oct 2026 |
+| Unit + integration | `npm test` | **274 passed**, 0 failed, 23 skipped (the live tests below, which skip themselves without their environment variables) — 3 Nov 2026 |
 | Student Learning content harness, stress run | `FC_CONTENT_SEEDS=300 npx vitest run tests/unit/content.test.ts --testTimeout=1000000` | **Pass**: all 35 skill packs at every difficulty, 300 seeds per level; no generated question needed to be discarded by its self-check |
 | Live: Ontario curriculum against the Ministry site | `NODE_USE_ENV_PROXY=1 npm run curriculum:verify` | **No changes** between the shipped bundle (fetched 22 Oct 2026) and the live site (29 Oct 2026): 297 courses, 11,153 expectations, 37 requests |
-| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` | **24 passed**, 0 failed, 1 skipped (the live-model test, which needs `FC_LIVE_OPENAI_COMPAT_URL`) — 29 Oct 2026 |
+| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` | **24 passed**, 0 failed, 1 skipped (the live-model test, which needs `FC_LIVE_OPENAI_COMPAT_URL`) — 3 Nov 2026 |
 | Live: real local model | `FC_LIVE_OPENAI_COMPAT_URL=http://127.0.0.1:8080/v1 npx vitest run tests/live/local-model.test.ts` | **2 passed** (llama.cpp `llama-server`, Qwen2.5-0.5B-Instruct Q4_K_M) |
 | Live: built-in news feeds | `FC_LIVE_FEEDS=1 npx vitest run tests/live/feeds.test.ts` | **11 passed, 10 failed** — every failure is `403 Blocked by egress policy` from this environment's outbound proxy (feeds.bbci.co.uk, arstechnica.com, theverge.com, espn.com), not from the publishers. Earlier the same day all 21 passed. The packaged app (Electron's network stack) loaded BBC, Hacker News and NASA feeds at 06:43 (see `docs/images/home.png`). |
 | Learning Hub links | `node scripts/verify-links.mjs --dry` | **72/72 verified** (HTTP 2xx and expected page text) |
@@ -43,7 +43,7 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | tests/unit/study-service.test.ts | 23 | Profiles and PIN lockout, isolation, lessons (pause/resume/repeat), quizzes and redaction, evidence and mastery, plans → calendar events/tasks, assignments, assessments, AI paths with a fake provider (consent, name not sent, invalid JSON rejected), reports and parent sharing, export/delete |
 | tests/unit/data.test.ts | 2 | Export everything excludes secrets and Student Learning profiles |
 | tests/unit/protocol.test.ts | 3 | `app://` path-traversal refusal, CSP |
-| tests/integration/ai.test.ts | 33 | OpenAI, OpenAI-compatible, Anthropic (official SDK), Gemini and Ollama adapters against mock servers: no fabricated replies without a provider, key storage (encrypted or session-only), streaming, non-streaming, cancel, idle timeout, retry on another model, network, auth, rate-limit, missing-model and refusal errors, Claude refusal fallback and content-block replay, conversation management, retention, tutor prompt |
+| tests/integration/ai.test.ts | 34 | OpenAI, OpenAI-compatible, Anthropic (official SDK), Gemini and Ollama adapters against mock servers: no fabricated replies without a provider, key storage (encrypted or session-only), streaming, non-streaming, cancel, idle timeout, retry on another model, network, auth, rate-limit, missing-model and refusal errors, Claude refusal fallback and content-block replay, conversation management, retention, tutor prompt |
 | tests/integration/marketplace-server.test.ts | 11 | Accounts and scrypt, moderation flow, preview rule, verified reviews, server-enforced 7-day trial including expiry, 501 purchases, reports, malformed requests, demo seed, rate limiting |
 | tests/integration/marketplace-client.test.ts | 8 | Desktop marketplace offline and against the real reference server end to end |
 | tests/integration/bridge.test.ts | 6 | Loopback only, origin and DNS-rebinding rejection, pairing expiry/attempt limits, capture and ask, session blocking, port conflicts |

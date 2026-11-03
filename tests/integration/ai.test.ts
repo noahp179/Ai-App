@@ -197,6 +197,24 @@ describe('OpenAI-compatible adapter', () => {
     expect(ai.models(p.id).map((m) => m.id)).toEqual(['gpt-test']);
   });
 
+  it('saves a default model when a provider first connects, and remembers the first model picked in a chat', async () => {
+    const { ai } = aiSetup();
+    const p = ai.createProvider({ kind: 'openai_compatible', baseUrl: `${mock.base}/openai/v1` });
+    expect(ai.provider(p.id).defaultModel).toBeNull();
+    await ai.testProvider(p.id);
+    // text-embedding-3-small is also listed; a chat model is chosen.
+    expect(ai.provider(p.id).defaultModel).toBe('gpt-test');
+    // A model the user already chose is never replaced.
+    ai.updateProvider(p.id, { defaultModel: 'my-pick' });
+    await ai.testProvider(p.id);
+    expect(ai.provider(p.id).defaultModel).toBe('my-pick');
+    // With no default saved, the model picked in a conversation becomes the default.
+    ai.updateProvider(p.id, { defaultModel: null });
+    const c = ai.createConversation({ providerId: p.id });
+    ai.updateConversation(c.id, { model: 'gpt-test' });
+    expect(ai.provider(p.id).defaultModel).toBe('gpt-test');
+  });
+
   it('notifies on completion only when no window has focus', async () => {
     const { ai, notified } = aiSetup({ focused: false });
     const p = ai.createProvider({ kind: 'openai', baseUrl: `${mock.base}/openai/v1`, apiKey: 'k', defaultModel: 'gpt-test' });

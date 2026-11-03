@@ -20,6 +20,7 @@ import type { LinksService } from '../links';
 import type { TasksService } from '../tasks';
 import { type Clock, NotFoundError, UserError, cleanLine, newId } from '../util';
 import type { ProgressStore } from './progress';
+import { skillsFor } from './content/registry';
 
 /**
  * Study plans and assignments. A plan is only a proposal until the student approves it; approving creates real
@@ -332,16 +333,22 @@ export class PlannerService {
   }
 
   /** Up to n expectations from the student's courses that have offline practice and aren't proficient yet. */
+  /**
+   * Expectations to start next from the student's courses, not yet proficient, taking turns between courses. Within a
+   * course, ones with offline lessons and checked practice come first, then the rest in curriculum order.
+   */
   nextNew(student: StudentProfile, n: number): string[] {
+    const open = student.courseIds.map((c) =>
+      this.d.curriculum
+        .expectationsOf(c)
+        .map((e) => e.id)
+        .filter((id) => !['proficient', 'extension_ready'].includes(this.d.progress.status(student.id, id))),
+    );
     const out: string[] = [];
-    for (const c of student.courseIds) {
-      for (const e of this.d.curriculum.expectationsOf(c)) {
-        if (out.length >= n) return out;
-        const s = this.d.progress.status(student.id, e.id);
-        if (s === 'proficient' || s === 'extension_ready') continue;
-        out.push(e.id);
-      }
-    }
+    const takeTurns = (lists: string[][]) => {
+      for (let i = 0; out.length < n && lists.some((l) => i < l.length); i++) for (const l of lists) if (i < l.length && out.length < n) out.push(l[i]!);
+    };
+    takeTurns(open.map((l) => [...l.filter((id) => skillsFor(id).length), ...l.filter((id) => !skillsFor(id).length)]));
     return out;
   }
 

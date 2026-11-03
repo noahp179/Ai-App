@@ -432,11 +432,28 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--border-st
 }
 
 /* ─────────── Student Learning ─────────── */
-.study { display: grid; grid-template-columns: 210px 1fr; height: 100%; font-size: calc(1rem * var(--study-scale, 1)); }
-.study-nav { border-right: 1px solid var(--border); padding: 12px; overflow: auto; background: var(--bg-sunken); font-size: 0.92rem; }
+.study { display: grid; grid-template-columns: 236px 1fr; height: 100%; font-size: calc(1rem * var(--study-scale, 1)); }
+.study-nav { border-right: 1px solid var(--border); padding: 14px 12px; overflow: auto; background: var(--bg-sunken); font-size: 0.92rem; }
 .study-nav-head { display: flex; align-items: center; gap: 8px; padding: 4px 6px 12px; }
 .study-nav-head svg { color: var(--accent); flex: none; }
 .study-main { overflow: auto; min-width: 0; }
+.study-main .page { padding: var(--space-6) var(--space-6) 48px; }
+.study .card { padding: 20px; }
+.study .grid { gap: 20px; }
+.study .list-item + .list-item { margin-top: 6px; }
+.study-nav .nav-item { white-space: nowrap; }
+
+/* Dashboard */
+.dash-card { display: flex; flex-direction: column; gap: 10px; }
+.dash-card p { margin: 0; line-height: 1.5; }
+.dash-card-title { line-height: 1.4; }
+.dash-card-actions { margin-top: auto; padding-top: 6px; gap: 8px; }
+
+/* Onboarding: how confident do you feel, one row per course */
+.confidence-list { display: flex; flex-direction: column; gap: 10px; }
+.confidence-row { display: grid; grid-template-columns: minmax(0, 1fr) 220px; align-items: center; gap: 16px; font-size: 0.92rem; }
+.confidence-row > span { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .confidence-row { grid-template-columns: 1fr; gap: 6px; } }
 .study .h2, .h2 { font-size: 1.05em; font-weight: 600; }
 .stack-1 { display: flex; flex-direction: column; gap: var(--space-1); }
 .stack-2 > * + * { margin-top: var(--space-2); }
@@ -460,7 +477,7 @@ figure.support figcaption { font-size: 0.8em; color: var(--text-muted); margin-t
 .lesson-note.source { background: transparent; color: var(--text-muted); font-size: 0.88em; }
 .lesson-steps { padding-left: 1.4em; }
 .lesson-steps li + li { margin-top: 6px; }
-.lesson-progress { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 0; }
+.lesson-progress { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 4px 0 0; }
 .step-pill { padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font-size: 0.8em; cursor: pointer; }
 .step-pill.done { background: var(--ok-bg); color: var(--text); border-color: transparent; }
 .step-pill.current { background: var(--accent-bg); border-color: var(--accent); color: var(--text); font-weight: 600; }

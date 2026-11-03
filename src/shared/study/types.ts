@@ -354,6 +354,11 @@ export interface Recommendation {
   expectationId: string;
   title: string;
   reason: string;
+  /** Filled in for the dashboard: the course, the start of the official wording and what can be studied offline. */
+  course?: string;
+  text?: string;
+  offline?: boolean;
+  supports?: boolean;
 }
 
 // ─────────── Quizzes ───────────
@@ -495,6 +500,8 @@ export interface StudentProfile {
   aiTutoring: boolean;
   /** Whether a short summary of verified progress may be included in AI requests. */
   shareProgressWithAi: boolean;
+  /** When the student last changed the AI switches themselves; null while they are still the defaults (on). */
+  aiChoiceAt: string | null;
   parentSharing: ParentSharing;
   autoSchedule: boolean;
   hasPin: boolean;

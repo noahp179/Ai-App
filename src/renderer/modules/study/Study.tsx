@@ -1,8 +1,8 @@
 import { BookOpen, CalendarCheck, ClipboardList, Compass, GraduationCap, LayoutDashboard, LineChart, ListChecks, MessageCircle, PieChart, RefreshCcw, Settings2, UserRound } from 'lucide-react';
-import { lazy, Suspense } from 'react';
-import { GAP_LABEL, LESSON_MODE_LABEL, MASTERY_LABEL, MASTERY_STATUSES, PLAN_ACTIVITY_LABEL, QUIZ_KIND_LABEL } from '../../../shared/study/types';
-import { Badge, Banner, Button, EmptyState, ErrorState, Loading } from '../../components/ui';
-import { api } from '../../lib/api';
+import { lazy, Suspense, useState } from 'react';
+import { GAP_LABEL, LESSON_MODE_LABEL, MASTERY_LABEL, MASTERY_STATUSES, PLAN_ACTIVITY_LABEL, QUIZ_KIND_LABEL, type Recommendation } from '../../../shared/study/types';
+import { Badge, Banner, Button, EmptyState, ErrorState, Loading, useToast } from '../../components/ui';
+import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
 import { navigate, useRoute } from '../../lib/router';
 import { ExpLink, indexOf, studentStyle } from './common';
@@ -142,25 +142,21 @@ function Dashboard() {
       <section className="stack-3" aria-label="Suggested next">
         <h2 className="h2">Suggested next</h2>
         {x.recommendations.length ? (
-          <div className="grid grid-2">
+          <div className="grid grid-2 dash-grid">
             {x.recommendations.map((r) => (
-              <div key={`${r.kind}:${r.expectationId}`} className="card stack-2">
-                <strong>{r.title}</strong>
-                <span className="small muted">{r.reason}</span>
-                <div className="row">
-                  <Button size="sm" variant="primary" onClick={() => navigate(`/study/e/${encodeURIComponent(r.expectationId)}`)}>
-                    Open
-                  </Button>
-                </div>
-              </div>
+              <Suggestion key={`${r.kind}:${r.expectationId}`} r={r} aiOk={x.ai.available} />
             ))}
           </div>
         ) : (
-          <EmptyState title="Nothing suggested yet">Open the curriculum and start a lesson or a short diagnostic; suggestions will follow from your answers.</EmptyState>
+          <EmptyState title="Nothing suggested yet">
+            <Button variant="primary" onClick={() => navigate('/study/explore')}>
+              Browse the curriculum
+            </Button>
+          </EmptyState>
         )}
       </section>
 
-      <div className="grid grid-2">
+      <div className="grid grid-2 dash-grid">
         <section className="card stack-3" aria-label="Coming up">
           <h2 className="h2">Coming up</h2>
           {x.upcoming.length ? (
@@ -208,7 +204,7 @@ function Dashboard() {
         </section>
       </div>
 
-      <div className="grid grid-2">
+      <div className="grid grid-2 dash-grid">
         <section className="card stack-3" aria-label="Your progress">
           <h2 className="h2">Your progress</h2>
           {total ? (
@@ -244,7 +240,102 @@ function Dashboard() {
           )}
         </section>
       </div>
-      {!x.ai.available ? <p className="tiny faint">AI tutor: {x.ai.reason} Everything else here works without it.</p> : null}
+      {!x.ai.available ? (
+        <Banner tone="info" title="The AI tutor isn’t ready">
+          {x.ai.reason} Lessons, practice and planning work without it.{' '}
+          {x.ai.studentAllows === false ? (
+            <button type="button" className="link-button" onClick={() => navigate('/study/settings')}>
+              Turn it on in Learning settings
+            </button>
+          ) : (
+            <button type="button" className="link-button" onClick={() => navigate('/settings/ai')}>
+              Open Settings → AI providers
+            </button>
+          )}
+        </Banner>
+      ) : null}
     </div>
+  );
+}
+
+const KIND_TAG: Record<Recommendation['kind'], string> = {
+  start: 'New',
+  retry_lesson: 'Try again',
+  more_practice: 'Practise',
+  spaced_review: 'Review',
+  extension: 'Challenge',
+  review_prerequisite: 'Earlier skill',
+  move_on: 'Next up',
+};
+
+/** A suggestion that can be acted on directly: start the lesson, practise, or review, without hunting for a button. */
+function Suggestion({ r, aiOk }: { r: Recommendation; aiOk: boolean }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState<string | null>(null);
+  const run = async (what: string, fn: () => Promise<string>) => {
+    setBusy(what);
+    try {
+      navigate(await fn());
+    } catch (e) {
+      toast(errorMessage(e), 'error');
+    } finally {
+      setBusy(null);
+    }
+  };
+  const lesson = () =>
+    run('lesson', async () => {
+      const mode = r.kind === 'extension' ? 'challenge' : r.kind === 'more_practice' ? 'practice' : r.kind === 'spaced_review' ? 'revision' : 'full';
+      const l = await api.study.startLesson({ expectationId: r.expectationId, mode, source: 'auto' });
+      return `/study/lesson/${l.id}`;
+    });
+  const practise = () =>
+    run('practice', async () => {
+      const q = r.kind === 'spaced_review' ? await api.study.startReview([r.expectationId]) : await api.study.createQuiz({ kind: 'practice', expectationIds: [r.expectationId] });
+      return `/study/quiz/${q.id}`;
+    });
+  const canPractise = !!r.offline || aiOk;
+  const source = r.offline ? (
+    <Badge tone="ok" title="FlowCompanion lesson with practice checked by code; works offline">
+      Offline lesson
+    </Badge>
+  ) : aiOk ? (
+    <Badge tone="warn" title="Written by AI from the official expectation">
+      AI lesson
+    </Badge>
+  ) : r.supports ? (
+    <Badge tone="info" title="Lesson built from the Ministry's teacher supports">
+      Ministry supports
+    </Badge>
+  ) : (
+    <Badge tone="outline" title="The official expectation, with reflection prompts">
+      Official text
+    </Badge>
+  );
+  return (
+    <article className="card dash-card" aria-label={`${KIND_TAG[r.kind]}: ${indexOf(r.expectationId)}`}>
+      <div className="row-wrap" style={{ gap: 6 }}>
+        <Badge tone="accent">{KIND_TAG[r.kind]}</Badge>
+        {source}
+      </div>
+      <div className="dash-card-title">
+        <strong>{indexOf(r.expectationId)}</strong>
+        {r.course ? <span className="small muted"> · {r.course}</span> : null}
+      </div>
+      {r.text ? <p className="small">{r.text}</p> : null}
+      <p className="tiny muted">{r.reason}</p>
+      <div className="row-wrap dash-card-actions">
+        <Button size="sm" variant="primary" icon={<BookOpen size={13} />} loading={busy === 'lesson'} disabled={!!busy} onClick={() => void lesson()}>
+          {r.kind === 'spaced_review' ? 'Review lesson' : 'Start lesson'}
+        </Button>
+        {canPractise ? (
+          <Button size="sm" icon={<ListChecks size={13} />} loading={busy === 'practice'} disabled={!!busy} onClick={() => void practise()}>
+            {r.kind === 'spaced_review' ? 'Quick review' : 'Practice'}
+          </Button>
+        ) : null}
+        <Button size="sm" variant="ghost" onClick={() => navigate(`/study/e/${encodeURIComponent(r.expectationId)}`)}>
+          Details
+        </Button>
+      </div>
+    </article>
   );
 }

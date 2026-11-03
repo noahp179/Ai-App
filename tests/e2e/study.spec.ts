@@ -80,7 +80,7 @@ test('student learning offline: onboarding, official curriculum, resumable lesso
     await page.getByRole('button', { name: 'Create profile' }).click();
     await expect(page.getByRole('heading', { name: 'Hi, Ava' })).toBeVisible();
     const me = await invoke<{ aiTutoring: boolean; parentSharing: { enabled: boolean }; courseIds: string[] }>(page, 'study.me');
-    expect(me.aiTutoring).toBe(false);
+    expect(me.aiTutoring).toBe(true);
     expect(me.parentSharing.enabled).toBe(false);
     expect(me.courseIds).toEqual([G7]);
 
@@ -201,6 +201,8 @@ test('student learning with a (mock) AI provider: consent first, the name is nev
     await page.getByLabel('Address').fill(`${mock.base}/openai/v1`);
     await page.getByRole('button', { name: 'Connect and test' }).click();
     await expect(page.getByText(/connected$/)).toBeVisible();
+    // A working provider gets a default model straight away, so other features can use it.
+    await expect.poll(async () => (await invoke<{ defaultModel: string | null }[]>(page, 'ai.providers'))[0]?.defaultModel).toBe('gpt-test');
 
     await nav(page, 'Student Learning').click();
     await invoke(page, 'study.createProfile', { displayName: 'Zephyrine', grade: 7, courseIds: [G7], onboarded: true }, null);
@@ -208,18 +210,15 @@ test('student learning with a (mock) AI provider: consent first, the name is nev
     await page.waitForSelector('.shell');
     await go(page, '/study/settings');
 
-    // AI is off until the student agrees, after seeing what is sent.
+    // AI tutoring is on by default. A student can turn it off, and turning it back on shows what is sent.
+    await expect.poll(async () => (await invoke<{ available: boolean }>(page, 'study.aiStatus')).available).toBe(true);
+    const aiSwitch = page.getByRole('switch', { name: /Use the AI tutor and AI-written lessons/ });
+    await aiSwitch.click();
+    await expect.poll(async () => (await invoke<{ aiTutoring: boolean }>(page, 'study.me')).aiTutoring).toBe(false);
     expect((await invoke<{ available: boolean }>(page, 'study.aiStatus')).available).toBe(false);
-    await page.getByRole('switch', { name: /Use the AI tutor and AI-written lessons/ }).click();
+    await aiSwitch.click();
     await expect(page.getByRole('dialog', { name: 'Turn on AI tutoring?' })).toContainText('Your name, PIN');
     await page.getByRole('button', { name: 'Turn on' }).click();
-    await expect.poll(async () => (await invoke<{ aiTutoring: boolean }>(page, 'study.me')).aiTutoring).toBe(true);
-    // A provider without a default model is reported, not treated as ready.
-    const [prov] = await invoke<{ id: string; defaultModel: string | null }[]>(page, 'ai.providers');
-    if (!prov!.defaultModel) {
-      expect((await invoke<{ available: boolean; reason: string | null }>(page, 'study.aiStatus')).reason).toMatch(/default model/);
-      await invoke(page, 'ai.updateProvider', prov!.id, { defaultModel: 'gpt-test' });
-    }
     await expect.poll(async () => (await invoke<{ available: boolean }>(page, 'study.aiStatus')).available).toBe(true);
 
     // The tutor streams an answer; the request carries the grade but never the student's name.

@@ -338,8 +338,31 @@ export class AiService {
       status = { ok: false, checkedAt: this.now(), message: err instanceof Error ? err.message : String(err), models: [] };
     }
     this.db.run('UPDATE providers SET last_status = ? WHERE id = ?', [JSON.stringify(status), id]);
+    // A provider that works should be usable straight away: save a default model if none was chosen.
+    if (status.ok) this.ensureDefaultModel(this.providerRow(id));
     this.d.emitChanged('providers', id);
     return status;
+  }
+
+  /**
+   * Picks a chat model from a model list: the adapter's own suggestions first, then the first model that isn't
+   * for embeddings, images, audio or moderation. Returns null when there is nothing suitable.
+   */
+  private pickChatModel(kind: ProviderRow['kind'], models: ModelInfo[]): string | null {
+    const chat = models.filter((m) => !/embed|whisper|tts|dall-?e|moderation|image|audio|transcri|realtime|rerank/i.test(m.id));
+    const suggested = adapterFor(kind).suggestedModels.map((m) => m.id);
+    return suggested.find((id) => chat.some((m) => m.id === id)) ?? chat[0]?.id ?? null;
+  }
+
+  /** Saves a default model for a provider that has none, from its listed models. Returns the model (or null). */
+  private ensureDefaultModel(r: ProviderRow): string | null {
+    if (r.default_model?.trim()) return r.default_model.trim();
+    const listed = json<ProviderStatus | null>(r.last_status, null)?.models ?? [];
+    const pick = this.pickChatModel(r.kind, listed.length ? listed : adapterFor(r.kind).suggestedModels);
+    if (!pick) return null;
+    this.db.run('UPDATE providers SET default_model = ?, updated_at = ? WHERE id = ?', [pick, this.now(), r.id]);
+    this.d.emitChanged('providers', r.id);
+    return pick;
   }
 
   models(id: string): ModelInfo[] {
@@ -428,6 +451,16 @@ export class AiService {
       id,
     ]);
     this.d.emitChanged('conversations', id);
+    // The first model someone picks for a provider becomes its default, so other features (Student Learning, the
+    // companion) can use it without a separate trip to Settings.
+    const pid = patch.providerId !== undefined ? patch.providerId : cur.provider_id;
+    if (patch.model?.trim() && pid) {
+      const pr = this.providerRow(pid);
+      if (!pr.default_model?.trim()) {
+        this.db.run('UPDATE providers SET default_model = ?, updated_at = ? WHERE id = ?', [patch.model.trim(), this.now(), pid]);
+        this.d.emitChanged('providers', pid);
+      }
+    }
     return this.conversation(id);
   }
 
@@ -679,7 +712,7 @@ export class AiService {
     const provider = id ? this.db.get<ProviderRow>('SELECT * FROM providers WHERE id = ?', [id]) : undefined;
     if (!provider) return 'No AI provider is connected. Connect one in Settings → AI providers.';
     if (!bool(provider.enabled)) return `${provider.name} is turned off. Turn it on in Settings → AI providers.`;
-    if (!provider.default_model?.trim()) return `Choose a default model for ${provider.name} in Settings → AI providers.`;
+    if (!this.ensureDefaultModel(provider)) return `Choose a default model for ${provider.name} in Settings → AI providers.`;
     return null;
   }
 
@@ -697,7 +730,7 @@ export class AiService {
     const provider = id ? this.db.get<ProviderRow>('SELECT * FROM providers WHERE id = ?', [id]) : undefined;
     if (!provider) throw new UserError('No AI provider is connected. Connect one in Settings → AI providers, or keep studying with the offline lessons.', 'not_configured');
     if (!bool(provider.enabled)) throw new UserError(`${provider.name} is turned off. Turn it on in Settings → AI providers.`, 'not_configured');
-    const model = (input.model ?? provider.default_model)?.trim();
+    const model = (input.model ?? this.ensureDefaultModel(provider))?.trim();
     if (!model) throw new UserError(`Choose a model for ${provider.name} in Settings → AI providers.`, 'not_configured');
     const runtime = this.runtime(provider);
     const s = this.d.settings();

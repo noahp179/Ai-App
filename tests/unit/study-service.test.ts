@@ -102,14 +102,20 @@ describe('student profiles and privacy', () => {
     expect(() => study.students.open(s.id, '1357')).toThrow(/Too many wrong PINs/);
   });
 
-  it('validates onboarding input and keeps AI and parent sharing off by default', () => {
+  it('validates onboarding input; AI tutoring is on by default, parent sharing off', () => {
     const { study } = setup();
     expect(() => study.students.create({ displayName: '', grade: 7 })).toThrow(/first name or nickname/);
     expect(() => study.students.create({ displayName: 'X', grade: 5 })).toThrow(/Grades 6 to 12/);
     const p = study.students.create({ displayName: 'Mo', grade: 6 });
-    expect(p.aiTutoring).toBe(false);
-    expect(p.shareProgressWithAi).toBe(false);
+    expect(p.aiTutoring).toBe(true);
+    expect(p.shareProgressWithAi).toBe(true);
+    expect(p.aiChoiceAt).toBeNull();
     expect(p.parentSharing.enabled).toBe(false);
+    // A student who turns it off keeps it off.
+    const off = study.students.update({ aiTutoring: false });
+    expect(off.aiTutoring).toBe(false);
+    expect(off.aiChoiceAt).not.toBeNull();
+    expect(study.students.active().aiTutoring).toBe(false);
     const u = study.students.update({ goals: ['Get better at fractions'], accessibility: { extraTime: true } });
     expect(u.goals).toEqual(['Get better at fractions']);
     expect(u.accessibility.extraTime).toBe(true);
@@ -197,7 +203,7 @@ describe('lessons', () => {
 
   it('builds an offline lesson from Ministry supports when there is no authored lesson and no AI', async () => {
     const { study, curriculum } = setup();
-    study.students.create({ displayName: 'Ana', grade: 7 });
+    study.students.create({ displayName: 'Ana', grade: 7, aiTutoring: false });
     // Grade 7 History has Ministry teacher supports and no FlowCompanion-written lesson.
     const hist = curriculum.courses({ grade: 7 }).find((c) => c.documentTitle === 'Social Studies, History, and Geography')!;
     const exp = curriculum.expectationsOf(hist.id).find((e) => curriculum.supportsOf(e.id).length > 0)!;
@@ -450,7 +456,7 @@ describe('AI tutoring and AI lessons', () => {
       return { text: 'Let’s start with what you know.', providerName: 'Test AI', model: 't' };
     };
     const { study, emitted, setAi } = setup({ ai: fake });
-    const me = study.students.create({ displayName: 'Zanele', grade: 7, aiTutoring: true });
+    const me = study.students.create({ displayName: 'Zanele', grade: 7, aiTutoring: true, shareProgressWithAi: false });
     const s = study.ai.createSession(me, { expectationId: G7_FRAC });
     study.ai.send(me, s.id, 'Teach me Grade 7 fractions from the beginning.');
     await study.ai.idle();

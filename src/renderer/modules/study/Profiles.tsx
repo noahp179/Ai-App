@@ -1,7 +1,7 @@
 import { Lock, Plus, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { EXPLANATION_STYLES, EXPLANATION_STYLE_LABEL, GOAL_KINDS, GOAL_LABEL, GRADES, type ExplanationStyle, type GoalKind, type StudentProfile } from '../../../shared/study/types';
-import { Banner, Button, EmptyState, Field, Input, Loading, Modal, Select, useToast } from '../../components/ui';
+import { Banner, Button, EmptyState, Field, Input, Loading, Modal, Select, Toggle, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
 import { WEEKDAYS } from './common';
@@ -91,6 +91,7 @@ export function Onboarding({ onCancel }: { onCancel?: () => void }) {
   const [session, setSession] = useState<5 | 10 | 20 | 30>(20);
   const [time, setTime] = useState('16:30');
   const [pin, setPin] = useState('');
+  const [useAi, setUseAi] = useState(true);
   const [busy, setBusy] = useState(false);
   const courses = useQuery(`study:onboard:courses:${grade}`, () => api.curriculum.courses({ grade }));
 
@@ -110,6 +111,7 @@ export function Onboarding({ onCancel }: { onCancel?: () => void }) {
         sessionMinutes: session,
         studyTime: time,
         onboarded: true,
+        ...(useAi ? {} : { aiTutoring: false, shareProgressWithAi: false }),
       };
       await api.study.createProfile(input, pin || null);
       toast('Profile created', 'success');
@@ -192,11 +194,16 @@ export function Onboarding({ onCancel }: { onCancel?: () => void }) {
             </Field>
             {courseIds.length ? (
               <Field label="How confident do you feel? (optional)" hint="Your own view. FlowCompanion still checks with short, low-pressure questions before deciding where to start.">
-                <div className="stack-2">
+                <div className="confidence-list">
                   {courseIds.map((cid) => (
-                    <label key={cid} className="row small">
-                      <span className="grow">{courses.data?.find((c) => c.id === cid)?.label ?? cid}</span>
-                      <select className="select" value={confidence[cid] ?? ''} onChange={(e) => setConfidence({ ...confidence, [cid]: Number(e.target.value) })} aria-label={`Confidence for ${cid}`}>
+                    <label key={cid} className="confidence-row">
+                      <span>{courses.data?.find((c) => c.id === cid)?.label ?? cid}</span>
+                      <select
+                        className="select"
+                        value={confidence[cid] ?? ''}
+                        onChange={(e) => setConfidence({ ...confidence, [cid]: Number(e.target.value) })}
+                        aria-label={`Confidence for ${courses.data?.find((c) => c.id === cid)?.label ?? cid}`}
+                      >
                         <option value="">Skip</option>
                         {[1, 2, 3, 4, 5].map((n) => (
                           <option key={n} value={n}>
@@ -244,8 +251,14 @@ export function Onboarding({ onCancel }: { onCancel?: () => void }) {
         {step === 5 ? (
           <>
             <Banner tone="info" title="Your learning stays on this computer">
-              Lessons, answers and progress are saved only here, in this profile. AI tutoring is <strong>off</strong> until you turn it on in Learning Settings, after reading exactly what would be sent. Sharing with a parent is also off until you choose it.
+              Lessons, answers and progress are saved only here, in this profile. Sharing with a parent is off until you choose it.
             </Banner>
+            <Toggle
+              label="Use the AI tutor and AI-written lessons"
+              description="Works once an AI provider is connected in Settings → AI providers. What you type, the topic you’re studying, your grade and a short summary of your progress go to that provider — never your name. AI can be wrong; its work is always labelled. You can turn this off any time in Learning settings."
+              checked={useAi}
+              onChange={setUseAi}
+            />
             <Field label="Profile PIN (optional)" hint="Stops other people using this computer from opening your profile. 4 or more characters." htmlFor="ob-pin">
               <Input id="ob-pin" type="password" value={pin} onChange={(e) => setPin(e.target.value)} style={{ maxWidth: 220 }} />
             </Field>

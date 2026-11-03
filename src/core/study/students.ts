@@ -42,8 +42,10 @@ export const ProfileSchema = z.object({
       reduceMotion: z.boolean().default(false),
     })
     .prefault({}),
-  aiTutoring: z.boolean().default(false),
-  shareProgressWithAi: z.boolean().default(false),
+  aiTutoring: z.boolean().default(true),
+  shareProgressWithAi: z.boolean().default(true),
+  /** When the student last turned AI tutoring or the progress summary on or off themselves. Null: still the defaults. */
+  aiChoiceAt: z.string().nullable().default(null),
   parentSharing: z
     .object({ enabled: z.boolean().default(false), goals: z.boolean().default(false), activities: z.boolean().default(false), progress: z.boolean().default(false) })
     .prefault({}),
@@ -87,6 +89,11 @@ export class StudentsService {
 
   private toProfile(r: Row): StudentProfile {
     const p = ProfileSchema.parse({ ...json<Record<string, unknown>>(r.profile, {}), displayName: r.display_name, grade: r.grade });
+    // Profiles made before AI tutoring was on by default stored "off" without the student choosing it.
+    if (!p.aiChoiceAt) {
+      p.aiTutoring = true;
+      p.shareProgressWithAi = true;
+    }
     return { id: r.id, ...p, grade: p.grade as StudentProfile['grade'], hasPin: !!r.pin_hash, createdAt: r.created_at, updatedAt: r.updated_at };
   }
 
@@ -103,6 +110,7 @@ export class StudentsService {
 
   create(input: unknown, pin?: string | null): StudentProfile {
     const p = ProfileSchema.parse(input ?? {});
+    if (input && typeof input === 'object' && ('aiTutoring' in input || 'shareProgressWithAi' in input)) p.aiChoiceAt = this.now();
     if (this.count() >= 12) throw new UserError('This computer already has 12 student profiles. Remove one first.');
     if (pin) this.validatePin(pin);
     const id = newId();
@@ -174,6 +182,7 @@ export class StudentsService {
     void createdAt;
     void updatedAt;
     const merged = ProfileSchema.parse({ ...data, ...(patch as object), accessibility: { ...data.accessibility, ...((patch as { accessibility?: object })?.accessibility ?? {}) }, parentSharing: { ...data.parentSharing, ...((patch as { parentSharing?: object })?.parentSharing ?? {}) } });
+    if (patch && typeof patch === 'object' && ('aiTutoring' in patch || 'shareProgressWithAi' in patch)) merged.aiChoiceAt = this.now();
     const { displayName, grade, ...rest } = merged;
     this.db.run('UPDATE students SET display_name = ?, grade = ?, profile = ?, updated_at = ? WHERE id = ?', [displayName, grade, JSON.stringify(rest satisfies Omit<ProfileData, 'displayName' | 'grade'>), this.now(), id]);
     return this.toProfile(this.row(id));
