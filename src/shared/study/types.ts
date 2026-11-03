@@ -14,7 +14,7 @@ export type Grade = (typeof GRADES)[number];
 export type Block =
   | { kind: 'p'; text: string }
   | { kind: 'math'; latex: string }
-  | { kind: 'list'; items: string[]; ordered?: boolean }
+  | { kind: 'list'; items: string[]; ordered?: boolean; start?: number }
   | { kind: 'note'; tone: 'tip' | 'warn' | 'source'; text: string }
   | { kind: 'diagram'; diagram: Diagram; alt: string }
   | { kind: 'table'; header: string[]; rows: string[][] }

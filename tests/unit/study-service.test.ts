@@ -199,6 +199,10 @@ describe('lessons', () => {
     const ex = await study.explainAgain(l.id, 'example');
     expect(ex.blocks.length).toBeGreaterThan(0);
     await expect(study.explainAgain(l.id, 'compare')).resolves.toBeTruthy();
+    // "Step by step" works offline for every authored lesson: a fully worked example when no other version is written.
+    const steps = await study.explainAgain(l.id, 'steps');
+    expect(steps.source).toBe('authored');
+    expect(steps.blocks.length).toBeGreaterThan(0);
   });
 
   it('builds an offline lesson from Ministry supports when there is no authored lesson and no AI', async () => {

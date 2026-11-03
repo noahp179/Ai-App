@@ -25,6 +25,7 @@ import { json } from '../db/database';
 import { type Clock, NotFoundError, UserError, newId } from '../util';
 import { Rng, type PackCtx, type SkillPack } from './content/kit';
 import { allMisconceptions, generateQuestion, levelsFor, skill, skillsFor } from './content/registry';
+import { blocksText } from './assessments';
 import { adaptDifficulty, startingDifficulty } from './mastery';
 import type { ProgressStore } from './progress';
 
@@ -474,13 +475,14 @@ export class LessonService {
     const pack = skill(s.content.skillId ?? '');
     let blocks: Block[] | undefined;
     let source: 'authored' | 'ai' = 'authored';
-    if (kind === 'example' && pack) blocks = pack.example(new Rng((Date.now() + s.alternativesShown.length) >>> 0), this.ctx(student, s.expectationId));
-    else blocks = s.content.alternatives[kind];
+    blocks = s.content.alternatives[kind];
+    // A fresh worked example shows every step, so it also serves as the offline "step by step" explanation.
+    if (pack && (kind === 'example' || (kind === 'steps' && !blocks?.length))) blocks = pack.example(new Rng((Date.now() + s.alternativesShown.length) >>> 0), this.ctx(student, s.expectationId));
     if (!blocks?.length) {
       const ai = this.d.ai();
       if (!ai || !student.aiTutoring) throw new UserError(`There is no “${ALT_LABEL[kind].toLowerCase()}” explanation written for this lesson. ${this.aiStatus(student).reason ?? ''}`.trim());
       const step = s.content.steps[s.stepIndex];
-      blocks = await ai.alternative(student, s.expectationId, kind, step ? step.blocks.map((b) => ('text' in b ? b.text : '')).join(' ').slice(0, 1500) : s.content.title);
+      blocks = await ai.alternative(student, s.expectationId, kind, step ? blocksText(step.blocks).slice(0, 4000) : s.content.title);
       source = 'ai';
     }
     s.alternativesShown.push(kind);

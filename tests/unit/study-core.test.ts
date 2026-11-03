@@ -6,6 +6,7 @@ import { SUBJECTS, subjectFor } from '../../src/shared/study/subjects';
 import type { Evidence, Question } from '../../src/shared/study/types';
 import { adaptDifficulty, computeMastery, detectGaps, nextReview, startingDifficulty } from '../../src/core/study/mastery';
 import { lessonPlan } from '../../src/core/study/lessons';
+import { textToBlocks } from '../../src/core/study/ai';
 import { readBundleFile } from '../../src/core/curriculum/bundle';
 import path from 'node:path';
 
@@ -191,6 +192,20 @@ describe('mastery model', () => {
     const gaps = detectGaps('e', evs, computeMastery('e', evs, NOW), NOW);
     expect(gaps.map((g) => g.kind).sort()).toEqual(['hint_dependence', 'recognition_not_application', 'repeated_error']);
     expect(gaps.find((g) => g.kind === 'repeated_error')!.misconception).toBe('frac_add_across');
+  });
+});
+
+describe('AI text to lesson blocks', () => {
+  it('keeps every numbered step, as one list, even with blank lines or notes between steps', () => {
+    const b = textToBlocks('Here is how:\n\n1. Find the GCF.\n\n2. Divide both parts.\n3. Check nothing divides both.\n\nThat is it.\n- tip one\n- tip two');
+    expect(b).toEqual([
+      { kind: 'p', text: 'Here is how:' },
+      { kind: 'list', ordered: true, items: ['Find the GCF.', 'Divide both parts.', 'Check nothing divides both.'] },
+      { kind: 'p', text: 'That is it.' },
+      { kind: 'list', ordered: false, items: ['tip one', 'tip two'] },
+    ]);
+    const split = textToBlocks('1. One\n2. Two\n\nA picture helps here.\n\n3. Three');
+    expect(split.at(-1)).toEqual({ kind: 'list', ordered: true, start: 3, items: ['Three'] });
   });
 });
 

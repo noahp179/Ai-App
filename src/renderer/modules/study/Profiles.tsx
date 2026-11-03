@@ -4,7 +4,7 @@ import { EXPLANATION_STYLES, EXPLANATION_STYLE_LABEL, GOAL_KINDS, GOAL_LABEL, GR
 import { Banner, Button, EmptyState, Field, Input, Loading, Modal, Select, Toggle, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
-import { WEEKDAYS } from './common';
+import { NoGuaranteeNotice, WEEKDAYS } from './common';
 
 /** Shown when no profile is open: pick one (with its PIN) or create a new one. */
 export function ProfileGate() {
@@ -250,6 +250,7 @@ export function Onboarding({ onCancel }: { onCancel?: () => void }) {
         ) : null}
         {step === 5 ? (
           <>
+            <NoGuaranteeNotice />
             <Banner tone="info" title="Your learning stays on this computer">
               Lessons, answers and progress are saved only here, in this profile. Sharing with a parent is off until you choose it.
             </Banner>

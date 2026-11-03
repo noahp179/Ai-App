@@ -130,6 +130,8 @@ Classifications, as defined in the brief:
 | Variables with defaults and validated substitution | Verified | unit, e2e |
 | Provider labels | Verified | unit |
 | Copy and open in AI workspace | Verified | e2e (copy); "open in AI" navigates with the prompt prefilled |
+| Save a chat message as a prompt; attach a saved prompt (variables filled in) to a chat message | Verified | e2e |
+| Marketplace listings and library prompts use the same prompt view, variable chips and "Use this prompt" panel | Verified | e2e (marketplace, library) |
 | Import/export | Verified | unit |
 | Bundled free starter listings (labelled, unrated) | Verified | int, e2e |
 | Listings, detail pages, search, categories, creator profiles, previews | Verified | int, e2e |

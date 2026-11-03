@@ -1,10 +1,10 @@
 import { BookMarked, Copy, Download, History, Plus, Search, Star, Store, Trash2, Upload } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { PromptQuery } from '../../../shared/api';
-import { PROMPT_CATEGORIES, PROVIDER_LABELS, parseVariables } from '../../../shared/prompts';
+import { PROMPT_CATEGORIES, PROVIDER_LABELS } from '../../../shared/prompts';
 import type { Prompt, ProviderLabel } from '../../../shared/types';
 import { LinksPanel } from '../../components/LinksPanel';
-import { PromptUse } from '../../components/PromptUse';
+import { PromptUse, PromptVariables } from '../../components/PromptUse';
 import { Badge, Button, EmptyState, Field, IconButton, Input, Loading, Modal, Select, Textarea, useConfirm, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { fmtRelative } from '../../lib/format';
@@ -102,7 +102,6 @@ function Editor({ id }: { id: string | null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p?.id, p?.version, p?.updatedAt]);
   const dirty = JSON.stringify(d) !== JSON.stringify(toDraft(p));
-  const vars = useMemo(() => parseVariables(d.body), [d.body]);
 
   const save = async () => {
     setBusy(true);
@@ -198,17 +197,7 @@ function Editor({ id }: { id: string | null }) {
           <Field label="Prompt" htmlFor="pr-body" hint="Use {{name}} for something to fill in, or {{name:default}} to give a default.">
             <Textarea id="pr-body" className="mono" rows={12} value={d.body} onChange={(e) => setD({ ...d, body: e.target.value })} placeholder="Write the prompt…" />
           </Field>
-          {vars.length ? (
-            <div className="row-wrap small" style={{ gap: 4 }}>
-              <span className="muted">Variables:</span>
-              {vars.map((v) => (
-                <Badge key={v.name} tone={v.required ? 'accent' : 'outline'}>
-                  {v.name}
-                  {v.defaultValue !== null ? ` = ${v.defaultValue}` : ''}
-                </Badge>
-              ))}
-            </div>
-          ) : null}
+          <PromptVariables body={d.body} />
           <Field label="Description" htmlFor="pr-desc">
             <Input id="pr-desc" value={d.description} onChange={(e) => setD({ ...d, description: e.target.value })} placeholder="What it is for (optional)" />
           </Field>

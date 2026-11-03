@@ -121,7 +121,7 @@ export function BlockView({ b }: { b: Block }) {
           <RichLine text={it} />
         </li>
       ));
-      return b.ordered ? <ol>{items}</ol> : <ul>{items}</ul>;
+      return b.ordered ? <ol start={b.start}>{items}</ol> : <ul>{items}</ul>;
     }
     case 'note':
       return (

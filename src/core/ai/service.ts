@@ -725,7 +725,7 @@ export class AiService {
     model?: string | null;
     onDelta?: (delta: string) => void;
     signal?: AbortSignal;
-  }): Promise<{ text: string; providerId: string; providerName: string; model: string; notices: string[] }> {
+  }): Promise<{ text: string; providerId: string; providerName: string; model: string; notices: string[]; truncated: boolean }> {
     const id = input.providerId ?? this.d.settings().ai.defaultProviderId;
     const provider = id ? this.db.get<ProviderRow>('SELECT * FROM providers WHERE id = ?', [id]) : undefined;
     if (!provider) throw new UserError('No AI provider is connected. Connect one in Settings → AI providers, or keep studying with the offline lessons.', 'not_configured');
@@ -757,7 +757,8 @@ export class AiService {
         ctrl.signal,
       );
       this.d.tasks.setState(task.id, 'completed', 'confirmed', `${provider.name} · ${result.servedModel ?? model}`);
-      return { text: result.text || streamed, providerId: provider.id, providerName: provider.name, model: result.servedModel ?? model, notices: result.notices };
+      const truncated = ['length', 'max_tokens', 'MAX_TOKENS'].includes(result.finishReason);
+      return { text: result.text || streamed, providerId: provider.id, providerName: provider.name, model: result.servedModel ?? model, notices: result.notices, truncated };
     } catch (err) {
       const e = err instanceof AiError ? err : new AiError('unknown', err instanceof Error ? err.message : String(err));
       this.d.tasks.setState(task.id, e.code === 'canceled' ? 'canceled' : 'failed', 'confirmed', e.message.slice(0, 300));

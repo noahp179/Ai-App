@@ -5,7 +5,7 @@ import { Button, Loading, Select, Tabs, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { useQuery } from '../../lib/query';
 import { useSettings } from '../../lib/settings';
-import { ExpLink, StatusBadge, indexOf } from './common';
+import { ExpLink, NoGuaranteeNotice, StatusBadge, indexOf } from './common';
 
 const MEANING: Record<string, string> = {
   not_assessed: 'No answers yet.',
@@ -22,6 +22,7 @@ export default function Progress() {
   return (
     <div className="page stack-4" style={{ maxWidth: 1000 }}>
       <h1>Progress</h1>
+      <NoGuaranteeNotice />
       <Tabs
         label="Progress sections"
         value={tab}

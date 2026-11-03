@@ -55,10 +55,11 @@ export type StudyAiComplete = (input: { title: string; system: string; messages:
   text: string;
   providerName: string;
   model: string;
+  truncated?: boolean;
 }>;
 
 const REPORT_DISCLAIMER =
-  'These are FlowCompanion’s learning indicators, based on answers marked in the app. They are not Ontario achievement levels, report-card marks or a teacher’s evaluation.';
+  'FlowCompanion is a learning tool. These are its learning indicators, based only on answers marked in the app. They are not Ontario achievement levels, report-card marks or a teacher’s evaluation. They do not guarantee any mark, and they do not mean every curriculum expectation has been met: many expectations (projects, discussion, labs, writing, presentations) cannot be fully checked in an app.';
 
 /** Student Learning. Every call that touches a student's records works on the open profile only. */
 export class StudyService {
@@ -246,6 +247,7 @@ export class StudyService {
     const missed = plans.filter((p) => p.status === 'approved' && p.sessions.some((s) => s.status === 'planned' && `${s.date}T${s.start}` < nowIso.slice(0, 16))).map((p) => p.id);
     const records = this.progress.all(me.id);
     const byStatus = Object.fromEntries(MASTERY_STATUSES.map((s) => [s, records.filter((r) => r.status === s).length])) as Record<MasteryStatus, number>;
+    let allCourses: ReturnType<CurriculumService['courses']> | undefined;
     const recs: Recommendation[] = [];
     const seen = new Set<string>();
     const add = (r: Recommendation) => {
@@ -280,6 +282,22 @@ export class StudyService {
       mastered: records.filter((r) => r.status === 'proficient' || r.status === 'extension_ready').map((r) => r.expectationId).slice(0, 12),
       needsPractice: records.filter((r) => ['not_yet', 'in_progress', 'developing', 'review'].includes(r.status)).map((r) => r.expectationId).slice(0, 12),
       byStatus,
+      courseProgress: me.courseIds.flatMap((cid) => {
+        const course = (allCourses ??= this.d.curriculum.courses({})).find((c) => c.id === cid);
+        if (!course) return [];
+        const ids = this.d.curriculum.expectationsOf(cid).map((e) => e.id);
+        const st = ids.map((id) => this.progress.status(me.id, id));
+        return [
+          {
+            courseId: cid,
+            label: course.label,
+            expectations: ids.length,
+            practised: st.filter((s) => s !== 'not_assessed').length,
+            proficient: st.filter((s) => s === 'proficient' || s === 'extension_ready').length,
+            offline: ids.filter((id) => skillsFor(id).length).length,
+          },
+        ];
+      }),
       recentQuizzes: this.quizzes.list(me.id, 5),
       assignments: this.planner.assignments(me.id).slice(0, 5),
       ai: this.aiStatus(),

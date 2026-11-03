@@ -1,11 +1,11 @@
 import { BookOpen, CalendarCheck, ClipboardList, Compass, GraduationCap, LayoutDashboard, LineChart, ListChecks, MessageCircle, PieChart, RefreshCcw, Settings2, UserRound } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { GAP_LABEL, LESSON_MODE_LABEL, MASTERY_LABEL, MASTERY_STATUSES, PLAN_ACTIVITY_LABEL, QUIZ_KIND_LABEL, type Recommendation } from '../../../shared/study/types';
-import { Badge, Banner, Button, EmptyState, ErrorState, Loading, useToast } from '../../components/ui';
+import { Badge, Banner, Button, EmptyState, ErrorState, Loading, ProgressBar, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
 import { navigate, useRoute } from '../../lib/router';
-import { ExpLink, indexOf, studentStyle } from './common';
+import { ExpLink, NoGuaranteeNotice, indexOf, studentStyle } from './common';
 import { ProfileGate } from './Profiles';
 
 const Explore = lazy(() => import('./Explore'));
@@ -18,17 +18,31 @@ const Progress = lazy(() => import('./Progress'));
 const Coverage = lazy(() => import('./Coverage'));
 const LearningSettings = lazy(() => import('./LearningSettings'));
 
-const NAV = [
-  { id: '', label: 'My dashboard', icon: LayoutDashboard },
-  { id: 'explore', label: 'Curriculum', icon: Compass },
-  { id: 'practice', label: 'Practice & quizzes', icon: ListChecks },
-  { id: 'review', label: 'Review', icon: RefreshCcw },
-  { id: 'plan', label: 'Planner & assignments', icon: CalendarCheck },
-  { id: 'assessments', label: 'Assessments', icon: ClipboardList },
-  { id: 'tutor', label: 'AI tutor', icon: MessageCircle },
-  { id: 'progress', label: 'Progress', icon: LineChart },
-  { id: 'coverage', label: 'Coverage', icon: PieChart },
-  { id: 'settings', label: 'Learning settings', icon: Settings2 },
+const NAV_GROUPS = [
+  {
+    label: 'Learn',
+    items: [
+      { id: '', label: 'My dashboard', icon: LayoutDashboard },
+      { id: 'explore', label: 'Curriculum', icon: Compass },
+      { id: 'practice', label: 'Practice & quizzes', icon: ListChecks },
+      { id: 'review', label: 'Review', icon: RefreshCcw },
+      { id: 'tutor', label: 'AI tutor', icon: MessageCircle },
+    ],
+  },
+  {
+    label: 'Plan',
+    items: [
+      { id: 'plan', label: 'Planner', icon: CalendarCheck },
+      { id: 'assessments', label: 'Assessments', icon: ClipboardList },
+    ],
+  },
+  {
+    label: 'Track',
+    items: [
+      { id: 'progress', label: 'Progress', icon: LineChart },
+      { id: 'coverage', label: 'Coverage', icon: PieChart },
+    ],
+  },
 ];
 
 /** Pages that work without a profile (they show only shared, non-personal information). */
@@ -45,36 +59,51 @@ export default function Study() {
   return (
     <div className="study" style={studentStyle(me.data)}>
       <nav className="study-nav" aria-label="Student Learning sections">
-        <div className="study-nav-head">
-          <GraduationCap size={18} />
-          <div className="grow">
-            <strong>Student Learning</strong>
-            {me.data ? (
-              <div className="tiny muted">
-                {me.data.displayName} · Grade {me.data.grade}
-              </div>
-            ) : null}
-          </div>
-        </div>
-        {NAV.map((n) => (
-          <button key={n.id} type="button" className={`nav-item ${active === n.id ? 'active' : ''}`} aria-current={active === n.id ? 'page' : undefined} onClick={() => navigate(`/study${n.id ? `/${n.id}` : ''}`)}>
-            <n.icon size={15} /> {n.label}
-          </button>
-        ))}
         {me.data ? (
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() =>
-              void api.study.closeProfile().then(() => {
-                invalidate('study');
-                navigate('/study');
-              })
-            }
-          >
-            <UserRound size={15} /> Switch profile
+          <div className="study-profile">
+            <span className="study-avatar" aria-hidden title={`${me.data.displayName} · Grade ${me.data.grade}`}>
+              {me.data.displayName.charAt(0).toUpperCase()}
+            </span>
+            <span className="study-profile-text">
+              <strong className="ellipsis">{me.data.displayName}</strong>
+              <span className="tiny muted">Grade {me.data.grade}</span>
+            </span>
+            <button
+              type="button"
+              className="icon-btn sm"
+              title="Switch profile"
+              aria-label="Switch profile"
+              onClick={() =>
+                void api.study.closeProfile().then(() => {
+                  invalidate('study');
+                  navigate('/study');
+                })
+              }
+            >
+              <UserRound size={15} />
+            </button>
+          </div>
+        ) : (
+          <div className="study-profile">
+            <GraduationCap size={18} />
+            <strong>Student Learning</strong>
+          </div>
+        )}
+        {NAV_GROUPS.map((g) => (
+          <div key={g.label} className="study-nav-group" role="group" aria-label={g.label}>
+            <div className="nav-section">{g.label}</div>
+            {g.items.map((n) => (
+              <button key={n.id} type="button" title={n.label} aria-label={n.label} className={`nav-item ${active === n.id ? 'active' : ''}`} aria-current={active === n.id ? 'page' : undefined} onClick={() => navigate(`/study${n.id ? `/${n.id}` : ''}`)}>
+                <n.icon size={15} /> <span>{n.label}</span>
+              </button>
+            ))}
+          </div>
+        ))}
+        <div className="study-nav-foot">
+          <button type="button" title="Learning settings" aria-label="Learning settings" className={`nav-item ${active === 'settings' ? 'active' : ''}`} aria-current={active === 'settings' ? 'page' : undefined} onClick={() => navigate('/study/settings')}>
+            <Settings2 size={15} /> <span>Learning settings</span>
           </button>
-        ) : null}
+        </div>
       </nav>
       <div className="study-main">
         <Suspense fallback={<Loading />}>
@@ -174,7 +203,7 @@ function Dashboard() {
               ))}
             </ul>
           ) : (
-            <p className="small muted">No approved study sessions this week. Make a plan in Planner & assignments.</p>
+            <p className="small muted">No approved study sessions this week. Make one in the Planner.</p>
           )}
           {x.assignments.length ? (
             <p className="small">
@@ -207,6 +236,26 @@ function Dashboard() {
       <div className="grid grid-2 dash-grid">
         <section className="card stack-3" aria-label="Your progress">
           <h2 className="h2">Your progress</h2>
+          {x.courseProgress.length ? (
+            <div className="stack-3">
+              {x.courseProgress.map((c) => (
+                <div key={c.courseId} className="course-progress">
+                  <div className="row small">
+                    <button type="button" className="link-button grow" style={{ textAlign: 'left' }} onClick={() => navigate(`/study/course/${encodeURIComponent(c.courseId)}`)}>
+                      {c.label}
+                    </button>
+                    <span className="tiny muted">
+                      {c.proficient} of {c.expectations} proficient
+                    </span>
+                  </div>
+                  <ProgressBar value={c.expectations ? (100 * c.proficient) / c.expectations : 0} label={`${c.label}: ${c.proficient} of ${c.expectations} expectations proficient in the app`} />
+                  <span className="tiny faint">
+                    Practised {c.practised} · {c.offline ? `${c.offline} with offline lessons` : 'no offline lessons yet (Ministry supports or AI)'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
           {total ? (
             <ul className="small">
               {MASTERY_STATUSES.filter((s) => x.byStatus[s]).map((s) => (
@@ -218,7 +267,7 @@ function Dashboard() {
           ) : (
             <p className="small muted">Your progress shows up here once you answer some questions.</p>
           )}
-          <p className="tiny faint">Learning indicators from answers marked in the app — not Ontario achievement levels or marks.</p>
+          <NoGuaranteeNotice compact />
         </section>
         <section className="card stack-3" aria-label="Recent">
           <h2 className="h2">Recently</h2>

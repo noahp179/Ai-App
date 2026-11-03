@@ -1,11 +1,12 @@
-import { AlertTriangle, Bot, Copy, ListTodo, NotebookPen, RotateCcw, Square, User } from 'lucide-react';
+import { AlertTriangle, BookmarkPlus, Bot, Copy, ListTodo, NotebookPen, RotateCcw, Square, User } from 'lucide-react';
 import { memo } from 'react';
 import type { Message } from '../../../shared/types';
 import { Markdown } from '../../components/Markdown';
-import { Badge, Button, IconButton, useToast } from '../../components/ui';
+import { Badge, Button, IconButton, usePrompt, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { useCopy } from '../../lib/copy';
 import { modelLabel } from '../../lib/format';
+import { invalidate } from '../../lib/query';
 import { navigate } from '../../lib/router';
 
 const ERROR_HELP: Record<string, string> = {
@@ -34,6 +35,7 @@ export const MessageView = memo(function MessageView({
 }) {
   const copy = useCopy();
   const toast = useToast();
+  const ask = usePrompt();
   const streaming = m.status === 'streaming';
   const content = streaming ? (streamingText ?? m.content) : m.content;
   const isUser = m.role === 'user';
@@ -83,6 +85,27 @@ export const MessageView = memo(function MessageView({
                 Retry
               </Button>
             ) : null}
+          </div>
+        ) : null}
+        {isUser && content ? (
+          <div className="row" style={{ marginTop: 6, gap: 2, justifyContent: 'flex-end' }}>
+            <IconButton
+              label="Save this message as a prompt"
+              size="sm"
+              onClick={async () => {
+                const title = await ask({ title: 'Save as a prompt', label: 'Name for this prompt', initial: content.split('\n')[0]!.slice(0, 60), confirmLabel: 'Save' });
+                if (!title) return;
+                try {
+                  await api.prompts.create({ title, body: content });
+                  invalidate('prompts');
+                  toast('Saved to your Prompt Library', 'success');
+                } catch (err) {
+                  toast(errorMessage(err), 'error');
+                }
+              }}
+            >
+              <BookmarkPlus size={13} />
+            </IconButton>
           </div>
         ) : null}
         {!isUser && !streaming && content ? (

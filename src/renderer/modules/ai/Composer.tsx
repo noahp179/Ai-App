@@ -1,8 +1,10 @@
-import { CalendarDays, ListTodo, NotebookPen, Paperclip, Send, X } from 'lucide-react';
+import { BookMarked, BookmarkPlus, CalendarDays, ListTodo, NotebookPen, Paperclip, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Badge, Button, IconButton, Input, Modal, Tabs, useConfirm } from '../../components/ui';
-import { api } from '../../lib/api';
-import { useQuery } from '../../lib/query';
+import type { Prompt } from '../../../shared/types';
+import { PromptUse, PromptVariables } from '../../components/PromptUse';
+import { Badge, Button, IconButton, Input, Modal, Tabs, useConfirm, usePrompt, useToast } from '../../components/ui';
+import { api, errorMessage } from '../../lib/api';
+import { invalidate, useQuery } from '../../lib/query';
 import { useSettings } from '../../lib/settings';
 
 export interface Attachment {
@@ -48,6 +50,66 @@ function AttachPicker({ onPick, onClose }: { onPick: (a: Attachment) => void; on
   );
 }
 
+/** A saved prompt, filled in, sent ahead of what the user types. */
+export interface AttachedPrompt {
+  id: string;
+  title: string;
+  text: string;
+}
+
+/** Pick a prompt from the library, fill in its variables, and attach it to the message. */
+function PromptPicker({ onPick, onClose }: { onPick: (p: AttachedPrompt) => void; onClose: () => void }) {
+  const [q, setQ] = useState('');
+  const [chosen, setChosen] = useState<Prompt | null>(null);
+  const list = useQuery(`prompts:pick:${q}`, () => api.prompts.list({ search: q || undefined }));
+  return (
+    <Modal title={chosen ? chosen.title : 'Attach a saved prompt'} onClose={onClose} wide>
+      {chosen ? (
+        <div className="stack-3">
+          {chosen.description ? <p className="small muted">{chosen.description}</p> : null}
+          <pre className="prompt-preview prompt-body">{chosen.body}</pre>
+          <PromptVariables body={chosen.body} />
+          <PromptUse
+            body={chosen.body}
+            context="prompts"
+            onUse={() => void api.prompts.recordUse(chosen.id).then(() => invalidate('prompts'))}
+            onAttach={(text) => onPick({ id: chosen.id, title: chosen.title, text })}
+          />
+          <div>
+            <Button size="sm" variant="ghost" onClick={() => setChosen(null)}>
+              ← Choose a different prompt
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="stack-3">
+          <p className="small muted">The prompt is sent first, then whatever you type in the message box. Save prompts in the Prompt Library or with the bookmark button next to the message box.</p>
+          <Input placeholder="Search your prompts…" value={q} onChange={(e) => setQ(e.target.value)} autoFocus aria-label="Search your prompts" />
+          <div className="list" style={{ maxHeight: 360, overflow: 'auto' }}>
+            {list.data && !list.data.length ? <div className="small muted" style={{ padding: 12 }}>{q ? 'No prompts match.' : 'Your Prompt Library is empty.'}</div> : null}
+            {(list.data ?? []).slice(0, 100).map((p) => (
+              <button key={p.id} type="button" className="list-item" onClick={() => setChosen(p)}>
+                <BookMarked size={14} />
+                <span className="grow" style={{ minWidth: 0 }}>
+                  <span className="ellipsis" style={{ display: 'block' }}>
+                    {p.title}
+                  </span>
+                  {p.description ? (
+                    <span className="tiny muted ellipsis" style={{ display: 'block' }}>
+                      {p.description}
+                    </span>
+                  ) : null}
+                </span>
+                <Badge>{p.category.charAt(0).toUpperCase() + p.category.slice(1)}</Badge>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 export function Composer({
   disabled,
   busy,
@@ -66,6 +128,10 @@ export function Composer({
   const [text, setText] = useState(initialText ?? '');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [picking, setPicking] = useState(false);
+  const [pickingPrompt, setPickingPrompt] = useState(false);
+  const [attachedPrompt, setAttachedPrompt] = useState<AttachedPrompt | null>(null);
+  const toast = useToast();
+  const ask = usePrompt();
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -79,8 +145,25 @@ export function Composer({
     el.style.height = `${Math.min(el.scrollHeight, 260)}px`;
   }, [text]);
 
+  const message = attachedPrompt ? (text.trim() ? `${attachedPrompt.text}\n\n${text}` : attachedPrompt.text) : text;
+  const canSend = !!message.trim() && !disabled && !busy;
+
+  const saveAsPrompt = async () => {
+    const body = text.trim();
+    if (!body) return;
+    const title = await ask({ title: 'Save as a prompt', label: 'Name for this prompt', initial: body.split('\n')[0]!.slice(0, 60), confirmLabel: 'Save' });
+    if (!title) return;
+    try {
+      await api.prompts.create({ title, body });
+      invalidate('prompts');
+      toast('Saved to your Prompt Library. Use {{name}} in a prompt for parts you fill in each time.', 'success');
+    } catch (err) {
+      toast(errorMessage(err), 'error');
+    }
+  };
+
   const submit = async () => {
-    if (!text.trim() || disabled || busy) return;
+    if (!canSend) return;
     if (attachments.length && settings.privacy.confirmBeforeSendingContext) {
       const ok = await confirm({
         title: 'Send attached items?',
@@ -101,14 +184,32 @@ export function Composer({
       });
       if (!ok) return;
     }
-    if (await onSend(text, attachments)) {
+    if (await onSend(message, attachments)) {
       setText('');
       setAttachments([]);
+      setAttachedPrompt(null);
     }
   };
 
   return (
     <div className="card" style={{ padding: 10 }}>
+      {attachedPrompt ? (
+        <div className="row-wrap" style={{ marginBottom: 8 }}>
+          <Badge tone="accent">
+            <BookMarked size={11} />
+            Prompt: {attachedPrompt.title}
+            <button
+              type="button"
+              aria-label={`Remove prompt ${attachedPrompt.title}`}
+              style={{ border: 0, background: 'none', color: 'inherit', cursor: 'pointer', padding: 0, display: 'inline-flex' }}
+              onClick={() => setAttachedPrompt(null)}
+            >
+              <X size={11} />
+            </button>
+          </Badge>
+          <span className="tiny faint">Sent before your message. Type anything to add to it, or just press Send.</span>
+        </div>
+      ) : null}
       {attachments.length ? (
         <div className="row-wrap" style={{ marginBottom: 8 }}>
           {attachments.map((a) => (
@@ -147,11 +248,27 @@ export function Composer({
         <IconButton label="Attach a note or task" onClick={() => setPicking(true)} disabled={disabled}>
           <Paperclip size={16} />
         </IconButton>
+        <IconButton label="Attach a saved prompt" onClick={() => setPickingPrompt(true)} disabled={disabled}>
+          <BookMarked size={16} />
+        </IconButton>
+        <IconButton label="Save what you typed as a prompt" onClick={() => void saveAsPrompt()} disabled={!text.trim()}>
+          <BookmarkPlus size={16} />
+        </IconButton>
         <span className="tiny faint grow">Sent to {providerLabel}</span>
-        <Button variant="primary" size="sm" onClick={() => void submit()} disabled={disabled || busy || !text.trim()} icon={<Send size={13} />}>
+        <Button variant="primary" size="sm" onClick={() => void submit()} disabled={!canSend} icon={<Send size={13} />}>
           Send
         </Button>
       </div>
+      {pickingPrompt ? (
+        <PromptPicker
+          onClose={() => setPickingPrompt(false)}
+          onPick={(p) => {
+            setAttachedPrompt(p);
+            setPickingPrompt(false);
+            ref.current?.focus();
+          }}
+        />
+      ) : null}
       {picking ? (
         <AttachPicker
           onClose={() => setPicking(false)}

@@ -412,6 +412,7 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--border-st
 .step-dot.done { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
 
 .prompt-preview { white-space: pre-wrap; word-break: break-word; font-family: var(--font-mono); font-size: 0.84rem; background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; margin: 6px 0 0; max-height: 320px; overflow: auto; }
+.prompt-preview.prompt-body { max-height: 420px; font-size: 0.86rem; line-height: 1.55; padding: 12px 14px; background: var(--surface-2); }
 
 /* Copy-restricted regions (parental learning controls) */
 [data-copy-restricted='true'] { user-select: none; -webkit-user-select: none; }
@@ -432,22 +433,35 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--border-st
 }
 
 /* ─────────── Student Learning ─────────── */
-.study { display: grid; grid-template-columns: 236px 1fr; height: 100%; font-size: calc(1rem * var(--study-scale, 1)); }
-.study-nav { border-right: 1px solid var(--border); padding: 14px 12px; overflow: auto; background: var(--bg-sunken); font-size: 0.92rem; }
-.study-nav-head { display: flex; align-items: center; gap: 8px; padding: 4px 6px 12px; }
-.study-nav-head svg { color: var(--accent); flex: none; }
+.study { display: grid; grid-template-columns: 220px minmax(0, 1fr); height: 100%; font-size: calc(1rem * var(--study-scale, 1)); }
+.study-nav { display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--border); padding: 12px 10px; overflow-y: auto; background: var(--bg-sunken); font-size: 0.92rem; }
+.study-nav .nav-item { white-space: nowrap; }
+.study-nav .nav-item > span { overflow: hidden; text-overflow: ellipsis; }
+.study-nav .nav-section { margin-top: 10px; }
+.study-profile { display: flex; align-items: center; gap: 10px; padding: 6px 6px 10px; margin-bottom: 4px; border-bottom: 1px solid var(--border); }
+.study-profile > svg { color: var(--accent); flex: none; }
+.study-avatar { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-bg); color: var(--accent); font-weight: 700; font-size: 0.9rem; }
+.study-profile-text { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.25; }
+.study-nav-foot { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
 .study-main { overflow: auto; min-width: 0; }
 .study-main .page { padding: var(--space-6) var(--space-6) 48px; }
 .study .card { padding: 20px; }
 .study .grid { gap: 20px; }
 .study .list-item + .list-item { margin-top: 6px; }
-.study-nav .nav-item { white-space: nowrap; }
 
 /* Dashboard */
+.course-progress { display: flex; flex-direction: column; gap: 6px; }
+.no-guarantee { line-height: 1.5; }
 .dash-card { display: flex; flex-direction: column; gap: 10px; }
 .dash-card p { margin: 0; line-height: 1.5; }
 .dash-card-title { line-height: 1.4; }
 .dash-card-actions { margin-top: auto; padding-top: 6px; gap: 8px; }
+
+/* Curriculum browser filters: grade, subject, then a search box that takes the remaining width */
+.explore-filters { display: grid; grid-template-columns: 160px minmax(180px, 280px) minmax(0, 1fr); gap: 16px; align-items: end; }
+.explore-filters .search-box { display: flex; align-items: center; gap: 8px; }
+.explore-filters .search-box .input { flex: 1; min-width: 0; }
+@media (max-width: 900px) { .explore-filters { grid-template-columns: 1fr 1fr; } .explore-filters > :last-child { grid-column: 1 / -1; } }
 
 /* Onboarding: how confident do you feel, one row per course */
 .confidence-list { display: flex; flex-direction: column; gap: 10px; }
@@ -516,8 +530,15 @@ figure.support figcaption { font-size: 0.8em; color: var(--text-muted); margin-t
 .tutor-msg.student { align-self: flex-end; background: var(--accent-bg); border-color: transparent; }
 .tutor-msg.tutor { align-self: flex-start; }
 
-@media (max-width: 900px) {
-  .study { grid-template-columns: 1fr; }
-  .study-nav { border-right: none; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 4px; }
+/* Narrow windows: the section nav becomes a slim rail of icons (names in tooltips and for screen readers). */
+@media (max-width: 1000px) {
+  .study { grid-template-columns: 60px minmax(0, 1fr); }
+  .study-nav { padding: 10px 6px; align-items: center; }
+  .study-nav .nav-item { justify-content: center; padding: 9px 0; }
+  .study-nav .nav-item > span, .study-profile-text { display: none; }
+  .study-nav .nav-section { font-size: 0; padding: 0; border-top: 1px solid var(--border); }
+  .study-profile { flex-direction: column; gap: 4px; padding: 2px 0 8px; justify-content: center; }
+  .study-nav-group, .study-nav-foot { width: 100%; }
+  .study-nav .nav-section { margin: 8px 4px; }
   .tutor-page { grid-template-columns: 1fr; }
 }

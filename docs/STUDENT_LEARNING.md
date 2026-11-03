@@ -6,6 +6,8 @@ What is and isn't covered is listed in [CURRICULUM_COVERAGE.md](CURRICULUM_COVER
 
 FlowCompanion is not affiliated with or endorsed by the Ontario Ministry of Education. Its progress indicators are not marks or achievement levels.
 
+**A learning tool, not a guarantee.** FlowCompanion can't guarantee good marks, and progress in it — bars, statuses and percentages — doesn't mean every curriculum requirement has been met. It only counts answers checked in the app, and many expectations (projects, labs, discussion, writing, presentations) can't be fully checked in an app. A student's teacher's assessment is what counts. The app says this next to every progress bar and status summary, on lesson and quiz results, in reports and during setup.
+
 ## Getting started
 
 1. Open **Student Learning** in the sidebar. The first time, a short setup asks for a first name or nickname and a grade. Courses, goals, explanation preference, study times and a profile PIN are optional and can be changed later in **Learning settings**.

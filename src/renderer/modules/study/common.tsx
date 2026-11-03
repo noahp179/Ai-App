@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { MASTERY_LABEL, type MasteryStatus, type StudentProfile } from '../../../shared/study/types';
 import { VERIFICATION_LABEL, type VerificationStatus } from '../../../shared/curriculum/types';
-import { Badge } from '../../components/ui';
+import { Badge, Banner } from '../../components/ui';
 import { navigate } from '../../lib/router';
 
 const STATUS_TONE: Record<MasteryStatus, 'accent' | 'ok' | 'warn' | 'danger' | 'info' | 'outline'> = {
@@ -17,7 +17,7 @@ const STATUS_TONE: Record<MasteryStatus, 'accent' | 'ok' | 'warn' | 'danger' | '
 /** A learning indicator. The title reminds everyone it is not an Ontario achievement level. */
 export function StatusBadge({ status, estimate }: { status: MasteryStatus; estimate?: number | null }) {
   return (
-    <Badge tone={STATUS_TONE[status]} title="FlowCompanion learning indicator, based on answers marked in the app. Not an Ontario achievement level or mark.">
+    <Badge tone={STATUS_TONE[status]} title="FlowCompanion learning indicator, based only on answers checked in the app. Not an Ontario achievement level or mark, and not a guarantee that this expectation is fully met.">
       {MASTERY_LABEL[status]}
       {estimate !== null && estimate !== undefined && status !== 'not_assessed' ? ` · ${Math.round(estimate * 100)}%` : ''}
     </Badge>
@@ -64,3 +64,17 @@ export const WEEKDAYS: { d: 1 | 2 | 3 | 4 | 5 | 6 | 7; label: string }[] = [
   { d: 6, label: 'Sat' },
   { d: 7, label: 'Sun' },
 ];
+
+/** The same words everywhere a student sees progress, marks-like numbers or "done". */
+export const NO_GUARANTEE =
+  'FlowCompanion is a learning tool. It can’t guarantee good marks, and progress here — bars, statuses and percentages — doesn’t mean you’ve met every curriculum requirement. It only counts answers checked in the app; many expectations (projects, labs, discussion, writing, presentations) can’t be fully checked here. Your teacher’s assessment is what counts.';
+
+/** A visible reminder that this is a learning aid, not an assessment. `compact` for a line under progress bars. */
+export function NoGuaranteeNotice({ compact = false }: { compact?: boolean }) {
+  if (compact) return <p className="tiny muted no-guarantee">{NO_GUARANTEE}</p>;
+  return (
+    <Banner tone="info" title="A learning tool, not a guarantee">
+      {NO_GUARANTEE}
+    </Banner>
+  );
+}

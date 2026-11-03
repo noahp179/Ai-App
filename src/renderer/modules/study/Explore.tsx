@@ -1,12 +1,13 @@
 import { BookOpen, ChevronDown, ChevronRight, FileText, ListChecks, MessageCircle, Search, ShieldCheck, Stethoscope } from 'lucide-react';
 import { useState } from 'react';
 import { courseLabel } from '../../../shared/curriculum/types';
+import type { CourseSummary } from '../../../shared/curriculum/views';
 import { GAP_LABEL, GRADES, LESSON_MODES, LESSON_MODE_LABEL, type LessonMode } from '../../../shared/study/types';
 import { Badge, Banner, Button, EmptyState, ErrorState, Field, Input, Loading, Select, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { useQuery } from '../../lib/query';
 import { navigate, useRoute } from '../../lib/router';
-import { ExpLink, StatusBadge, VerificationBadge } from './common';
+import { ExpLink, NoGuaranteeNotice, StatusBadge, VerificationBadge } from './common';
 import { OfficialBox, OfficialHtml, SourceLink } from './render';
 
 export default function Explore() {
@@ -35,9 +36,16 @@ function SourceNote() {
 
 function Browse() {
   const me = useQuery('study:me', () => api.study.me());
-  const [grade, setGrade] = useState<number>(me.data?.grade ?? 7);
+  // Until the student picks another grade, follow the profile's (it loads after the first render).
+  const [picked, setPicked] = useState<number | null>(null);
+  const grade = picked ?? me.data?.grade ?? 9;
   const [doc, setDoc] = useState<string>('');
   const [q, setQ] = useState('');
+  const myIds = me.data?.courseIds ?? [];
+  const mine = useQuery(myIds.length ? `curriculum:courses:mine:${myIds.join(',')}` : null, async () => {
+    const all = await api.curriculum.courses({});
+    return myIds.map((id) => all.find((c) => c.id === id)).filter((c): c is (typeof all)[number] => !!c);
+  });
   const overview = useQuery('curriculum:overview', () => api.curriculum.overview());
   const courses = useQuery(`curriculum:courses:${grade}:${doc}`, () => api.curriculum.courses({ grade, documentId: doc || null }));
   const hits = useQuery(q.trim().length >= 2 ? `curriculum:search:${grade}:${q}` : null, () => api.curriculum.search(q, { grade, limit: 30 }));
@@ -48,9 +56,25 @@ function Browse() {
         <h1>Ontario curriculum</h1>
         <SourceNote />
       </div>
-      <div className="field-row">
+      {mine.data?.length && !q.trim() ? (
+        <section className="stack-3" aria-label="Your courses">
+          <div className="row-wrap">
+            <h2 className="h2 grow">Your courses</h2>
+            <button type="button" className="link-button small" onClick={() => navigate('/study/settings')}>
+              Change your courses
+            </button>
+          </div>
+          <div className="grid grid-2">
+            {mine.data.map((c) => (
+              <CourseCard key={c.id} c={c} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+      <h2 className="h2">{mine.data?.length ? 'Browse all courses' : 'Courses'}</h2>
+      <div className="explore-filters">
         <Field label="Grade" htmlFor="ex-grade">
-          <Select id="ex-grade" value={String(grade)} onChange={(e) => (setGrade(Number(e.target.value)), setDoc(''))}>
+          <Select id="ex-grade" value={String(grade)} onChange={(e) => (setPicked(Number(e.target.value)), setDoc(''))}>
             {GRADES.map((g) => (
               <option key={g} value={g}>
                 Grade {g}
@@ -69,9 +93,9 @@ function Browse() {
           </Select>
         </Field>
         <Field label="Search expectations, topics or course codes" htmlFor="ex-q">
-          <div className="row" style={{ gap: 6 }}>
-            <Search size={14} />
-            <Input id="ex-q" value={q} placeholder="e.g. fractions, MTH1W, photosynthesis" onChange={(e) => setQ(e.target.value)} style={{ minWidth: 260 }} />
+          <div className="search-box">
+            <Search size={14} aria-hidden />
+            <Input id="ex-q" value={q} placeholder="e.g. fractions, MTH1W, photosynthesis" onChange={(e) => setQ(e.target.value)} />
           </div>
         </Field>
       </div>
@@ -101,16 +125,7 @@ function Browse() {
       ) : (
         <div className="grid grid-2">
           {courses.data.map((c) => (
-            <button key={c.id} type="button" className="card interactive stack-2" style={{ textAlign: 'left' }} onClick={() => navigate(`/study/course/${encodeURIComponent(c.id)}`)}>
-              <div className="row">
-                <strong className="grow">{c.label}</strong>
-                <VerificationBadge v={c.verification} />
-              </div>
-              <span className="tiny muted">
-                {c.documentTitle}
-                {c.expectationsSource === 'digital' ? ` · ${c.specificCount} specific expectations` : ' · expectations in the Ministry PDF only'}
-              </span>
-            </button>
+            <CourseCard key={c.id} c={c} mine={myIds.includes(c.id)} />
           ))}
         </div>
       )}
@@ -120,6 +135,22 @@ function Browse() {
         </p>
       ) : null}
     </div>
+  );
+}
+
+function CourseCard({ c, mine }: { c: CourseSummary; mine?: boolean }) {
+  return (
+    <button type="button" className="card interactive stack-2" style={{ textAlign: 'left' }} onClick={() => navigate(`/study/course/${encodeURIComponent(c.id)}`)}>
+      <div className="row" style={{ alignItems: 'flex-start' }}>
+        <strong className="grow">{c.label}</strong>
+        {mine ? <Badge tone="accent">Your course</Badge> : null}
+        <VerificationBadge v={c.verification} />
+      </div>
+      <span className="tiny muted">
+        {c.documentTitle}
+        {c.expectationsSource === 'digital' ? ` · ${c.specificCount} specific expectations` : ' · expectations in the Ministry PDF only'}
+      </span>
+    </button>
   );
 }
 
@@ -184,6 +215,7 @@ function CoursePage({ id }: { id: string }) {
           The Ministry publishes this course’s expectations only as a PDF, so FlowCompanion has not imported them and has no lessons for it. Open the PDF from the Ministry link above. The AI tutor can still help with general questions, but it is not linked to verified expectations for this course.
         </Banner>
       ) : null}
+      {progress.data ? <NoGuaranteeNotice compact /> : null}
       {strands.map((s) => (
         <section key={s.id} className="card stack-3">
           <button type="button" className="row link-button" style={{ textAlign: 'left' }} onClick={() => setOpen({ ...open, [s.id]: !open[s.id] })} aria-expanded={open[s.id] !== false}>

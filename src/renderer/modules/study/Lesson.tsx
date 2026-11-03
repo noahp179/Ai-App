@@ -5,7 +5,7 @@ import { Badge, Banner, Button, ErrorState, Loading, useToast } from '../../comp
 import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
 import { navigate } from '../../lib/router';
-import { ExpLink, StatusBadge } from './common';
+import { ExpLink, NoGuaranteeNotice, StatusBadge } from './common';
 import { QuestionCard, type Feedback } from './QuestionCard';
 import { Blocks } from './render';
 
@@ -107,8 +107,8 @@ export default function LessonPage({ id }: { id: string }) {
           <div className="stack-2">
             <span className="small muted">Didn’t click? Try another way:</span>
             <div className="row-wrap">
-              {ALT_EXPLANATIONS.filter((k) => s.content.alternatives[k] || k === 'example' || ai.data?.available).map((k) => (
-                <Button key={k} size="sm" variant="ghost" icon={s.content.alternatives[k] || (k === 'example' && s.content.skillId) ? undefined : <Sparkles size={12} />} loading={busy === `alt-${k}`} onClick={() => void explain(k)}>
+              {ALT_EXPLANATIONS.filter((k) => s.content.alternatives[k] || ((k === 'example' || k === 'steps') && s.content.skillId) || ai.data?.available).map((k) => (
+                <Button key={k} size="sm" variant="ghost" icon={s.content.alternatives[k] || ((k === 'example' || k === 'steps') && s.content.skillId) ? undefined : <Sparkles size={12} />} loading={busy === `alt-${k}`} onClick={() => void explain(k)}>
                   {ALT_LABEL[k]}
                 </Button>
               ))}
@@ -205,6 +205,7 @@ function Outcome({ s }: { s: LessonSession }) {
         <span className="small">Before:</span> <StatusBadge status={o.masteryBefore} /> <span className="small">Now:</span> <StatusBadge status={o.masteryAfter} />
       </p>
       <p className="tiny faint">“{MASTERY_LABEL[o.masteryAfter]}” is a FlowCompanion learning indicator, not an Ontario mark.</p>
+      <NoGuaranteeNotice compact />
       <Banner tone="info" title={o.recommendation.title}>
         {o.recommendation.reason}{' '}
         <button type="button" className="link-button" onClick={() => navigate(`/study/e/${encodeURIComponent(o.recommendation.expectationId)}`)}>

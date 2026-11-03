@@ -84,6 +84,50 @@ test('provider errors are shown with guidance and can be retried on another mode
   }
 });
 
+test('chat: save what you typed as a prompt, then attach a saved prompt (with its variables filled in) to a message', async () => {
+  const mock = await startMockProviders();
+  const l = await launch();
+  try {
+    const { page } = l;
+    await nav(page, 'AI Workspace').click();
+    await page.getByRole('button', { name: /OpenAI-compatible/ }).click();
+    await page.getByLabel('Address').fill(`${mock.base}/openai/v1`);
+    await page.getByRole('button', { name: 'Connect and test' }).click();
+    await expect(page.getByText(/connected$/)).toBeVisible();
+    await page.getByRole('button', { name: 'New conversation' }).first().click();
+
+    // Save the message box as a prompt, with a variable.
+    await page.getByLabel('Message').fill('Explain {{topic}} to a Grade 9 student with one example.');
+    await page.getByRole('button', { name: 'Save what you typed as a prompt' }).click();
+    await page.getByRole('dialog').getByRole('textbox').fill('Explain a topic');
+    await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByText(/Saved to your Prompt Library/)).toBeVisible();
+    await page.getByLabel('Message').fill('');
+
+    // Attach it: the variable must be filled in, then the prompt goes ahead of what is typed.
+    await page.getByRole('button', { name: 'Attach a saved prompt' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: /Explain a topic/ }).click();
+    await page.getByRole('button', { name: 'Attach to message' }).click();
+    await expect(page.getByText('Fill in: Topic')).toBeVisible();
+    await page.getByRole('dialog').getByRole('textbox', { name: 'Topic' }).fill('photosynthesis');
+    await page.getByRole('button', { name: 'Attach to message' }).click();
+    await expect(page.getByText('Prompt: Explain a topic')).toBeVisible();
+    await page.getByLabel('Message').fill('Keep it short.');
+    await page.getByLabel('Message').press('Enter');
+    await expect(page.getByLabel('Assistant message').getByText('Hello, world')).toBeVisible();
+    const last = JSON.stringify(mock.log.filter((r) => r.path.endsWith('/chat/completions')).at(-1)?.body);
+    expect(last).toContain('Explain photosynthesis to a Grade 9 student with one example.\\n\\nKeep it short.');
+    await expect(page.getByText('Prompt: Explain a topic')).toHaveCount(0);
+    expect(await page.evaluate(async () => {
+      const r = await window.fc.invoke('prompts.list', [{}]);
+      return r.ok ? (r.value as { title: string; useCount: number }[]).map((p) => `${p.title}:${p.useCount}`) : [];
+    })).toEqual(['Explain a topic:1']);
+  } finally {
+    await close(l);
+    await mock.close();
+  }
+});
+
 const live = process.env.FC_LIVE_OPENAI_COMPAT_URL;
 test('live: a real local model answers through the FlowCompanion UI', async () => {
   test.skip(!live, 'Set FC_LIVE_OPENAI_COMPAT_URL to a running OpenAI-compatible server');

@@ -90,6 +90,8 @@ export interface StudyDashboard {
   mastered: string[];
   needsPractice: string[];
   byStatus: Record<MasteryStatus, number>;
+  /** Per course: how many specific expectations have answers, and how many are proficient or better (app indicators only). */
+  courseProgress: { courseId: string; label: string; expectations: number; practised: number; proficient: number; offline: number }[];
   recentQuizzes: QuizSummary[];
   assignments: Assignment[];
   ai: StudyAiStatus;

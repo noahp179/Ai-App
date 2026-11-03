@@ -10,10 +10,10 @@ Only results that were actually produced are listed. Nothing here was run on Win
 | --- | --- | --- |
 | Type checking (Node side + renderer) | `npm run typecheck` | Pass |
 | Lint | `npm run lint` | Pass (0 problems) |
-| Unit + integration | `npm test` | **274 passed**, 0 failed, 23 skipped (the live tests below, which skip themselves without their environment variables) — 3 Nov 2026 |
+| Unit + integration | `npm test` | **275 passed**, 0 failed, 23 skipped (the live tests below, which skip themselves without their environment variables) — 3 Nov 2026 |
 | Student Learning content harness, stress run | `FC_CONTENT_SEEDS=300 npx vitest run tests/unit/content.test.ts --testTimeout=1000000` | **Pass**: all 35 skill packs at every difficulty, 300 seeds per level; no generated question needed to be discarded by its self-check |
 | Live: Ontario curriculum against the Ministry site | `NODE_USE_ENV_PROXY=1 npm run curriculum:verify` | **No changes** between the shipped bundle (fetched 22 Oct 2026) and the live site (29 Oct 2026): 297 courses, 11,153 expectations, 37 requests |
-| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` | **24 passed**, 0 failed, 1 skipped (the live-model test, which needs `FC_LIVE_OPENAI_COMPAT_URL`) — 3 Nov 2026 |
+| End-to-end (real Electron app, real extension in Chromium) | `xvfb-run -a npx playwright test` | **25 passed**, 0 failed, 1 skipped (the live-model test, which needs `FC_LIVE_OPENAI_COMPAT_URL`) — 3 Nov 2026 |
 | Live: real local model | `FC_LIVE_OPENAI_COMPAT_URL=http://127.0.0.1:8080/v1 npx vitest run tests/live/local-model.test.ts` | **2 passed** (llama.cpp `llama-server`, Qwen2.5-0.5B-Instruct Q4_K_M) |
 | Live: built-in news feeds | `FC_LIVE_FEEDS=1 npx vitest run tests/live/feeds.test.ts` | **11 passed, 10 failed** — every failure is `403 Blocked by egress policy` from this environment's outbound proxy (feeds.bbci.co.uk, arstechnica.com, theverge.com, espn.com), not from the publishers. Earlier the same day all 21 passed. The packaged app (Electron's network stack) loaded BBC, Hacker News and NASA feeds at 06:43 (see `docs/images/home.png`). |
 | Learning Hub links | `node scripts/verify-links.mjs --dry` | **72/72 verified** (HTTP 2xx and expected page text) |

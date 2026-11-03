@@ -3,7 +3,7 @@ import { ArrowLeft, BadgeCheck, BookmarkPlus, Flag, Package, Search, ShieldAlert
 import { useState } from 'react';
 import type { AbuseReport, Listing, ListingDetail, ListingQuery } from '../../../shared/types';
 import { PROMPT_CATEGORIES, PROVIDER_LABELS } from '../../../shared/prompts';
-import { PromptUse } from '../../components/PromptUse';
+import { PromptUse, PromptVariables } from '../../components/PromptUse';
 import { Badge, Banner, Button, EmptyState, ErrorState, Field, Input, Loading, Modal, Select, Tabs, Textarea, useConfirm, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { fmtMoney, fmtRelative } from '../../lib/format';
@@ -355,10 +355,11 @@ function Detail({ listingKey }: { listingKey: string }) {
             {d.imported ? <Banner tone="warn">Imported from a file. Nobody has reviewed it; read the prompt before using it.</Banner> : null}
             {d.body !== null ? (
               <Field label="Prompt">
-                <pre className="prompt-preview" style={{ maxHeight: 420 }}>
-                  {d.body}
-                </pre>
+                <pre className="prompt-preview prompt-body">{d.body}</pre>
               </Field>
+            ) : null}
+            {d.body !== null ? (
+              <PromptVariables body={d.body} />
             ) : (
               <Field label="Preview">
                 <p className="small">{d.preview || 'The creator has not added a preview.'}</p>
@@ -399,20 +400,6 @@ function Detail({ listingKey }: { listingKey: string }) {
             {d.pricing.type === 'paid' && a.access !== 'purchased' ? (
               <Button onClick={() => void api.marketplace.purchase(d.key).catch((e: unknown) => toast(errorMessage(e), 'error'))}>Buy</Button>
             ) : null}
-            {hasAccess ? (
-              <PromptUse
-                body={d.body ?? ''}
-                context="marketplace"
-                onUse={async (how) => {
-                  try {
-                    return await api.marketplace.promptText(d.key, how);
-                  } catch (err) {
-                    toast(errorMessage(err), 'error');
-                    throw err;
-                  }
-                }}
-              />
-            ) : null}
             {hasAccess && a.access !== 'trial_active' ? (
               d.inLibrary ? (
                 <Button variant="ghost" onClick={() => navigate(`/prompts/${d.inLibrary}`)}>
@@ -425,6 +412,23 @@ function Detail({ listingKey }: { listingKey: string }) {
               )
             ) : null}
           </div>
+          {hasAccess ? (
+            <div className="card stack-3">
+              <h3>Use this prompt</h3>
+              <PromptUse
+                body={d.body ?? ''}
+                context="marketplace"
+                onUse={async (how) => {
+                  try {
+                    return await api.marketplace.promptText(d.key, how);
+                  } catch (err) {
+                    toast(errorMessage(err), 'error');
+                    throw err;
+                  }
+                }}
+              />
+            </div>
+          ) : null}
           <div className="small muted stack-1">
             <div>
               On this computer you viewed this {d.yourUsage.views} time{d.yourUsage.views === 1 ? '' : 's'}, copied it {d.yourUsage.copies} and opened it in AI {d.yourUsage.inserts} time{d.yourUsage.inserts === 1 ? '' : 's'}.

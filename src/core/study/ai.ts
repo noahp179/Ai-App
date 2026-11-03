@@ -40,7 +40,7 @@ export interface StudyAiDeps {
   clock: Clock;
   curriculum: CurriculumService;
   progress: ProgressStore;
-  complete: (input: { title: string; system: string; messages: ChatTurn[]; maxTokens?: number | null; onDelta?: (d: string) => void; signal?: AbortSignal }) => Promise<{ text: string; providerName: string; model: string }>;
+  complete: (input: { title: string; system: string; messages: ChatTurn[]; maxTokens?: number | null; onDelta?: (d: string) => void; signal?: AbortSignal }) => Promise<{ text: string; providerName: string; model: string; truncated?: boolean }>;
   emit: (e: { sessionId: string; messageId: string; kind: 'delta' | 'done' | 'error'; delta?: string; error?: string }) => void;
 }
 
@@ -144,7 +144,8 @@ export class StudyAi implements LessonAi, QuizAi {
     return parts.join('\n');
   }
 
-  private async ask(student: StudentProfile, title: string, expectationId: string | null, instructions: string, user: string, maxTokens = 3000): Promise<{ text: string; providerName: string; model: string }> {
+  // Output budgets are generous: reasoning models count their thinking against them, and a cut-off lesson is useless.
+  private async ask(student: StudentProfile, title: string, expectationId: string | null, instructions: string, user: string, maxTokens = 8000): Promise<{ text: string; providerName: string; model: string; truncated?: boolean }> {
     return this.d.complete({ title, system: this.systemPrompt(student, expectationId, instructions), messages: [{ role: 'user', content: user }], maxTokens });
   }
 
@@ -162,7 +163,7 @@ export class StudyAi implements LessonAi, QuizAi {
           { role: 'assistant', content: first.text.slice(0, 20_000) },
           { role: 'user', content: `That reply could not be used (${err instanceof Error ? err.message.slice(0, 300) : 'invalid'}). Reply again with only the JSON object, exactly in the format described.` },
         ],
-        maxTokens: 3000,
+        maxTokens: 8000,
       });
       try {
         return { data: schema.parse(extractJson(second.text)), providerName: second.providerName, model: second.model };
@@ -308,21 +309,26 @@ export class StudyAi implements LessonAi, QuizAi {
   }
 
   async alternative(student: StudentProfile, expectationId: string, kind: AltExplanation, about: string): Promise<Block[]> {
+    const how: Record<AltExplanation, string> = {
+      simpler: 'Use simpler words and shorter sentences. Under 200 words.',
+      analogy: 'Use one real-world comparison a student this age knows, then connect it back to the math. Under 220 words.',
+      steps: 'Break it into numbered steps, one step per line ("1. …", "2. …"), as many as the idea needs (usually 4–8). Finish every step; show a short worked example as you go.',
+      visual: 'Describe a simple picture or diagram the student could sketch, step by step. Under 220 words.',
+      compare: 'Compare it with something the student already knows well and point out the difference. Under 220 words.',
+      example: 'Give one new fully worked example with every step shown. Under 250 words.',
+    };
     const r = await this.ask(
       student,
       `Explain differently: ${kind}`,
       expectationId,
       '',
-      `The student did not understand this explanation:\n${fence('lesson_text', about)}\nExplain it again in a different way: ${ALT_LABEL[kind].toLowerCase()}. Plain text, short paragraphs, $$…$$ for math, under 180 words.`,
-      900,
+      `The student did not understand this explanation:\n${fence('lesson_text', about)}\nExplain it again in a different way: ${ALT_LABEL[kind].toLowerCase()}. ${how[kind]} Plain text, short paragraphs or lists, $$…$$ for math. Finish your explanation; do not stop part-way.`,
+      6000,
     );
-    return r.text
-      .split(/\n{2,}/)
-      .map((t) => t.trim())
-      .filter(Boolean)
-      .slice(0, 10)
-      .map((t) => ({ kind: 'p', text: t.slice(0, 2000) }) as Block)
-      .concat([{ kind: 'note', tone: 'source', text: `Written by ${r.providerName}. Not reviewed by a teacher.` }]);
+    const blocks = textToBlocks(r.text);
+    if (r.truncated)
+      blocks.push({ kind: 'note', tone: 'warn', text: 'This explanation was cut off by the AI provider’s length limit. Ask for it again, or ask the AI tutor to continue.' });
+    return blocks.concat([{ kind: 'note', tone: 'source', text: `Written by ${r.providerName}. Not reviewed by a teacher.` }]);
   }
 
   async writtenFeedback(student: StudentProfile, q: Question, text: string): Promise<CheckResult> {
@@ -459,7 +465,7 @@ export class StudyAi implements LessonAi, QuizAi {
         title: `Tutor: ${s.title}`,
         system: this.systemPrompt({ ...student, explanationStyle: s.style }, s.expectationId),
         messages: history,
-        maxTokens: 1500,
+        maxTokens: 6000,
         signal: ctrl.signal,
         onDelta: (delta) => {
           acc += delta;
@@ -467,7 +473,8 @@ export class StudyAi implements LessonAi, QuizAi {
         },
       })
       .then((r) => {
-        this.d.db.run("UPDATE study_tutor_messages SET content = ?, status = 'complete', model = ? WHERE id = ?", [r.text || acc, `${r.providerName}${r.model ? ` · ${r.model}` : ''}`, tid]);
+        const text = (r.text || acc) + (r.truncated ? '\n\n(This reply was cut off at the AI provider’s length limit. Say “continue” to get the rest.)' : '');
+        this.d.db.run("UPDATE study_tutor_messages SET content = ?, status = 'complete', model = ? WHERE id = ?", [text, `${r.providerName}${r.model ? ` · ${r.model}` : ''}`, tid]);
         this.d.emit({ sessionId, messageId: tid, kind: 'done' });
       })
       .catch((err: unknown) => {
@@ -505,4 +512,36 @@ export class StudyAi implements LessonAi, QuizAi {
     this.d.db.run('DELETE FROM study_tutor_sessions WHERE student_id = ?', [studentId]);
     this.d.db.run('DELETE FROM study_ai_cache WHERE student_id = ?', [studentId]);
   }
+}
+
+const LIST_LINE = /^\s*(?:(\d+)[.)]|[-*•])\s+(.*)$/;
+
+/**
+ * AI plain text → lesson blocks: paragraphs, and numbered or bulleted lines as real lists (consecutive numbered
+ * items are kept in one list even when the AI puts blank lines between them).
+ */
+export function textToBlocks(text: string): Block[] {
+  const out: Block[] = [];
+  for (const para of text.replace(/\r/g, '').split(/\n{2,}/)) {
+    const lines = para.split('\n').map((l) => l.trimEnd()).filter((l) => l.trim());
+    let prose: string[] = [];
+    const flush = () => {
+      if (prose.length) out.push({ kind: 'p', text: prose.join(' ').slice(0, 4000) });
+      prose = [];
+    };
+    for (const line of lines) {
+      const m = LIST_LINE.exec(line);
+      if (!m) {
+        prose.push(line.trim());
+        continue;
+      }
+      flush();
+      const ordered = !!m[1];
+      const last = out.at(-1);
+      if (last?.kind === 'list' && !!last.ordered === ordered) last.items.push(m[2]!.trim());
+      else out.push(ordered && Number(m[1]) > 1 ? { kind: 'list', ordered, start: Number(m[1]), items: [m[2]!.trim()] } : { kind: 'list', ordered, items: [m[2]!.trim()] });
+    }
+    flush();
+  }
+  return out.slice(0, 40);
 }

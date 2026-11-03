@@ -7,7 +7,7 @@ import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
 import { navigate, useRoute } from '../../lib/router';
 import { useSettings } from '../../lib/settings';
-import { ExpLink, StatusBadge, indexOf } from './common';
+import { ExpLink, NoGuaranteeNotice, StatusBadge, indexOf } from './common';
 import { QuestionCard, type Feedback } from './QuestionCard';
 import { Blocks, RichLine } from './render';
 
@@ -253,6 +253,7 @@ function Results({ a }: { a: QuizAttempt }) {
         <p className="small muted">
           {QUIZ_KIND_LABEL[a.kind]} · {a.status === 'abandoned' ? 'stopped early' : `finished ${a.finishedAt?.slice(0, 16).replace('T', ' ')}`}. Practice result — not an official test or mark.
         </p>
+        <NoGuaranteeNotice compact />
         <div className="row-wrap">
           <Button onClick={() => navigate('/study/practice')}>Back to practice</Button>
           <Button onClick={() => navigate('/study/review')}>See what to review</Button>
