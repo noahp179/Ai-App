@@ -3,6 +3,7 @@ import type { CoverageReport } from '../../shared/curriculum/views';
 import {
   MASTERY_STATUSES,
   type AltExplanation,
+  type Block,
   type ContentReport,
   type Gap,
   type LessonMode,
@@ -33,6 +34,7 @@ import { PlannerService } from './planner';
 import { ProgressStore } from './progress';
 import { QuizService, redact } from './quizzes';
 import { StudentsService } from './students';
+import { plainTopic, type TopicInfo } from '../../shared/study/topics';
 
 export interface StudyDeps {
   db: Db;
@@ -220,18 +222,52 @@ export class StudyService {
       detail,
       rows: detail.strands.flatMap((s) =>
         s.overall.flatMap((o) =>
-          o.specifics.map((e) => ({ expectationId: e.id, index: e.index, strand: s.index, status: statusOf.get(e.id)?.status ?? ('not_assessed' as MasteryStatus), estimate: statusOf.get(e.id)?.estimate ?? null, offline: authored.has(e.id), supports: e.supportCount > 0 })),
+          o.specifics.map((e) => ({
+            expectationId: e.id,
+            index: e.index,
+            strand: s.index,
+            topic: { unit: s.title, unitIndex: s.index, topic: skillsFor(e.id)[0]?.title ?? plainTopic(o.title, s.title), goal: skillsFor(e.id)[0]?.goal ?? null },
+            group: plainTopic(o.title, s.title),
+            text: e.text,
+            status: statusOf.get(e.id)?.status ?? ('not_assessed' as MasteryStatus), estimate: statusOf.get(e.id)?.estimate ?? null, offline: authored.has(e.id), supports: e.supportCount > 0 })),
         ),
       ),
     };
   }
 
-  expectationProgress(expectationId: string): { record: MasteryRecord; recommendation: Recommendation; sources: ReturnType<LessonService['sources']>; gaps: Gap[]; showEstimates: boolean; prerequisites: string[] } {
+  /** Unit, topic and (where there is an offline lesson) a plain goal for an expectation. Needs no open profile. */
+  topicOf(expectationId: string): TopicInfo {
+    const e = this.d.curriculum.find(expectationId);
+    if (!e) throw new NotFoundError('That curriculum expectation');
+    const strand = this.d.curriculum.strand(e.strandId) ?? { index: '', title: '' };
+    const overall = e.kind === 'overall' ? e : e.parentId ? this.d.curriculum.find(e.parentId) : null;
+    const pack = skillsFor(expectationId)[0];
+    return { unit: strand.title, unitIndex: strand.index, topic: pack?.title ?? plainTopic(overall?.title ?? '', strand.title), goal: pack?.goal ?? null };
+  }
+
+  /** The official wording rewritten in plain words by the AI (labelled as AI-written; cached). */
+  async plainWords(expectationId: string): Promise<{ blocks: Block[]; providerName: string }> {
+    const me = this.me();
+    if (!this.d.curriculum.find(expectationId)) throw new NotFoundError('That curriculum expectation');
+    const st = this.aiStatus();
+    if (!st.available) throw new UserError(st.reason ?? 'AI is not available.', 'not_configured');
+    return this.ai.plainWords(me, expectationId);
+  }
+
+  expectationProgress(expectationId: string): { record: MasteryRecord; recommendation: Recommendation; sources: ReturnType<LessonService['sources']>; gaps: Gap[]; showEstimates: boolean; prerequisites: string[]; topic: TopicInfo } {
     const me = this.me();
     if (!this.d.curriculum.find(expectationId)) throw new NotFoundError('That curriculum expectation');
     const record = this.progress.get(me.id, expectationId);
     const gaps = this.progress.gaps(me.id).filter((g) => g.expectationId === expectationId);
-    return { record, recommendation: this.progress.recommend(me.id, expectationId), sources: this.lessons.sources(me, expectationId), gaps, showEstimates: this.d.settings().study.showEstimates, prerequisites: this.progress.prerequisiteExpectations(expectationId) };
+    return {
+      record,
+      recommendation: this.progress.recommend(me.id, expectationId),
+      sources: this.lessons.sources(me, expectationId),
+      gaps,
+      showEstimates: this.d.settings().study.showEstimates,
+      prerequisites: this.progress.prerequisiteExpectations(expectationId),
+      topic: this.topicOf(expectationId),
+    };
   }
 
   dashboard() {
@@ -274,9 +310,10 @@ export class StudyService {
         return {
           ...r,
           course: e?.courseLabel,
-          text: text.length > 180 ? `${text.slice(0, 177).replace(/\s+\S*$/, '')}…` : text,
+          text,
           offline: skillsFor(r.expectationId).length > 0,
           supports: this.d.curriculum.supportsOf(r.expectationId).length > 0,
+          topic: this.topicOf(r.expectationId),
         };
       }),
       mastered: records.filter((r) => r.status === 'proficient' || r.status === 'extension_ready').map((r) => r.expectationId).slice(0, 12),

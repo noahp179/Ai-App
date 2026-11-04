@@ -1,4 +1,5 @@
 import type { SaveResult } from '../api';
+import type { TopicInfo } from './topics';
 import type { CourseDetail, CourseSummary, CoverageReport, CurriculumImport, CurriculumOverview, CurriculumSearchHit, CurriculumUpdateCheck, ExpectationDetail, RevisionEntry } from '../curriculum/views';
 import type {
   AltExplanation,
@@ -72,6 +73,11 @@ export interface CourseProgressRow {
   expectationId: string;
   index: string;
   strand: string;
+  topic: TopicInfo;
+  /** The overall expectation's topic, used to group rows (e.g. "Powers"). */
+  group: string;
+  /** The official wording. */
+  text: string;
   status: MasteryStatus;
   estimate: number | null;
   offline: boolean;
@@ -110,6 +116,7 @@ export interface ExpectationProgress {
   gaps: Gap[];
   showEstimates: boolean;
   prerequisites: string[];
+  topic: TopicInfo;
 }
 
 export interface AssessmentBuildInput {
@@ -142,6 +149,10 @@ export interface StudyApi {
   dashboard(): StudyDashboard;
   aiStatus(): StudyAiStatus;
   courseProgress(courseId: string): { detail: CourseDetail; rows: CourseProgressRow[] };
+  /** Unit, topic and plain goal for an expectation (works without an open profile). */
+  topic(expectationId: string): TopicInfo;
+  /** The official wording rewritten in plain words by the AI, for the open profile's grade. */
+  plainWords(expectationId: string): Promise<{ blocks: Block[]; providerName: string }>;
   expectationProgress(expectationId: string): ExpectationProgress;
 
   startLesson(input: { expectationId: string; mode: LessonMode; minutes?: number | null; source?: 'auto' | 'authored' | 'ministry' | 'ai' }): Promise<LessonSession>;

@@ -1,4 +1,5 @@
 import type { Weekday } from '../types';
+import type { TopicInfo } from './topics';
 
 /**
  * Student learning: profiles, lessons, questions, quizzes, mastery and plans. Everything a student does is
@@ -359,6 +360,7 @@ export interface Recommendation {
   text?: string;
   offline?: boolean;
   supports?: boolean;
+  topic?: TopicInfo;
 }
 
 // ─────────── Quizzes ───────────

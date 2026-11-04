@@ -7,7 +7,7 @@ import { Badge, Banner, Button, EmptyState, ErrorState, Field, Input, Loading, S
 import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
 import { navigate, useRoute } from '../../lib/router';
-import { indexOf } from './common';
+import { TopicPicker, indexOf } from './common';
 import { Blocks, RichLine } from './render';
 
 export default function Assessments() {
@@ -24,7 +24,7 @@ function List() {
   const [cid, setCid] = useState('');
   const courses = useQuery(me.data ? `study:pcourses:${me.data.grade}` : null, () => api.curriculum.courses({ grade: me.data!.grade }));
   const course = cid || me.data?.courseIds[0] || '';
-  const detail = useQuery(course ? `curriculum:course:${course}` : null, () => api.curriculum.course(course));
+  const detail = useQuery(course ? `study:course:${course}` : null, () => api.study.courseProgress(course));
   const [ids, setIds] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [format, setFormat] = useState<'quiz' | 'test' | 'assignment'>('test');
@@ -95,20 +95,8 @@ function List() {
               ))}
           </Select>
           {detail.data ? (
-            <div className="expectation-picker" style={{ marginTop: 8 }}>
-              {detail.data.strands.flatMap((s) =>
-                s.overall.flatMap((o) =>
-                  o.specifics.map((e) => (
-                    <label key={e.id} className="row small">
-                      <input type="checkbox" checked={ids.includes(e.id)} onChange={(ev) => setIds(ev.target.checked ? [...ids, e.id] : ids.filter((x) => x !== e.id))} />
-                      <strong>{e.index}</strong>
-                      <span className="grow ellipsis" title={e.text}>
-                        {e.text}
-                      </span>
-                    </label>
-                  )),
-                ),
-              )}
+            <div style={{ marginTop: 8 }}>
+              <TopicPicker rows={detail.data.rows} value={ids} onChange={setIds} aside={(r) => (r.offline ? <Badge tone="ok">Lesson</Badge> : null)} />
             </div>
           ) : null}
         </Field>

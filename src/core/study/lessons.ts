@@ -310,7 +310,7 @@ export class LessonService {
     if (questions.length) steps.push({ kind: 'guided', title: 'Think it through', blocks: [{ kind: 'p', text: 'Write an answer to each prompt, then rate it against the rubric. Your own ratings are not counted as proof of mastery.' }], questionIds: questions.map((q) => q.id) });
     steps.push({ kind: 'next', title: STEP_LABEL.next, blocks: [{ kind: 'p', text: 'Finish to save your work.' }], questionIds: [] });
     return {
-      title: `${e.index}: ${e.title || e.courseLabel}`,
+      title: `${this.d.progress.nameOf(expectationId)} · ${e.courseLabel}`,
       expectationId,
       skillId: null,
       source: 'ministry',

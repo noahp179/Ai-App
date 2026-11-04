@@ -5,7 +5,7 @@ import { Badge, Banner, Button, EmptyState, Field, Input, Loading, Select, Tabs,
 import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
 import { navigate } from '../../lib/router';
-import { indexOf } from './common';
+import { TopicPicker, indexOf } from './common';
 
 const KIND_LABEL: Record<AssignmentKind, string> = { assignment: 'Assignment', test: 'Test', project: 'Project', exam: 'Exam', essay: 'Essay', lab: 'Lab report', presentation: 'Presentation' };
 
@@ -15,7 +15,7 @@ function ExpectationPicker({ value, onChange }: { value: string[]; onChange: (v:
   const [cid, setCid] = useState('');
   const courses = useQuery(me.data ? `study:pcourses:${me.data.grade}` : null, () => api.curriculum.courses({ grade: me.data!.grade }));
   const course = cid || me.data?.courseIds[0] || '';
-  const detail = useQuery(course ? `curriculum:course:${course}` : null, () => api.curriculum.course(course));
+  const detail = useQuery(course ? `study:course:${course}` : null, () => api.study.courseProgress(course));
   return (
     <div className="stack-2">
       <Select value={course} onChange={(e) => setCid(e.target.value)} aria-label="Course">
@@ -28,23 +28,7 @@ function ExpectationPicker({ value, onChange }: { value: string[]; onChange: (v:
             </option>
           ))}
       </Select>
-      {detail.data ? (
-        <div className="expectation-picker">
-          {detail.data.strands.flatMap((s) =>
-            s.overall.flatMap((o) =>
-              o.specifics.map((e) => (
-                <label key={e.id} className="row small">
-                  <input type="checkbox" checked={value.includes(e.id)} onChange={(ev) => onChange(ev.target.checked ? [...value, e.id] : value.filter((x) => x !== e.id))} />
-                  <strong>{e.index}</strong>
-                  <span className="grow ellipsis" title={e.text}>
-                    {e.text}
-                  </span>
-                </label>
-              )),
-            ),
-          )}
-        </div>
-      ) : null}
+      {detail.data ? <TopicPicker rows={detail.data.rows} value={value} onChange={onChange} aside={(r) => (r.offline ? <Badge tone="ok">Lesson</Badge> : null)} /> : null}
       <span className="tiny faint">{value.length} chosen</span>
     </div>
   );

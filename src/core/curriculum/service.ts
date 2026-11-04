@@ -554,6 +554,12 @@ export class CurriculumService {
     return { ...this.rowToExp(r), courseLabel: courseLabel(course), grades: course.grades, subject: course.subject, documentTitle: this.documentOf(c.document_id).title };
   }
 
+  /** A strand's letter and title (shown to students as the unit). */
+  strand(id: string): { index: string; title: string } | null {
+    const r = this.db.get<{ idx: string; title: string }>('SELECT idx, title FROM curriculum_strands WHERE id = ?', [id]);
+    return r ? { index: r.idx, title: r.title } : null;
+  }
+
   supportsOf(id: string): Support[] {
     return json<Support[]>(this.db.get<{ supports: string }>('SELECT supports FROM curriculum_expectations WHERE id = ?', [id])?.supports, []);
   }

@@ -546,3 +546,39 @@ describe('reports, export and deletion', () => {
     expect(c.statement).not.toMatch(/covers the entire/);
   });
 });
+
+describe('units and topics for students', () => {
+  it('names each expectation by unit and topic, with a plain goal where there is an offline lesson', () => {
+    const { study, curriculum } = setup();
+    const t = study.topicOf(G7_SIMPLIFY);
+    expect(t).toEqual({ unit: 'Number', unitIndex: 'B', topic: 'Simplifying fractions', goal: expect.stringMatching(/^I can/) });
+    // No offline lesson: the topic comes from the Ministry's heading for the overall expectation.
+    const sci = curriculum.courses({ grade: 9 }).find((c) => c.code === 'SNC1W')!;
+    const bio = curriculum.expectationsOf(sci.id).find((e) => e.index === 'B2.1')!;
+    expect(study.topicOf(bio.id)).toEqual({ unit: 'Biology', unitIndex: 'B', topic: 'Key ideas', goal: null });
+    study.students.create({ displayName: 'Ana', grade: 9 });
+    const rows = study.courseProgress(sci.id).rows;
+    expect(rows.find((r) => r.expectationId === bio.id)).toMatchObject({ group: 'Key ideas', topic: { unit: 'Biology' }, text: bio.text });
+  });
+
+  it('rewrites official wording in plain words with the AI, labelled and cached, and only when AI is allowed', async () => {
+    let calls = 0;
+    const fake: StudyAiComplete = async () => {
+      calls++;
+      return { text: "You'll learn to make fractions as simple as possible.\n\n- Write 6/8 as 3/4\n- Spot when a fraction is already simplest", providerName: 'Mock', model: 'm' };
+    };
+    const { study, setAi } = setup({ ai: fake });
+    study.students.create({ displayName: 'Ana', grade: 7 });
+    const r = await study.plainWords(G7_SIMPLIFY);
+    expect(r.providerName).toBe('Mock');
+    expect(r.blocks).toEqual([
+      { kind: 'p', text: "You'll learn to make fractions as simple as possible." },
+      { kind: 'list', ordered: false, items: ['Write 6/8 as 3/4', 'Spot when a fraction is already simplest'] },
+    ]);
+    await study.plainWords(G7_SIMPLIFY);
+    expect(calls).toBe(1);
+    setAi(null);
+    study.students.update({ grade: 8 });
+    await expect(study.plainWords(G7_SIMPLIFY)).rejects.toThrow(/No AI provider/);
+  });
+});

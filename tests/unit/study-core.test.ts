@@ -195,6 +195,16 @@ describe('mastery model', () => {
   });
 });
 
+describe('topic names', () => {
+  it('uses Ministry headings as topics, with plain names for headings repeated in every strand', async () => {
+    const { plainTopic } = await import('../../src/shared/study/topics');
+    expect(plainTopic('Powers', 'Number')).toBe('Powers');
+    expect(plainTopic('Investigating and Understanding Concepts', 'Biology')).toBe('Key ideas');
+    expect(plainTopic('Relating Science to Our Changing World', 'Chemistry')).toBe('Science, technology and society');
+    expect(plainTopic('', 'Financial Literacy')).toBe('Financial Literacy');
+  });
+});
+
 describe('AI text to lesson blocks', () => {
   it('keeps every numbered step, as one list, even with blank lines or notes between steps', () => {
     const b = textToBlocks('Here is how:\n\n1. Find the GCF.\n\n2. Divide both parts.\n3. Check nothing divides both.\n\nThat is it.\n- tip one\n- tip two');

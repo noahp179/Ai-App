@@ -331,6 +331,27 @@ export class StudyAi implements LessonAi, QuizAi {
     return blocks.concat([{ kind: 'note', tone: 'source', text: `Written by ${r.providerName}. Not reviewed by a teacher.` }]);
   }
 
+  /** The official wording of an expectation, rewritten for the student's grade. Cached per expectation and grade. */
+  async plainWords(student: StudentProfile, expectationId: string): Promise<{ blocks: Block[]; providerName: string }> {
+    const key = `${expectationId}:${student.grade}:${student.accessibility.simplifiedLanguage ? 1 : 0}`;
+    const hit = this.cacheGet<{ blocks: Block[] }>(student, 'plain', key);
+    if (hit) return { blocks: hit.data.blocks, providerName: hit.meta.provider ?? 'AI' };
+    const e = this.d.curriculum.find(expectationId);
+    if (!e) throw new UserError('That curriculum expectation was not found.');
+    const r = await this.ask(
+      student,
+      'Explain a curriculum expectation in plain words',
+      expectationId,
+      '',
+      `Rewrite this Ontario curriculum expectation so a Grade ${student.grade} student understands what they will learn.\nOfficial wording:\n${fence('expectation', e.text)}\nReply in plain text only: one sentence that starts "You'll learn to", then 2 or 3 short lines that start "- " with a concrete example of what this looks like in class. Everyday words, no jargon. Do not add anything the official wording does not ask for.`,
+      4000,
+    );
+    const blocks = textToBlocks(r.text).slice(0, 6);
+    if (!blocks.length) throw new UserError('The AI did not return an explanation. Try again.', 'ai_format');
+    if (!r.truncated) this.cacheSet(student, 'plain', key, expectationId, { blocks }, { provider: r.providerName });
+    return { blocks, providerName: r.providerName };
+  }
+
   async writtenFeedback(student: StudentProfile, q: Question, text: string): Promise<CheckResult> {
     if (q.type !== 'written') throw new UserError('Only written answers get rubric feedback.');
     const prompt = q.prompt.map((b) => ('text' in b ? b.text : b.kind === 'support' ? b.html.replace(/<[^>]+>/g, ' ') : '')).join(' ');
@@ -396,7 +417,7 @@ export class StudyAi implements LessonAi, QuizAi {
     const now = this.now();
     return this.saveSession(student.id, {
       id: newId(),
-      title: cleanLine(input.title ?? (exp ? `${exp.index} — ${exp.courseLabel}` : 'Tutoring'), 120),
+      title: cleanLine(input.title ?? (exp ? `${this.d.progress.nameOf(exp.id)} · ${exp.courseLabel}` : 'Tutoring'), 120),
       courseId: exp?.courseId ?? input.courseId ?? null,
       expectationId: exp?.id ?? null,
       style: student.explanationStyle,

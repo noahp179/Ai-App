@@ -1,13 +1,15 @@
 import { BookOpen, ChevronDown, ChevronRight, FileText, ListChecks, MessageCircle, Search, ShieldCheck, Stethoscope } from 'lucide-react';
 import { useState } from 'react';
 import { courseLabel } from '../../../shared/curriculum/types';
-import type { CourseSummary } from '../../../shared/curriculum/views';
+import type { CourseDetail, CourseSummary } from '../../../shared/curriculum/views';
+import type { CourseProgressRow } from '../../../shared/study/api';
 import { GAP_LABEL, GRADES, LESSON_MODES, LESSON_MODE_LABEL, type LessonMode } from '../../../shared/study/types';
+import { plainTopic } from '../../../shared/study/topics';
 import { Badge, Banner, Button, EmptyState, ErrorState, Field, Input, Loading, Select, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { useQuery } from '../../lib/query';
 import { navigate, useRoute } from '../../lib/router';
-import { ExpLink, NoGuaranteeNotice, StatusBadge, VerificationBadge } from './common';
+import { ExpLink, NoGuaranteeNotice, PlainWords, StatusBadge, TopicHeading, VerificationBadge } from './common';
 import { OfficialBox, OfficialHtml, SourceLink } from './render';
 
 export default function Explore() {
@@ -217,40 +219,71 @@ function CoursePage({ id }: { id: string }) {
       ) : null}
       {progress.data ? <NoGuaranteeNotice compact /> : null}
       {strands.map((s) => (
-        <section key={s.id} className="card stack-3">
+        <section key={s.id} className="card stack-3 unit-section">
           <button type="button" className="row link-button" style={{ textAlign: 'left' }} onClick={() => setOpen({ ...open, [s.id]: !open[s.id] })} aria-expanded={open[s.id] !== false}>
             {open[s.id] === false ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
             <h2 className="h2">
-              {s.index}. {s.title}
+              Unit {s.index}: {s.title}
             </h2>
+            <span className="tiny faint">
+              {s.overall.length} topic{s.overall.length === 1 ? '' : 's'}
+            </span>
           </button>
           {open[s.id] === false
             ? null
             : s.overall.map((o) => (
-                <div key={o.id} className="stack-2" style={{ paddingLeft: 8 }}>
-                  <div className="small">
-                    <strong>{o.index}</strong> {o.title ? <em>{o.title}: </em> : null}
-                    <span className="muted">{o.text}</span>
-                  </div>
-                  <ul className="list">
-                    {o.specifics.map((e) => {
-                      const r = rows.get(e.id);
-                      return (
-                        <li key={e.id} className="list-item">
-                          <ExpLink id={e.id}>
-                            <strong>{e.index}</strong>
-                          </ExpLink>
-                          <span className="grow small">{e.text.split('\n')[0]}</span>
-                          {r?.offline ? <Badge tone="ok" title="Offline lesson and code-checked practice">Lesson</Badge> : e.supportCount ? <Badge tone="outline" title="Ministry teacher supports available offline">Supports</Badge> : null}
-                          {r ? <StatusBadge status={r.status} estimate={r.estimate} /> : null}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
+                <TopicBlock key={o.id} o={o} strandTitle={s.title} rows={rows} />
               ))}
         </section>
       ))}
+    </div>
+  );
+}
+
+/** One topic (an overall expectation): its name and a summary, opening to the expectations it contains. */
+function TopicBlock({ o, strandTitle, rows }: { o: CourseDetail['strands'][number]['overall'][number]; strandTitle: string; rows: Map<string, CourseProgressRow> }) {
+  const [open, setOpen] = useState(false);
+  const lessons = o.specifics.filter((e) => rows.get(e.id)?.offline).length;
+  const practised = o.specifics.filter((e) => (rows.get(e.id)?.status ?? 'not_assessed') !== 'not_assessed').length;
+  return (
+    <div className="topic-block stack-2">
+      <button type="button" className="topic-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+        {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+        <span className="topic-title grow">
+          {plainTopic(o.title, strandTitle)} <span className="topic-index">{o.index}</span>
+        </span>
+        {lessons ? <Badge tone="ok" title="Expectations in this topic with an offline lesson">{lessons} with lessons</Badge> : null}
+        <span className="tiny faint">
+          {o.specifics.length ? `${o.specifics.length} part${o.specifics.length === 1 ? '' : 's'}` : ''}
+          {practised ? ` · ${practised} practised` : ''}
+        </span>
+      </button>
+      {open ? (
+        <div className="stack-2" style={{ paddingLeft: 24 }}>
+          <details className="official-wording">
+            <summary className="tiny muted">What this topic covers (official wording)</summary>
+            <p className="small muted">{o.text}</p>
+          </details>
+          <ul className="list">
+            {o.specifics.map((e) => {
+              const r = rows.get(e.id);
+              return (
+                <li key={e.id} className="list-item topic-part">
+                  <ExpLink id={e.id}>
+                    <span className="small">
+                      {r?.topic.goal ? <strong>{r.topic.topic}</strong> : <span className="clamp-2">{e.text.split('\n')[0]}</span>}
+                      <span className="tiny faint"> {e.index}</span>
+                    </span>
+                  </ExpLink>
+                  <span className="grow" />
+                  {r?.offline ? <Badge tone="ok" title="Offline lesson and code-checked practice">Lesson</Badge> : e.supportCount ? <Badge tone="outline" title="Ministry teacher supports available offline">Supports</Badge> : null}
+                  {r ? <StatusBadge status={r.status} estimate={r.estimate} /> : null}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -260,6 +293,7 @@ function ExpectationPage({ id }: { id: string }) {
   const me = useQuery('study:me', () => api.study.me());
   const e = useQuery(`curriculum:e:${id}`, () => api.curriculum.expectation(id));
   const p = useQuery(me.data ? `study:e:${id}` : null, () => api.study.expectationProgress(id));
+  const topic = useQuery(`study:topic:${id}`, () => api.study.topic(id));
   const [mode, setMode] = useState<LessonMode>('full');
   const [minutes, setMinutes] = useState(10);
   const [busy, setBusy] = useState<string | null>(null);
@@ -298,18 +332,33 @@ function ExpectationPage({ id }: { id: string }) {
       <button type="button" className="link-button small" onClick={() => navigate(`/study/course/${encodeURIComponent(x.courseId)}`)}>
         ← {courseLabel(x.course)}
       </button>
-      <div className="row">
-        <h1 className="grow">
-          {x.index}
-          {x.title ? ` — ${x.title}` : ''}
-        </h1>
+      <div className="row" style={{ alignItems: 'flex-start' }}>
+        <div className="grow">
+          {topic.data ? (
+            <TopicHeading t={topic.data} index={x.index} course={x.course.label} as="h1" />
+          ) : (
+            <h1>
+              {x.index}
+              {x.title ? ` — ${x.title}` : ''}
+            </h1>
+          )}
+        </div>
         <VerificationBadge v={x.verification} />
       </div>
+      {topic.data?.goal ? (
+        <p>
+          <strong>Your goal:</strong> {topic.data.goal}
+        </p>
+      ) : null}
+      {me.data && !topic.data?.goal && src?.ai.ok ? <PlainWords expectationId={id} goal={null} official="" aiOk /> : null}
       <OfficialBox index={x.index} course={x.course.label} html={x.html} url={x.url} />
       {x.parent ? (
-        <p className="small muted">
-          Part of overall expectation <strong>{x.parent.index}</strong>: {x.parent.text}
-        </p>
+        <details className="official-wording">
+          <summary className="tiny muted">
+            Part of the topic {topic.data ? `“${plainTopic(x.parent.title, topic.data.unit)}”` : x.parent.index} — official overall expectation {x.parent.index}
+          </summary>
+          <p className="small muted">{x.parent.text}</p>
+        </details>
       ) : null}
       <p className="tiny faint">
         Strand {x.strand.index}: {x.strand.title}. Checked against the Ministry site {x.checkedAt.slice(0, 10)}.

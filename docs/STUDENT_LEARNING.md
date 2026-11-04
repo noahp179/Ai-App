@@ -14,6 +14,14 @@ FlowCompanion is not affiliated with or endorsed by the Ontario Ministry of Educ
 2. Each profile is separate. Lessons, answers, progress, plans and tutor conversations belong to one profile and are invisible to the others. A profile PIN stops other people on the same computer from opening it (5 wrong tries lock it for 5 minutes; a parent with the Parental Learning Controls PIN can remove a forgotten PIN in Settings → Student Learning).
 3. **Curriculum** lists courses by grade and subject with course codes, types and prerequisites, and searches every expectation. Each expectation page shows the official wording in a box marked as the Ministry's text, with a link to the Ministry page, and offers the ways to study it that actually exist for that expectation.
 
+## Units and topics, in plain words
+
+Students choose what to study by **unit** and **topic**, not by curriculum code. Units are the Ministry's strands (e.g. "Number", "Biology"); topics are the headings of its overall expectations (e.g. "Powers", "Coding"). Headings the Ministry repeats in every strand get plain names ("Investigating and Understanding Concepts" → "Key ideas", "Relating Science to Our Changing World" → "Science, technology and society"). Where FlowCompanion wrote a lesson, the topic is the lesson's name with its "I can …" goal ("Scientific notation — I can write very large and very small numbers in scientific notation and change them back").
+
+- The dashboard, course pages, expectation pages, Progress and the Practice, Planner and Assessment pickers all show unit → topic first. On course pages each topic folds open to its parts.
+- The Ministry's exact wording is always one click away ("Official Ontario wording") and is shown in full on each expectation's page.
+- With the AI tutor available, "Explain this in plain words" rewrites an expectation for the student's grade: one "You'll learn to …" sentence and two or three classroom examples. It is labelled AI-written, cached per expectation and grade, and told not to add anything the official wording does not ask for.
+
 ## The official curriculum
 
 - **Source:** the Ministry's Curriculum and Resources site, dcp.edu.gov.on.ca, through the public data service behind it. The text is stored word for word (formatting reduced to a safe subset of HTML), with the Ministry's numbering (e.g. B1.4), strands, overall expectations and teacher supports.

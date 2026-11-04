@@ -243,6 +243,9 @@ export function createStudyApi(ctx: AppContext): StudyApi {
       return changed(await s.takeAssessment(id(aid)));
     },
 
+    topic: (eid) => s.topicOf(id(eid)),
+    plainWords: (eid) => s.plainWords(id(eid)),
+
     tutorSessions: () => s.ai.sessions(me().id),
     createTutorSession: (input) => changed(s.ai.createSession(me(), input ?? {})),
     updateTutorSession: (tid, patch) => changed(s.ai.updateSession(me().id, id(tid), patch ?? {})),

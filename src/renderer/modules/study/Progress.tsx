@@ -5,7 +5,7 @@ import { Button, Loading, Select, Tabs, useToast } from '../../components/ui';
 import { api, errorMessage } from '../../lib/api';
 import { useQuery } from '../../lib/query';
 import { useSettings } from '../../lib/settings';
-import { ExpLink, NoGuaranteeNotice, StatusBadge, indexOf } from './common';
+import { ExpLink, NoGuaranteeNotice, StatusBadge, TopicLink } from './common';
 
 const MEANING: Record<string, string> = {
   not_assessed: 'No answers yet.',
@@ -77,8 +77,8 @@ function Mastery() {
         <table className="table small">
           <thead>
             <tr>
-              <th>Expectation</th>
-              <th>Strand</th>
+              <th>Topic</th>
+              <th>Unit</th>
               <th>Status</th>
               <th>Offline practice</th>
             </tr>
@@ -87,9 +87,12 @@ function Mastery() {
             {prog.data.rows.map((r) => (
               <tr key={r.expectationId}>
                 <td>
-                  <ExpLink id={r.expectationId}>{r.index}</ExpLink>
+                  <ExpLink id={r.expectationId}>
+                    <span title={r.text}>{r.topic.goal ? r.topic.topic : r.group}</span>
+                    <span className="tiny faint"> {r.index}</span>
+                  </ExpLink>
                 </td>
-                <td>{r.strand}</td>
+                <td className="nowrap">{r.topic.unit}</td>
                 <td>
                   <StatusBadge status={r.status} estimate={r.estimate} />
                 </td>
@@ -107,7 +110,7 @@ function Mastery() {
               .filter((r) => !prog.data?.rows.some((x) => x.expectationId === r.expectationId))
               .map((r) => (
                 <li key={r.expectationId}>
-                  <ExpLink id={r.expectationId}>{indexOf(r.expectationId)}</ExpLink> <StatusBadge status={r.status} estimate={settings.study.showEstimates ? r.estimate : null} />
+                  <TopicLink id={r.expectationId} /> <StatusBadge status={r.status} estimate={settings.study.showEstimates ? r.estimate : null} />
                 </li>
               ))}
           </ul>

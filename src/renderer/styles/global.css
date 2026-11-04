@@ -449,6 +449,28 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--border-st
 .study .grid { gap: 20px; }
 .study .list-item + .list-item { margin-top: 6px; }
 
+/* Units and topics instead of bare expectation codes */
+.topic-heading { display: flex; flex-direction: column; gap: 2px; }
+.topic-title { font-weight: 600; line-height: 1.3; }
+h1.topic-title { font-size: 1.6rem; }
+.topic-index { font-size: 0.75em; font-weight: 500; color: var(--text-faint); margin-left: 4px; }
+.official-wording summary { cursor: pointer; }
+.official-wording p { margin: 6px 0 0; line-height: 1.5; }
+.plain-ai { padding: 10px 12px; border-left: 3px solid var(--warn); background: var(--surface-2); border-radius: var(--radius-sm); }
+.list-item .link-button { text-align: left; }
+.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.topic-picker { gap: 10px; max-height: 360px; }
+.topic-unit-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-faint); margin: 4px 0; }
+.topic-group { display: flex; flex-direction: column; gap: 4px; padding: 6px 8px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.topic-group + .topic-group { margin-top: 6px; }
+.topic-item { padding-left: 22px; align-items: flex-start; }
+.topic-item input { margin-top: 3px; }
+.topic-item-text { min-width: 0; }
+.unit-section > .topic-block + .topic-block { margin-top: 4px; }
+.topic-toggle { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 0; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text); cursor: pointer; text-align: left; font: inherit; }
+.topic-toggle:hover { background: var(--surface-3); }
+.topic-part { align-items: flex-start; padding: 6px 4px; }
+
 /* Dashboard */
 .course-progress { display: flex; flex-direction: column; gap: 6px; }
 .no-guarantee { line-height: 1.5; }

@@ -7,7 +7,7 @@ import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
 import { navigate, useRoute } from '../../lib/router';
 import { useSettings } from '../../lib/settings';
-import { ExpLink, NoGuaranteeNotice, StatusBadge, indexOf } from './common';
+import { NoGuaranteeNotice, StatusBadge, TopicLink, TopicPicker, indexOf } from './common';
 import { QuestionCard, type Feedback } from './QuestionCard';
 import { Blocks, RichLine } from './render';
 
@@ -101,19 +101,13 @@ function Builder() {
         ) : (
           <fieldset className="stack-2">
             <legend className="small">Choose expectations ({picked.length} chosen)</legend>
-            <div className="expectation-picker">
-              {prog.data.rows.map((r) => {
-                const usable = r.offline || !!ai.data?.available;
-                return (
-                  <label key={r.expectationId} className={`row small ${usable ? '' : 'faint'}`} title={usable ? undefined : 'No offline questions; AI tutoring is off.'}>
-                    <input type="checkbox" disabled={!usable} checked={picked.includes(r.expectationId)} onChange={(e) => setPicked(e.target.checked ? [...picked, r.expectationId] : picked.filter((x) => x !== r.expectationId))} />
-                    <strong>{r.index}</strong>
-                    <span className="grow ellipsis">{r.offline ? 'Offline questions' : 'AI questions'}</span>
-                    <StatusBadge status={r.status} />
-                  </label>
-                );
-              })}
-            </div>
+            <TopicPicker
+              rows={prog.data.rows}
+              value={picked}
+              onChange={setPicked}
+              usable={(r) => (r.offline || ai.data?.available ? null : 'No offline questions, and the AI tutor is off.')}
+              aside={(r) => <StatusBadge status={r.status} />}
+            />
           </fieldset>
         )}
         <div>
@@ -327,7 +321,7 @@ function Review() {
               <ul className="list">
                 {queue.data.map((r) => (
                   <li key={r.expectationId} className="list-item">
-                    <ExpLink id={r.expectationId}>{indexOf(r.expectationId)}</ExpLink>
+                    <TopicLink id={r.expectationId} />
                     <span className="grow tiny muted">due {r.nextReviewAt?.slice(0, 10)}</span>
                     <StatusBadge status={r.status} />
                   </li>
@@ -354,7 +348,7 @@ function Review() {
               {byMis.map((g, i) => (
                 <li key={i} className="list-item stack-1">
                   <div className="row">
-                    <ExpLink id={g.expectationId}>{indexOf(g.expectationId)}</ExpLink>
+                    <TopicLink id={g.expectationId} />
                     <strong className="grow small">{GAP_LABEL[g.kind]}</strong>
                   </div>
                   <span className="small muted">{g.detail}</span>

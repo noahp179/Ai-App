@@ -5,7 +5,7 @@ import { Badge, Banner, Button, EmptyState, ErrorState, Loading, ProgressBar, us
 import { api, errorMessage } from '../../lib/api';
 import { invalidate, useQuery } from '../../lib/query';
 import { navigate, useRoute } from '../../lib/router';
-import { ExpLink, NoGuaranteeNotice, indexOf, studentStyle } from './common';
+import { NoGuaranteeNotice, PlainWords, TopicHeading, TopicLink, indexOf, studentStyle } from './common';
 import { ProfileGate } from './Profiles';
 
 const Explore = lazy(() => import('./Explore'));
@@ -225,7 +225,7 @@ function Dashboard() {
             <ul className="small">
               {x.gaps.map((g, i) => (
                 <li key={i}>
-                  <ExpLink id={g.expectationId}>{indexOf(g.expectationId)}</ExpLink>: {GAP_LABEL[g.kind]}
+                  <TopicLink id={g.expectationId} />: {GAP_LABEL[g.kind]}
                 </li>
               ))}
             </ul>
@@ -366,11 +366,15 @@ function Suggestion({ r, aiOk }: { r: Recommendation; aiOk: boolean }) {
         <Badge tone="accent">{KIND_TAG[r.kind]}</Badge>
         {source}
       </div>
-      <div className="dash-card-title">
-        <strong>{indexOf(r.expectationId)}</strong>
-        {r.course ? <span className="small muted"> · {r.course}</span> : null}
-      </div>
-      {r.text ? <p className="small">{r.text}</p> : null}
+      {r.topic ? (
+        <TopicHeading t={r.topic} index={indexOf(r.expectationId)} course={r.course} />
+      ) : (
+        <div className="dash-card-title">
+          <strong>{indexOf(r.expectationId)}</strong>
+          {r.course ? <span className="small muted"> · {r.course}</span> : null}
+        </div>
+      )}
+      <PlainWords expectationId={r.expectationId} goal={r.topic?.goal ?? null} official={r.text ?? ''} aiOk={aiOk} />
       <p className="tiny muted">{r.reason}</p>
       <div className="row-wrap dash-card-actions">
         <Button size="sm" variant="primary" icon={<BookOpen size={13} />} loading={busy === 'lesson'} disabled={!!busy} onClick={() => void lesson()}>

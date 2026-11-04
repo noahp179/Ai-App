@@ -1,4 +1,5 @@
 import type { Evidence, Gap, MasteryRecord, MasteryStatus, Recommendation } from '../../shared/study/types';
+import { plainTopic } from '../../shared/study/topics';
 import type { CurriculumService } from '../curriculum/service';
 import type { Db } from '../db/database';
 import { bool, json } from '../db/database';
@@ -152,13 +153,23 @@ export class ProgressStore {
   }
 
   /** What to do next for one expectation, with the reason, from the evidence so far. */
+  /** "Scientific notation (B2.1)": a topic name a student recognises, with the Ministry number. */
+  nameOf(expectationId: string): string {
+    const e = this.curriculum.find(expectationId);
+    if (!e) return expectationId;
+    const pack = skillsFor(expectationId)[0];
+    if (pack) return `${pack.title} (${e.index})`;
+    const parent = e.parentId ? this.curriculum.find(e.parentId) : null;
+    return `${plainTopic(parent?.title ?? '', this.curriculum.strand(e.strandId)?.title ?? '')} (${e.index})`;
+  }
+
   recommend(studentId: string, expectationId: string): Recommendation {
     const rec = this.get(studentId, expectationId);
-    const title = this.curriculum.find(expectationId)?.index ?? expectationId;
+    const title = this.nameOf(expectationId);
     const pre = this.prerequisiteExpectations(expectationId).find((p) => ['not_yet', 'in_progress'].includes(this.status(studentId, p)));
     if (pre && (rec.status === 'not_yet' || rec.status === 'in_progress')) {
       const pt = this.curriculum.find(pre);
-      return { kind: 'review_prerequisite', expectationId: pre, title: `Review ${pt ? `${pt.index} (${pt.courseLabel})` : 'an earlier skill'}`, reason: 'This skill builds on an earlier one that isn’t secure yet.' };
+      return { kind: 'review_prerequisite', expectationId: pre, title: `Review ${pt ? `${this.nameOf(pre)}, ${pt.courseLabel}` : 'an earlier skill'}`, reason: 'This skill builds on an earlier one that isn’t secure yet.' };
     }
     switch (rec.status) {
       case 'not_assessed':
@@ -175,7 +186,7 @@ export class ProgressStore {
       case 'proficient': {
         const next = this.nextInCourse(studentId, expectationId);
         return next
-          ? { kind: 'move_on', expectationId: next, title: `Move on to ${this.curriculum.find(next)?.index ?? 'the next expectation'}`, reason: 'You’ve shown this one independently.' }
+          ? { kind: 'move_on', expectationId: next, title: `Move on to ${this.nameOf(next)}`, reason: 'You’ve shown this one independently.' }
           : { kind: 'spaced_review', expectationId, title: `Review ${title} later`, reason: 'Proficient for now. It will come back for review.' };
       }
     }
