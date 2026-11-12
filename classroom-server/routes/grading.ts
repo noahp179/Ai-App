@@ -96,7 +96,7 @@ export function registerGrading(s: S): void {
 
   // ─────────── AI jobs: AI-use evaluation and written-answer suggestions ───────────
 
-  const chatOf = (attemptId: string) => db.all<ChatRow>('SELECT * FROM chat_messages WHERE attempt_id = ? ORDER BY created_at, rowid', [attemptId]);
+  const chatOf = (attemptId: string) => db.all<ChatRow>('SELECT * FROM chat_messages WHERE attempt_id = ? ORDER BY rowid', [attemptId]);
   const context = (job: Pick<JobRow, 'attempt_id'>) => {
     const t = db.get<AttemptRow>('SELECT * FROM attempts WHERE id = ?', [job.attempt_id])!;
     const a = db.get<AssessmentRow>('SELECT * FROM assessments WHERE id = ?', [t.assessment_id])!;

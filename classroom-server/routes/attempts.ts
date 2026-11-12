@@ -218,7 +218,7 @@ export function registerAttempts(s: S): void {
 
   s.route('GET', '/attempts/:id/chat', (c, [id]) => {
     const { t } = attemptFor(s, c, id!, 'owner');
-    return db.all<ChatRow>('SELECT * FROM chat_messages WHERE attempt_id = ? ORDER BY created_at, rowid', [t.id]).map(chatDto);
+    return db.all<ChatRow>('SELECT * FROM chat_messages WHERE attempt_id = ? ORDER BY rowid', [t.id]).map(chatDto);
   });
 
   /** A page of an attached material, so a student can open the source the assistant cited. */
@@ -279,7 +279,7 @@ export function registerAttempts(s: S): void {
     let acc = '';
     try {
       const school = s.settings(cls.school_id);
-      const history = db.all<ChatRow>(`SELECT * FROM chat_messages WHERE attempt_id = ? AND id != ? AND status = 'complete' ORDER BY created_at, rowid`, [t.id, assistantId]);
+      const history = db.all<ChatRow>(`SELECT * FROM chat_messages WHERE attempt_id = ? AND id != ? AND status = 'complete' ORDER BY rowid`, [t.id, assistantId]);
       const turns: ChatTurn[] = history.map((m) => (m.role === 'student' ? { role: 'user', text: json<string>(m.payload, studentMessage(m.content)) } : { role: 'assistant', text: m.content, payload: json<unknown>(m.payload, undefined) }));
       const documents = await documentsFor(s, json<string[]>(a.material_ids, []), ai);
       const r = await ai.chat({
@@ -374,7 +374,7 @@ export function registerAttempts(s: S): void {
     const decided = out.items.every((i) => i.score !== null);
     if (decided) out.total.score = Math.round(out.items.reduce((x, i) => x + (i.score ?? 0), 0) * 100) / 100;
     if (released && st.transcriptVisible) {
-      out.transcript = db.all<ChatRow>('SELECT * FROM chat_messages WHERE attempt_id = ? ORDER BY created_at, rowid', [t.id]).map(chatDto);
+      out.transcript = db.all<ChatRow>('SELECT * FROM chat_messages WHERE attempt_id = ? ORDER BY rowid', [t.id]).map(chatDto);
       const ev = db.get<{ rubric: string; suggested: string | null; final: string | null; student_reply: string | null }>('SELECT rubric, suggested, final, student_reply FROM ai_evaluations WHERE attempt_id = ?', [t.id]);
       const final = json<{ levels: Record<string, number>; comment: string } | null>(ev?.final, null);
       // Only the teacher's decision is ever shown, never the AI's suggestion on its own.
@@ -411,7 +411,7 @@ export function registerAttempts(s: S): void {
         startedAt: t.started_at,
         submittedAt: t.submitted_at,
         responses: json(t.responses, {}),
-        chat: db.all<ChatRow>('SELECT * FROM chat_messages WHERE attempt_id = ? ORDER BY created_at, rowid', [t.id]).map((m) => ({ role: m.role, content: m.content, at: m.created_at })),
+        chat: db.all<ChatRow>('SELECT * FROM chat_messages WHERE attempt_id = ? ORDER BY rowid', [t.id]).map((m) => ({ role: m.role, content: m.content, at: m.created_at })),
         events: db.all<{ kind: string; at: string; detail: string }>('SELECT kind, at, detail FROM integrity_events WHERE attempt_id = ? ORDER BY at', [t.id]).map((e) => ({ kind: e.kind, at: e.at, detail: json(e.detail, {}) })),
         released: !!t.released_at,
       })),

@@ -106,6 +106,8 @@ export interface TestClassroom {
   teacher(admin: Client, name?: string): Promise<Client>;
   /** A student who joins a class with its code. */
   student(code: string, name: string): Promise<Client>;
+  /** Signs in again as an existing user (for example after a session has expired). */
+  signIn(login: string, password: string): Promise<Client>;
   close(): Promise<void>;
 }
 
@@ -182,6 +184,7 @@ export async function startClassroom(opts: Partial<ClassroomOptions> & { noAi?: 
       return client(await post('/teachers', { inviteCode: school.teacherInvite.code, displayName: name, login: `teacher${++n}@school.test`, password: 'correct-horse-9' }));
     },
     student: async (code, name) => client(await post('/join', { code, displayName: name, login: `${name.toLowerCase().replace(/\W+/g, '.')}@school.test`, password: 'student-pass-1' })),
+    signIn: async (login, password) => client(await post('/sessions', { login, password })),
     async close() {
       await srv.close();
       fs.rmSync(dir, { recursive: true, force: true });
@@ -273,4 +276,27 @@ export function makePptx(slides: string[][]): Buffer {
   };
   slides.forEach((lines, i) => (files[`ppt/slides/slide${slides.length - i}.xml`] = `<p:sld xmlns:a="a" xmlns:p="p">${lines.map((l) => `<a:p><a:r><a:t>${l}</a:t></a:r></a:p>`).join('')}</p:sld>`));
   return makeZip(files);
+}
+
+export const NOTES_PDF = () => makePdf(['Unit 3: Cells\nThe cell membrane controls what enters and leaves the cell.', 'Mitochondria release energy from glucose.\nPlant cells also have chloroplasts.']);
+
+export const QUESTIONS = [
+  { points: 1, question: { type: 'multiple_choice', prompt: 'Which part controls what enters and leaves the cell?', choices: ['Nucleus', 'Cell membrane', 'Ribosome', 'Vacuole'], answer: 1 } },
+  { points: 2, question: { type: 'numeric', prompt: 'A cell divides every 20 minutes. How many cells are there after 1 hour, starting from 1?', answer: '8' } },
+  { points: 4, long: true, question: { type: 'written', prompt: 'Explain how mitochondria and chloroplasts are different.', sampleAnswer: 'Mitochondria release energy from glucose; chloroplasts make glucose using light. Only plant cells have chloroplasts.' } },
+];
+
+/** A class with a teacher, two students, one material and a published three-question assessment. */
+export async function seedClass(k: TestClassroom, settings: Record<string, unknown> = {}) {
+  const teacher = await k.admin();
+  const cls = await teacher.post('/classes', { name: 'Grade 9 Science', courseId: 'on-snc1w', courseLabel: 'Science, Grade 9, De-streamed (SNC1W)' });
+  const code = (await teacher.post(`/classes/${cls.id}/join-code`, {})).code as string;
+  const ana = await k.student(code, 'Ana Lee');
+  const ben = await k.student(code, 'Ben Roy');
+  const material = await teacher.upload(`/classes/${cls.id}/materials`, 'Unit 3 notes.pdf', NOTES_PDF());
+  const assessment = await teacher.post(`/classes/${cls.id}/assessments`, { title: 'Cells quiz', instructions: 'Answer in your own words.', materialIds: [material.id], settings });
+  const items: { id: string }[] = [];
+  for (const q of QUESTIONS) items.push(await teacher.post(`/assessments/${assessment.id}/items`, q));
+  await teacher.post(`/assessments/${assessment.id}/publish`, {});
+  return { teacher, cls, code, ana, ben, material, assessment, items };
 }
