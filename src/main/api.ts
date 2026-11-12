@@ -9,6 +9,7 @@ import type { AppInfo } from '../shared/types';
 import type { AppContext } from './context';
 import { openExternalSafe } from './security';
 import { openTextFiles, parseJsonFile, saveFile } from './files';
+import { createClassroomApi } from './classroomApi';
 import { createCurriculumApi, createStudyApi } from './studyApi';
 
 function clampInt(v: unknown, min: number, max: number, fallback: number): number {
@@ -76,6 +77,7 @@ export function createApi(ctx: AppContext): FlowApi {
   return {
     curriculum: createCurriculumApi(ctx),
     study: createStudyApi(ctx),
+    classroom: createClassroomApi(ctx),
     app: {
       info,
       capabilities: () => ctx.capabilities,
@@ -83,7 +85,7 @@ export function createApi(ctx: AppContext): FlowApi {
       openExternal: (url) => openExternalSafe(str(url, 'URL', 4000)),
       copyText: (text, context) => {
         str(text, 'Text', 2_000_000);
-        const blocked = ctx.copyBlockedReason?.(context) ?? null;
+        const blocked = ctx.classroomLock ? 'Copying is turned off while an assessment is open.' : (ctx.copyBlockedReason?.(context) ?? null);
         if (blocked) return { copied: false, reason: blocked };
         ctx.copyText(text);
         return { copied: true, reason: null };

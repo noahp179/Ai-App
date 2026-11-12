@@ -391,7 +391,7 @@ export function createClassroomServer(opts: ClassroomOptions): ClassroomServer {
       }
       const params = match.pattern.exec(url.pathname)!.slice(1).map((p) => decodeURIComponent(p));
       const result = await match.handler({ req, res, url, user: auth?.user ?? null, cookieAuth: !!auth?.cookie, body, raw, ip }, params);
-      if (result !== HANDLED) send(200, result ?? { ok: true });
+      if (result !== HANDLED) send(200, result === undefined ? { ok: true } : result);
     } catch (err) {
       if (err instanceof HttpError) send(err.status, { error: { code: err.code, message: err.message } });
       else {

@@ -15,6 +15,7 @@ export const MODULE_IDS = [
   'marketplace',
   'learning',
   'study',
+  'classroom',
   'news',
   'games',
   'creator',

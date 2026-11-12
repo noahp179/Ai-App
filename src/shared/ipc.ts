@@ -20,6 +20,7 @@ export interface AppEvents {
   'bridge.status': import('./types').BridgeStatus;
   'study.tutor': import('./study/api').TutorStreamEvent;
   'curriculum.progress': { message: string };
+  'classroom.stream': { streamId: string; event: import('./classroom/protocol').ChatStreamEvent };
 }
 
 export type AppEventName = keyof AppEvents;

@@ -19,7 +19,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "npm run build && playwright test",
+    "test:e2e": "npm run build && node scripts/build.mjs --only=classroomWeb && playwright test",
     "check": "npm run typecheck && npm run lint && npm run test",
     "server": "node scripts/build.mjs --only=server && node dist/server/main.js",
     "classroom": "node scripts/build.mjs --only=classroom,classroomWeb && node dist/classroom/main.js",

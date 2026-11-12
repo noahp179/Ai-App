@@ -27,7 +27,7 @@
   --border-strong: #343b50;
   --text: #e7e9f0;
   --text-muted: #a0a7ba;
-  --text-faint: #6f778c;
+  --text-faint: #8a92a6; /* 4.7:1 or better on every dark surface (WCAG AA) */
   --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
   --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
   --danger: #f2757a;
@@ -39,7 +39,7 @@
   --info: #6aa8f7;
   --info-bg: rgba(106, 168, 247, 0.12);
 
-  --accent: #8189ff;
+  --accent: #8e95ff;
   --accent-strong: #6a72f5;
   --accent-contrast: #0e1016;
   --accent-bg: rgba(129, 137, 255, 0.14);
@@ -56,17 +56,17 @@
   --border-strong: #c9cdd8;
   --text: #171a22;
   --text-muted: #555d70;
-  --text-faint: #7e8597;
+  --text-faint: #646b7d; /* 4.6:1 or better on every light surface (WCAG AA) */
   --shadow: 0 8px 30px rgba(20, 24, 40, 0.12);
-  --danger: #c93a40;
+  --danger: #b3333a;
   --danger-bg: rgba(201, 58, 64, 0.1);
-  --warn: #9a6a00;
+  --warn: #7f5700;
   --warn-bg: rgba(200, 140, 0, 0.12);
-  --ok: #1d8a57;
+  --ok: #156c44;
   --ok-bg: rgba(29, 138, 87, 0.1);
-  --info: #2a6fd0;
+  --info: #235fb5;
   --info-bg: rgba(42, 111, 208, 0.1);
-  --accent: #5058e8;
+  --accent: #444cd6;
   --accent-strong: #3f47d6;
   --accent-contrast: #ffffff;
   --accent-bg: rgba(80, 88, 232, 0.1);
@@ -563,4 +563,52 @@ figure.support figcaption { font-size: 0.8em; color: var(--text-muted); margin-t
   .study-nav-group, .study-nav-foot { width: 100%; }
   .study-nav .nav-section { margin: 8px 4px; }
   .tutor-page { grid-template-columns: 1fr; }
+}
+
+/* Status and accent colours meet WCAG AA (4.5:1) as text on their own tinted backgrounds, in both themes. */
+/* ─────────── Classroom ─────────── */
+.classroom { min-height: 100%; }
+.classroom-auth { max-width: 520px; margin: var(--space-6) auto; }
+.class-code { font-family: var(--font-mono); font-size: 1.8rem; letter-spacing: 0.15em; font-weight: 600; }
+.material-text { white-space: pre-wrap; font-family: var(--font-sans); font-size: 0.92rem; max-height: 60vh; overflow: auto; background: var(--surface-2); padding: var(--space-3); border-radius: var(--radius); }
+.item-list { list-style: none; padding: 0; margin: 0; }
+.details { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+.details dt { color: var(--text-muted); }
+.details dd { margin: 0; }
+.student-answer { white-space: pre-wrap; background: var(--surface-2); border-radius: var(--radius-sm); padding: 8px 10px; margin: 0; }
+mark.overlap { background: var(--warn-bg); color: inherit; border-bottom: 2px solid var(--warn); }
+.ai-suggestion { border: 1px dashed var(--border-strong); border-radius: var(--radius); padding: var(--space-3); background: var(--info-bg); }
+.review-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); gap: var(--space-4); align-items: start; }
+.review-side { position: sticky; top: var(--space-3); max-height: calc(100vh - 120px); overflow: auto; }
+.review-chat, .chat-list { list-style: none; padding: 0; margin: 0; }
+.chat-msg { padding: 8px 10px; border-radius: var(--radius); background: var(--surface-2); }
+.chat-msg.student { background: var(--accent-bg); }
+.chat-msg.highlight { outline: 2px solid var(--warn); }
+.chat-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.citations { margin: 6px 0 0; padding-left: 18px; }
+.score-bars { display: flex; gap: 8px; align-items: flex-end; height: 84px; }
+.score-bar { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.score-bar > div { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; }
+.gradebook th[scope='row'] { font-weight: 500; text-align: left; }
+
+.workspace { display: flex; flex-direction: column; gap: var(--space-3); }
+.workspace.larger-text { font-size: 1.18rem; }
+.workspace-bar { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: var(--space-2) 0; border-bottom: 1px solid var(--border); }
+.workspace-bar h1 { font-size: 1.2rem; }
+.timer { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); }
+.timer.low { background: var(--warn-bg); color: var(--warn); font-weight: 600; }
+.workspace-notice { padding: 8px 12px; border-radius: var(--radius); background: var(--warn-bg); }
+.workspace-panes { display: grid; grid-template-columns: minmax(300px, 2fr) minmax(0, 3fr); gap: var(--space-4); align-items: start; }
+.workspace.no-ai .workspace-panes { grid-template-columns: minmax(0, 1fr); max-width: 860px; }
+.chat-pane { position: sticky; top: 64px; max-height: calc(100vh - 140px); display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3); }
+.chat-pane .chat-list { flex: 1; overflow: auto; min-height: 120px; }
+.answers-pane { min-width: 0; }
+.question-nav { gap: 6px; }
+.qnav { min-width: 34px; height: 34px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); cursor: pointer; }
+.qnav.done { background: var(--ok-bg); }
+.qnav.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+@media (max-width: 900px) {
+  .review-layout, .workspace-panes { grid-template-columns: minmax(0, 1fr); }
+  .chat-pane, .review-side { position: static; max-height: none; }
+  .chat-pane .chat-list { max-height: 50vh; }
 }

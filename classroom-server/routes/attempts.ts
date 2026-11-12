@@ -53,11 +53,13 @@ function shuffle<T>(items: T[], seed: string): T[] {
   return out;
 }
 
-export function studentItems(items: ItemDto[], t: Pick<AttemptRow, 'id' | 'item_order'>, shuffleChoices: boolean): StudentItemDto[] {
+/** Questions as a student sees them: keys removed, choices shuffled if asked, hints only in practice quizzes. */
+export function studentItems(items: ItemDto[], t: Pick<AttemptRow, 'id' | 'item_order'>, shuffleChoices: boolean, hints = false): StudentItemDto[] {
   const order = json<string[]>(t.item_order, []);
   const sorted = order.length ? order.map((id) => items.find((i) => i.id === id)).filter((i): i is ItemDto => !!i) : items;
   return sorted.map((it, i) => {
     let q: Question = redactQuestion(it.question);
+    if (!hints) q = { ...q, hints: [] };
     if (shuffleChoices && (q.type === 'multiple_choice' || q.type === 'multiple_select')) q = { ...q, choices: shuffle(q.choices, `${t.id}:${it.id}`) };
     return { id: it.id, position: i + 1, points: it.points, question: q, long: it.long };
   });
@@ -88,7 +90,7 @@ export function registerAttempts(s: S): void {
       reference: t.reference,
       settings: { kind: st.kind, layout: st.layout, aiMode: st.aiMode, messageLimit: st.messageLimit, blockPaste: st.blockPaste, logFocus: st.logFocus, largeInsertSignal: st.largeInsertSignal, largeInsertChars: st.largeInsertChars, transcriptVisible: st.transcriptVisible, showResults: st.showResults },
       accommodation: { ...NO_ACCOMMODATION, ...json<Partial<Accommodation>>(t.accommodation, {}) },
-      items: studentItems(itemsOf(s, a.id, t.version), t, st.shuffleChoices),
+      items: studentItems(itemsOf(s, a.id, t.version), t, st.shuffleChoices, st.kind === 'practice'),
       responses: json<Record<string, Response>>(t.responses, {}),
       flags: json<string[]>(t.flags, []),
       messagesUsed: db.get<{ n: number }>(`SELECT COUNT(*) AS n FROM chat_messages WHERE attempt_id = ? AND role = 'student'`, [t.id])!.n,

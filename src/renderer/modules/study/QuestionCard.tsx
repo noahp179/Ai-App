@@ -14,7 +14,7 @@ export interface Feedback {
   adaptReason?: string | null;
 }
 
-function initial(q: Question): Response | null {
+export function initial(q: Question): Response | null {
   switch (q.type) {
     case 'multiple_select':
       return { type: 'choices', choices: [] };
@@ -246,7 +246,7 @@ function FeedbackView({ q, feedback, result, onSimilar }: { q: Question; feedbac
   );
 }
 
-function AnswerInput({ q, resp, setResp, disabled, onEnter }: { q: Question; resp: Response | null; setResp: (r: Response) => void; disabled: boolean; onEnter: () => void }) {
+export function AnswerInput({ q, resp, setResp, disabled, onEnter }: { q: Question; resp: Response | null; setResp: (r: Response) => void; disabled: boolean; onEnter: () => void }) {
   const label = `Answer to the question`;
   switch (q.type) {
     case 'multiple_choice':

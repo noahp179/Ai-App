@@ -93,6 +93,8 @@ export class AppContext {
   launchAtLoginError: string | null = null;
   /** Set by parental controls; returns why a copy is blocked in a context, or null. */
   copyBlockedReason: ((context: CopyContext) => string | null) | null = null;
+  /** True while a classroom assessment is open: the app refuses to copy text anywhere. */
+  classroomLock = false;
   /** Set by parental controls when tutor mode is on. */
   tutorPrompt: (() => string | null) | null = null;
   /** Extra search sources (learning catalogue, etc.), registered by later modules. */
@@ -561,6 +563,7 @@ export class AppContext {
   }
 
   copyText(text: string): void {
+    if (this.classroomLock) return;
     clipboard.writeText(text);
   }
 

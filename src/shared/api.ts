@@ -164,7 +164,21 @@ export interface ProviderCatalogEntry {
  * interface (see src/main/api.ts); every method is reachable over IPC as
  * "namespace.method". Return values are wrapped in promises on the UI side.
  */
+/** The desktop app's classroom client (see src/main/classroomApi.ts). */
+export interface ClassroomDesktopApi {
+  status(): { url: string | null; signedIn: boolean };
+  connect(url: string): Promise<import('./classroom/protocol').ServerInfo>;
+  disconnect(): void;
+  request(method: import('./classroom/transport').Method, path: string, body?: unknown): Promise<unknown>;
+  upload(path: string, query: Record<string, string>, name: string, type: string, bytes: Uint8Array): Promise<unknown>;
+  /** Streams server-sent events as "classroom.stream" app events tagged with streamId. */
+  stream(path: string, body: unknown, streamId: string): Promise<boolean>;
+  saveText(filename: string, text: string): Promise<boolean>;
+  setAssessmentLock(on: boolean): void;
+}
+
 export interface FlowApi {
+  classroom: ClassroomDesktopApi;
   curriculum: import('./study/api').CurriculumApi;
   study: import('./study/api').StudyApi;
   app: {
