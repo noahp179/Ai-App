@@ -22,6 +22,8 @@
     "test:e2e": "npm run build && playwright test",
     "check": "npm run typecheck && npm run lint && npm run test",
     "server": "node scripts/build.mjs --only=server && node dist/server/main.js",
+    "classroom": "node scripts/build.mjs --only=classroom,classroomWeb && node dist/classroom/main.js",
+    "build:classroom": "node scripts/build.mjs --only=classroom,classroomWeb",
     "dist": "npm run build && electron-builder --publish never",
     "dist:linux": "npm run build && electron-builder --linux --publish never",
     "dist:win": "npm run build && electron-builder --win --publish never",

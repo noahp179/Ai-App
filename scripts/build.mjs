@@ -1,5 +1,5 @@
 // Builds FlowCompanion: main + preload + reference server with esbuild, the UI with Vite.
-// Usage: node scripts/build.mjs [--only=main,preload,renderer,server] [--dev]
+// Usage: node scripts/build.mjs [--only=main,preload,renderer,server,classroom,classroomWeb] [--dev]
 import { build as esbuild } from 'esbuild';
 import { rmSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -50,6 +50,20 @@ export const targets = {
       target: 'node22',
       minify: false,
     }),
+  classroom: () =>
+    esbuild({
+      ...common,
+      entryPoints: [resolve(root, 'classroom-server/main.ts')],
+      outfile: resolve(root, 'dist/classroom/main.js'),
+      target: 'node22',
+      minify: false,
+      // pdf.js is loaded at run time from node_modules (it ships its own worker and must not be bundled).
+      external: ['pdfjs-dist', 'pdfjs-dist/*'],
+    }),
+  classroomWeb: async () => {
+    const { build } = await import('vite');
+    await build({ configFile: resolve(root, 'vite.web.config.ts'), mode: dev ? 'development' : 'production', logLevel: 'warn' });
+  },
   renderer: async () => {
     const { build } = await import('vite');
     await build({ configFile: resolve(root, 'vite.config.ts'), mode: dev ? 'development' : 'production', logLevel: 'warn' });
