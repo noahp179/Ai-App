@@ -62,7 +62,8 @@ export function registerAdmin(s: S): void {
   s.route('PATCH', '/admin/school', (c) => {
     const u = s.requireRole(c, 'admin');
     const { aiKey, under13Consent, ...patch } = s.parse(SchoolSettingsPatch, c.body);
-    const next = SchoolSettingsSchema.parse({ ...s.settings(u.school_id), ...patch });
+    const cur = s.settings(u.school_id);
+    const next = SchoolSettingsSchema.parse({ ...cur, ...patch, prices: { ...cur.prices, ...patch.prices } });
     db.run('UPDATE schools SET settings = ? WHERE id = ?', [JSON.stringify(next), u.school_id]);
     const changed = Object.keys(patch);
     if (aiKey !== undefined) {

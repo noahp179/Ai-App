@@ -414,6 +414,9 @@ export function registerAttempts(s: S): void {
         chat: db.all<ChatRow>('SELECT * FROM chat_messages WHERE attempt_id = ? ORDER BY rowid', [t.id]).map((m) => ({ role: m.role, content: m.content, at: m.created_at })),
         events: db.all<{ kind: string; at: string; detail: string }>('SELECT kind, at, detail FROM integrity_events WHERE attempt_id = ? ORDER BY at', [t.id]).map((e) => ({ kind: e.kind, at: e.at, detail: json(e.detail, {}) })),
         released: !!t.released_at,
+        // Marks and feedback only once the teacher has released them, as on the results screen.
+        overallComment: t.released_at ? t.overall_comment : null,
+        marks: t.released_at ? db.all<{ item_id: string; score: number | null; comment: string }>('SELECT item_id, score, comment FROM grades WHERE attempt_id = ?', [t.id]).map((g) => ({ itemId: g.item_id, score: g.score, comment: g.comment })) : null,
       })),
     };
   });

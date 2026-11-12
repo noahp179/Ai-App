@@ -262,3 +262,26 @@ describe('taking an assessment', () => {
     for (const [m, p] of routes) expect((await k.raw(m, p, { body: m === 'GET' ? undefined : {} })).status, `anonymous ${m} ${p}`).toBe(401);
   });
 });
+
+describe('partial updates', () => {
+  it('change only the fields that were sent, never resetting the rest to defaults', async () => {
+    const s = await seedClass(k, { aiMode: 'hints', timeLimitMinutes: 30, evaluateAiUse: false });
+    // Assessment: a new title keeps instructions, settings and materials.
+    await s.teacher.post(`/assessments/${s.assessment.id}/publish`, { publish: false });
+    const renamed = await s.teacher.patch(`/assessments/${s.assessment.id}`, { title: 'Cells quiz (v2)' });
+    expect(renamed).toMatchObject({ title: 'Cells quiz (v2)', instructions: 'Answer in your own words.', materialIds: [s.material.id], settings: { aiMode: 'hints', timeLimitMinutes: 30, evaluateAiUse: false } });
+    // One setting changes; the others stay.
+    const one = await s.teacher.patch(`/assessments/${s.assessment.id}`, { settings: { messageLimit: 5 } });
+    expect(one.settings).toMatchObject({ messageLimit: 5, aiMode: 'hints', timeLimitMinutes: 30, evaluateAiUse: false });
+    // Question: accepting keeps its points; changing points keeps the question.
+    const item = s.items[2]!;
+    expect(await s.teacher.patch(`/assessments/${s.assessment.id}/items/${item.id}`, { reviewed: true })).toMatchObject({ points: 4 });
+    expect(await s.teacher.patch(`/assessments/${s.assessment.id}/items/${item.id}`, { points: 5 })).toMatchObject({ points: 5, long: true, question: { type: 'written' } });
+    // School settings: one field, and one price, at a time.
+    await s.teacher.patch('/admin/school', { aiModel: 'claude-sonnet-5-5', prices: { input: 3 } });
+    const school = await s.teacher.patch('/admin/school', { monthlyBudget: 25 });
+    expect(school.settings).toMatchObject({ aiModel: 'claude-sonnet-5-5', monthlyBudget: 25, retentionDays: 365, prices: { input: 3, output: 20, cacheRead: 0.2, cacheWrite: 5 } });
+    expect((await s.teacher.get('/admin/audit?action=school.settings'))[0].detail).toBe('monthlyBudget');
+    expect((await s.teacher.get('/admin/audit?action=school.settings'))[1].detail).toBe('aiModel, prices');
+  });
+});

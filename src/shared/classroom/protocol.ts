@@ -1,4 +1,18 @@
 import { z } from 'zod';
+
+/**
+ * A schema for partial updates: every field optional and, unlike `.partial()`, without defaults, so a field the
+ * client did not send is left out instead of being reset to its default.
+ */
+export function patchOf<T extends z.ZodRawShape>(o: z.ZodObject<T>): z.ZodObject<{ [K in keyof T]: z.ZodOptional<T[K]> }> {
+  const shape: Record<string, z.ZodType> = {};
+  for (const [k, v] of Object.entries(o.shape)) {
+    let t = v as z.ZodType;
+    while (t instanceof z.ZodDefault || t instanceof z.ZodPrefault) t = t.unwrap() as z.ZodType;
+    shape[k] = t.optional();
+  }
+  return z.object(shape) as unknown as z.ZodObject<{ [K in keyof T]: z.ZodOptional<T[K]> }>;
+}
 import type { Block, CheckResult, Question, Response, RubricCriterion } from '../study/types';
 
 /**
@@ -246,7 +260,7 @@ export const AssessmentBody = z.object({
   settings: AssessmentSettingsSchema.prefault({}),
   materialIds: z.array(z.string().max(64)).max(20).default([]),
 });
-export const AssessmentPatch = AssessmentBody.partial();
+export const AssessmentPatch = patchOf(AssessmentBody).extend({ settings: patchOf(AssessmentSettingsSchema).optional() });
 
 /** A question as teachers write it. Validated in full on the server (see items.ts). */
 export const ItemBody = z.object({
@@ -255,7 +269,7 @@ export const ItemBody = z.object({
   long: z.boolean().default(false),
   expectationIds: z.array(z.string().max(120)).max(12).default([]),
 });
-export const ItemPatch = ItemBody.partial().extend({ reviewed: z.boolean().optional() });
+export const ItemPatch = patchOf(ItemBody).extend({ reviewed: z.boolean().optional() });
 export const ReorderBody = z.object({ itemIds: z.array(z.string().max(64)).max(200) });
 export const DraftItemsBody = z.object({ count: z.number().int().min(1).max(10).default(5), focus: z.string().max(500).default('') });
 export const ImportItemsBody = z.object({ json: z.string().max(2_000_000) });
@@ -532,6 +546,8 @@ export interface ResultDto {
 
 // ─────────── Admin ───────────
 
+const PricesSchema = z.object({ input: z.number().min(0).default(4), output: z.number().min(0).default(20), cacheRead: z.number().min(0).default(0.2), cacheWrite: z.number().min(0).default(5) });
+
 export const SchoolSettingsSchema = z.object({
   aiModel: z.string().trim().min(1).max(80).default('claude-opus-5-5'),
   assistantEffort: z.enum(['low', 'medium', 'high', 'xhigh', 'max']).default('medium'),
@@ -539,7 +555,7 @@ export const SchoolSettingsSchema = z.object({
   /** US dollars per month; null means no limit. */
   monthlyBudget: z.number().min(0).max(1_000_000).nullable().default(null),
   /** US dollars per million tokens, used to estimate cost from token counts. */
-  prices: z.object({ input: z.number().min(0).default(4), output: z.number().min(0).default(20), cacheRead: z.number().min(0).default(0.2), cacheWrite: z.number().min(0).default(5) }).prefault({}),
+  prices: PricesSchema.prefault({}),
   /** Days after a class's end date before its data is deleted. */
   retentionDays: z.number().int().min(0).max(3650).default(365),
   dataRegion: z.string().trim().max(80).default('Not set'),
@@ -547,7 +563,7 @@ export const SchoolSettingsSchema = z.object({
   adminCanViewChats: z.boolean().default(false),
 });
 export type SchoolSettings = z.infer<typeof SchoolSettingsSchema>;
-export const SchoolSettingsPatch = SchoolSettingsSchema.partial().extend({ aiKey: z.string().max(400).nullable().optional(), under13Consent: z.boolean().optional() });
+export const SchoolSettingsPatch = patchOf(SchoolSettingsSchema).extend({ prices: patchOf(PricesSchema).optional(), aiKey: z.string().max(400).nullable().optional(), under13Consent: z.boolean().optional() });
 
 export interface SchoolAdminDto {
   school: { id: string; name: string };
