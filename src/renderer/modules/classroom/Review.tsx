@@ -271,7 +271,9 @@ function EvaluationView({ d, ev, onChange, showMessage }: { d: SubmissionDto; ev
                 <div className="row-wrap">
                   <strong className="grow">{cr.label}</strong>
                   {s ? <Badge tone="info">AI-suggested: level {s.level}</Badge> : null}
-                  <Select aria-label={`Your level for ${cr.label}`} value={levels[cr.id] ?? ''} onChange={(e) => setLevels({ ...levels, [cr.id]: Number(e.target.value) })} style={{ width: 'auto' }}>
+                </div>
+                <div>
+                  <Select aria-label={`Your level for ${cr.label}`} value={levels[cr.id] ?? ''} onChange={(e) => setLevels({ ...levels, [cr.id]: Number(e.target.value) })} style={{ width: '100%', maxWidth: '100%' }}>
                     <option value="">Your level…</option>
                     {cr.levels.map((desc, i) => (
                       <option key={i} value={i + 1}>
