@@ -207,6 +207,36 @@ Classifications, as defined in the brief:
 | Accessibility options (text size, readable font, plain language, extra time) | Not fully verified | Implemented; no screen-reader test |
 | Pedagogical review by an Ontario teacher | Not implemented | Not done |
 
+## Classroom
+
+"web e2e" = Playwright against the browser build served by a real classroom server; "desktop e2e" = the built Electron app against one. The AI in tests is scripted and never presented as a real model.
+
+| Feature | Status | Evidence / notes |
+| --- | --- | --- |
+| Classroom server: accounts (admin, teacher invite, student join), sessions, lockout, roles, isolation | Verified | int, web e2e, desktop e2e |
+| Classes: create, edit, archive, delete, join codes with approval, CSV roster preview and commit, co-teachers | Verified | int; roster and co-teacher UI not covered by e2e |
+| Accommodations (extra time, paste allowed, read aloud, larger text) applied and never flagged | Verified | int; read-aloud uses the device's speech voice (not tested) |
+| Materials: upload with rights confirmation, checks, ClamAV option, PDF/DOCX/PPTX/text extraction, encrypted storage, versions, signed downloads, page preview | Verified | int, web e2e (PDF); ClamAV against a mock daemon only |
+| Assessments: ten question types, versions, settings, scheduling, attempts, shuffling, import, publish rules | Verified | int, web e2e (two types through the UI) |
+| AI-drafted questions that must be reviewed before publishing | Verified | int (scripted AI) |
+| Attempts: pre-start notice and acknowledgement, server-clock timer, extra time, autosave with offline copy, resume after reload, auto-submit, receipt | Verified | int, web e2e, desktop e2e |
+| Student assistant: modes, materials with citations, cited page viewer, draft sharing, message limits, refusal and error messages, budget pause | Verified | int (scripted AI), Anthropic wire test (mock API), web and desktop e2e |
+| Student assistant behaviour with the real model (no answers, declines off-material, resists rule changes) | Not fully verified | Live test written (`tests/live/classroom-assistant.test.ts`); not run: no API key in this environment |
+| Copy/paste/drop blocking and focus events, as disclosed; desktop app-wide copy lock | Verified | web e2e (paste, copy), desktop e2e (copy lock); a determined student can retype from another device |
+| Auto-marking, overrides with reasons, AI-suggested written marks with verified quotes, "Not graded" on invalid output | Verified | int (scripted AI), web e2e (marking) |
+| AI-use evaluation: structured output, verified quotes, "Not evaluated" on invalid output, no AI call for empty chats, teacher decides, students see only the decision | Verified | int (scripted AI), web e2e |
+| AI-use judge agreement with teachers | Blocked | Evaluation set of 42 synthetic cases built; labels are AI-suggested and not human-reviewed; not run against the real model (no API key) |
+| Code-computed overlap between answers and the assistant's words | Verified | unit, int |
+| Class batches (Message Batches API), progress, matching by id | Verified | int (scripted, 30 students), Anthropic wire test |
+| Release and withdraw, results, student reply, gradebook and CSV, class overview, comment bank | Verified | int, web e2e (release, results) |
+| Admin: AI key, model, effort, budget, prices, retention, admin chat access, under-13 confirmation, invites, usage, audit log | Verified | int; admin UI not covered by e2e |
+| Retention purge (rows, files, provider copies), student data export | Verified | int |
+| Desktop Classroom section (connect, sign in, stream, copy lock) | Verified | desktop e2e |
+| Browser build for Chromebooks | Not fully verified | web e2e in Chromium on Linux; not run on a Chromebook, Safari or Firefox |
+| Accessibility (WCAG 2.2 AA) | Not fully verified | axe-core: 0 violations on 8 screens in the web e2e; no screen-reader or manual audit |
+| 35 students at once | Verified | int load test (in-process server, scripted AI); see TEST_REPORT |
+| PostgreSQL, S3-compatible storage, SSO, linking a classroom account to a Student Learning profile, password change/reset | Not implemented | See KNOWN_LIMITATIONS |
+
 ## Packaging and release
 
 | Item | Status | Evidence |

@@ -31,6 +31,7 @@ Everything is in one SQLite database (`flowcompanion.db`) in the app's user-data
 | Curriculum update check (optional) | ws.api.dcp.edu.gov.on.ca (Ontario Ministry of Education) | Requests for public curriculum data, no personal information | Only when you press "Check the Ministry site for changes" |
 | Opening links | Your default browser | The link | When you click |
 | Marketplace server (optional) | The server address **you** enter | Your email/password when signing in (password never stored), listing searches, listing views, trials, reviews and reports you submit, listings you publish | Only after you configure a server; browsing works without an account |
+| Classroom (optional) | Your school's classroom server, at the address **you** enter | Your school sign-in, and in assessments your answers, chat with the school's AI assistant and the activity listed before each assessment. The session token is kept in the secret store above; the server address in `kv` (`classroom.serverUrl`). Nothing from the rest of FlowCompanion is sent. See [CLASSROOM_PRIVACY.md](CLASSROOM_PRIVACY.md) | Only after you connect to a server |
 | Browser extension (optional) | FlowCompanion on this computer only (127.0.0.1) | Page title and URL, or the text you selected | Only when you click an extension action |
 
 Not sent anywhere: your notes, tasks, calendar, learning progress, Student Learning answers and progress (except the optional summary above), game scores, prompt library, personalization signals, parental-control settings or study sessions.

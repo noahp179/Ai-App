@@ -40,7 +40,7 @@
     "katex": "^0.19.0",
     "lucide-react": "^1.61.0",
     "luxon": "^3.7.2",
-    "pdfjs-dist": "^5.7.284",
+    "pdfjs-dist": "^6.5.438",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-markdown": "^10.1.0",

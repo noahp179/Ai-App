@@ -16,6 +16,7 @@ A standalone desktop workspace for AI, productivity, learning and personal organ
 | **News** | 21 publisher RSS/Atom feeds plus your own, attribution on every item, previews only, duplicate collapsing, search, saved items, blocked sources, keyword alerts. |
 | **Games** | Word guess, Sudoku, memory match, AI trivia, reaction time — with rules, difficulty levels, keyboard play, reduced-motion support and local scores. |
 | **Student Learning** | For Ontario students in Grades 6–12: the official curriculum (297 courses, 8,856 specific expectations, quoted from the Ministry site and checked against it), student profiles, nine-step lessons that pause and resume, checked practice and quizzes with hints and feedback, progress by expectation, gap detection, spaced review, study plans that go into the calendar after approval, an assessment builder and an optional AI tutor. Offline lessons and code-checked questions exist for 80 mathematics expectations (Grades 6–9); see [the coverage report](docs/CURRICULUM_COVERAGE.md). |
+| **Classroom** | For schools: teachers create classes, upload their own materials and set quizzes, tests and written assignments. Students work in two panes, an AI study assistant that answers from the teacher's materials with page citations, and their own answers (paste blocked, as disclosed). After submission an AI suggests marks for written answers and how well the student used the assistant; **the teacher decides and releases**. Runs as a desktop section and as a browser app served by the included classroom server. See [the Classroom guide](docs/CLASSROOM.md). |
 | **Learning Hub** | 72 free AI learning resources from universities, non-profits, public bodies and companies, every link checked by a script; nine learning paths; progress, notes, study scheduling. No invented ratings or durations. |
 | **Prompt library** | Prompts with `{{variables}}`, versions you can restore, provider labels, import/export, “open in AI”. In a chat, save what you typed as a prompt, or attach a saved prompt (variables filled in) ahead of your message. |
 | **Marketplace & Creator Studio** | Free bundled starter prompts, listing files, and an optional marketplace server (reference implementation in `server/`) with accounts, moderation, verified reviews and server-enforced 7-day trials. **No payments**: purchases are never simulated. |
@@ -43,12 +44,13 @@ npm start            # builds and launches the app
 
 Running as root on Linux (e.g. in a container) needs `npx electron . --no-sandbox` after `npm run build`.
 
-Other commands: `npm run check` (typecheck, lint, unit/integration tests), `npm run test:e2e` (Playwright, needs a display or `xvfb-run`), `npm run dist:linux` (AppImage + deb), `npm run server` (reference marketplace server), `npm run verify:links` (check every Learning Hub link), `npm run curriculum:verify` (compare the shipped Ontario curriculum with the Ministry site), `npm run curriculum:coverage` (regenerate the coverage report).
+Other commands: `npm run check` (typecheck, lint, unit/integration tests), `npm run test:e2e` (Playwright, needs a display or `xvfb-run`), `npm run dist:linux` (AppImage + deb), `npm run server` (reference marketplace server), `npm run classroom` (build and run the classroom server with its browser app), `npm run verify:links` (check every Learning Hub link), `npm run curriculum:verify` (compare the shipped Ontario curriculum with the Ministry site), `npm run curriculum:coverage` (regenerate the coverage report).
 
 ## Documentation
 
 - [Installation and configuration](docs/INSTALL.md)
 - [Student Learning guide](docs/STUDENT_LEARNING.md) and [curriculum coverage report](docs/CURRICULUM_COVERAGE.md)
+- [Classroom guide](docs/CLASSROOM.md), [Classroom privacy](docs/CLASSROOM_PRIVACY.md) and [Classroom AI](docs/CLASSROOM_AI.md)
 - [Developer setup](docs/DEVELOPMENT.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Privacy and data flows](docs/PRIVACY.md)

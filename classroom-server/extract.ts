@@ -77,7 +77,9 @@ function pptx(bytes: Buffer): string[] {
 async function pdf(bytes: Buffer): Promise<string[]> {
   // pdf.js is ESM-only; load it on demand (it stays outside the server bundle).
   const pdfjs = (await import('pdfjs-dist/legacy/build/pdf.mjs')) as typeof import('pdfjs-dist');
-  const doc = await pdfjs.getDocument({ data: new Uint8Array(bytes), useSystemFonts: true, disableFontFace: true, verbosity: 0 }).promise;
+  // pdf.js 6 or later: earlier versions could run JavaScript from a crafted PDF (GHSA-hq66-cqwq-w95j).
+  const task = pdfjs.getDocument({ data: new Uint8Array(bytes), useSystemFonts: true, disableFontFace: true, verbosity: 0 });
+  const doc = await task.promise;
   try {
     const pages: string[] = [];
     for (let i = 1; i <= doc.numPages; i++) {
@@ -93,7 +95,7 @@ async function pdf(bytes: Buffer): Promise<string[]> {
     }
     return pages;
   } finally {
-    await doc.destroy();
+    await task.destroy();
   }
 }
 

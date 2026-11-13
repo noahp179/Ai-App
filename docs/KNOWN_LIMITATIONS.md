@@ -57,6 +57,24 @@
 
 - Chromium-based browsers only, loaded unpacked (not in a store). Firefox and Safari are not supported.
 
+## Classroom
+
+- **Not tried in a school.** The classroom server is a tested reference implementation; it has not been deployed for real classes, on a school network, or with a board's identity system.
+- **Storage:** SQLite only (no PostgreSQL adapter) and a local encrypted file store only (no S3-compatible storage). The database file itself is not encrypted; use disk encryption. One server process; no clustering.
+- **Accounts:**
+  - no single sign-on (Google, Microsoft);
+  - no password change or reset;
+  - no email verification;
+  - no self-service account deletion (schools remove students and delete classes).
+- **Not linked to Student Learning:** a classroom account is separate from the desktop app's Student Learning profiles.
+- **Real AI not exercised:** every AI path was tested with a scripted AI and a mock of the Anthropic API, not with the real model, because no API key was available. The assistant's actual behaviour (not giving answers, declining off-material questions, resisting rule changes) and the AI-use judge's agreement with teachers are **unmeasured**.
+- **Evaluation set labels:** the 42 transcripts are synthetic and their labels were suggested by an AI, not a teacher; a teacher should review them before agreement numbers are trusted.
+- **Copy/paste blocking and focus events** are deterrents and signals, not proctoring. A student can retype from another device; browser extensions or developer tools in the browser build can get around page handlers. The desktop app's copy lock covers only FlowCompanion.
+- **Images and scanned PDFs** are stored and sent to the model as images, but have no text the server can search or verify quotes against.
+- **Browser support:** tested only in Chromium on Linux. Not tested on Chromebook hardware, Safari, Firefox or with screen readers.
+- **Read aloud** uses the browser's or operating system's speech voices; quality and availability vary.
+- **Load:** measured only in-process with a scripted AI (35 students). Real AI latency, many classes at once, and slow networks were not measured.
+
 ## Accessibility
 
 - Keyboard navigation, focus rings, ARIA labels, reduced motion, high contrast and text scaling are implemented, but no screen-reader testing or formal accessibility audit has been done.
@@ -64,3 +82,4 @@
 ## Not measured
 
 - Performance on real Windows/macOS hardware, battery impact, memory over long sessions, very large databases (>100 MB), and load on the reference server.
+- Classroom: real AI latency and cost per class, many classes at once, the AI-use judge's agreement with teachers.

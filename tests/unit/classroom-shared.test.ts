@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import { parseCsv, toCsv } from '../../src/shared/classroom/csv';
 import { looksLikeRuleChange, recordedNotice } from '../../src/shared/classroom/integrity';
 import { ItemError, isAnswered, parseResponse, redactQuestion, responseText, toQuestion } from '../../src/shared/classroom/items';
@@ -109,5 +111,30 @@ describe('CSV', () => {
     expect(parseCsv('﻿name,email\r\n"Lee, Ana",ana@x.test\n\n"Say ""hi""",b@x.test')).toEqual([['name', 'email'], ['Lee, Ana', 'ana@x.test'], ['Say "hi"', 'b@x.test']]);
     // A cell that starts like a formula is kept as text.
     expect(toCsv([['Student', 'Score'], ['=cmd()', 4.5], ['Lee, Ana', null]])).toBe('Student,Score\r\n\'=cmd(),4.5\r\n"Lee, Ana",\r\n');
+  });
+});
+
+describe('no surveillance beyond the assessment', () => {
+  it('classroom code contains no camera, microphone, screen, keystroke, location or clipboard-reading code', () => {
+    const roots = ['classroom-server', 'src/shared/classroom', 'src/renderer/modules/classroom', 'src/web', 'src/main/classroomApi.ts'];
+    const files: string[] = [];
+    const walk = (p: string) => {
+      if (fs.statSync(p).isFile()) return void files.push(p);
+      for (const e of fs.readdirSync(p, { withFileTypes: true })) walk(path.join(p, e.name));
+    };
+    roots.forEach(walk);
+    const src = files.filter((f) => /\.(ts|tsx)$/.test(f)).map((f) => [f, fs.readFileSync(f, 'utf8')] as const);
+    expect(src.length).toBeGreaterThan(20);
+    for (const [f, text] of src) {
+      expect(text, f).not.toMatch(/getUserMedia|getDisplayMedia|desktopCapturer|MediaRecorder|captureStream|geolocation(?!=\(\))|clipboard\.read|readText\(|uiohook|iohook|keylog/);
+      // Key handlers exist only for using the page (Enter to send); none sends keys anywhere.
+      expect(text, f).not.toMatch(/addEventListener\(\s*['"]key(down|up|press)/);
+      expect(text, f).not.toMatch(/onKey(Up|Press)\b/);
+    }
+    // The browser build is served with those features switched off for the page.
+    expect(src.find(([f]) => f.endsWith(path.join('classroom-server', 'app.ts')))![1]).toContain("'permissions-policy': 'camera=(), microphone=(), geolocation=(), display-capture=()'");
+    // Pastes are recorded as a count of characters, never their content.
+    const ws = src.find(([f]) => f.endsWith('Workspace.tsx'))![1];
+    expect(ws).toMatch(/record\('paste_blocked', itemId, \{ chars: e\.clipboardData\.getData\('text'\)\.length \}\)/);
   });
 });

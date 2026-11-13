@@ -1,6 +1,6 @@
 # Delivery report — FlowCompanion 1.0.0
 
-22 October 2026, updated 29 October 2026 · repository `noahp179/Ai-App`, branch `claude/busy-cerf-vb9w2a`
+22 October 2026, updated 29 October 2026 and 13 November 2026 · repository `noahp179/Ai-App`, branch `claude/busy-cerf-vb9w2a`
 
 ## 1. What was delivered
 
@@ -9,6 +9,7 @@ A standalone Electron desktop application (TypeScript, React 19, SQLite) that wo
 - **Content:** a news reader, five games and a Learning Hub of 72 verified free resources.
 - **Prompts:** a prompt library, a marketplace with a creator studio, and a reference marketplace server.
 - **Student Learning (added 29 October 2026):** an Ontario Grades 6–12 curriculum engine built from the Ministry's Curriculum and Resources site, student profiles, lessons, checked practice and quizzes, mastery tracking, spaced review, a study planner tied to the calendar, an assessment builder and an optional AI tutor. Offline lessons cover 80 mathematics expectations; see [STUDENT_LEARNING.md](STUDENT_LEARNING.md) and [CURRICULUM_COVERAGE.md](CURRICULUM_COVERAGE.md).
+- **Classroom (added 13 November 2026):** a classroom server and teacher, student and administrator screens for the desktop app and a browser build. Covers classes, materials, assessments, a materials-grounded AI study assistant, AI-suggested marks and AI-use evaluations that the teacher decides on, release, gradebook, retention and audit. See [CLASSROOM.md](CLASSROOM.md) and the honest status below.
 - **Optional extras:** Parental Learning Controls, a browser bridge with a Chromium extension, and central settings, privacy and data tools.
 
 On request, the previous contents of this branch were removed and the app was built from scratch. The repository's default branch (`claude/ai-education-app-t3trrh`) still holds the earlier, unrelated "Synapse" code; nothing was merged into it.
@@ -151,3 +152,40 @@ See [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md). The main ones:
 For Student Learning, the next steps are a review of the existing lessons by an Ontario mathematics teacher, then skill packs for Grade 9–10 science and Grade 10–12 mathematics, each mapped with notes and checked by the content harness, and the French-language curriculum.
 
 Payments should only follow later, after legal review and with a real payment provider.
+
+## 15. Classroom delivery status (13 November 2026)
+
+Built from `docs/prompts/TEACHER_CLASSROOM_PROMPT.md`. Status per [FEATURE_MATRIX.md](FEATURE_MATRIX.md#classroom), evidence in [TEST_REPORT.md](TEST_REPORT.md).
+
+**Verified** (automated tests that ran, on Linux, with a scripted AI that is never presented as a real model):
+- the server's accounts, classes, materials (extraction, encryption, versions, signed downloads), assessments, attempts on the server clock, autosave and auto-submit;
+- the AI request shapes against a mock of the Anthropic API;
+- grading, release, gradebook and CSV, batches matched by id, budget pause, audit, retention purge and student export;
+- the browser build and the desktop section end to end;
+- copy and paste blocking as disclosed, and the app-wide copy lock on desktop;
+- 0 axe WCAG 2.2 AA violations on 8 screens;
+- 35 students at once.
+
+**Not verified:**
+- **Real model behaviour.** The student assistant against the real Claude API (not giving answers, declining off-material questions, resisting rule changes) was never run.
+- **Judge agreement (acceptance test 27) is not met.** The AI-use judge has an evaluation set of 42 synthetic cases, but its labels were suggested by an AI, not a teacher, and it has never been run against the model. No API key was available (the environment refused a key for Anthropic's host). Both runners are ready in `tests/live/`.
+- **Other platforms and assistive technology.** Chromebooks, Safari, Firefox and screen readers were not tested.
+- **Real use.** It has not been used by a real school.
+
+**Partial:**
+- Accessibility (automated scan only).
+- The browser build's copy blocking (page handlers only; extensions and developer tools can get around them).
+- Load (in-process, scripted AI).
+
+**Not implemented:**
+- PostgreSQL and S3-compatible storage (SQLite and a local encrypted store only).
+- Database-file encryption (use disk encryption).
+- Single sign-on, and password change or reset.
+- Linking classroom accounts to Student Learning profiles.
+
+**Next steps:**
+1. Run `tests/live/classroom-judge.test.ts` and `tests/live/classroom-assistant.test.ts` with a school's key.
+2. Have a teacher review the evaluation-set labels, then record the measured agreement.
+3. Pilot with one class.
+4. Add SSO and password reset.
+5. Test on Chromebooks.

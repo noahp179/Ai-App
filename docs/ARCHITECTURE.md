@@ -79,6 +79,29 @@ A single wake-on-demand timer (`core/scheduler.ts`) asks each source for its nex
 - `core/parental.ts`: PIN/recovery (scrypt), lockouts, config, sessions; exposes enforcement hooks used by the main process (copy blocking, tutor prompt, module allow-list, content protection).
 - `core/bridge.ts`: loopback HTTP server for the extension; Host and Origin checks, pairing, hashed tokens, size/rate limits.
 
+## Classroom
+
+Teacher classrooms, assessments with an AI study assistant, and AI-use grading. User guide: [CLASSROOM.md](CLASSROOM.md); AI: [CLASSROOM_AI.md](CLASSROOM_AI.md); privacy: [CLASSROOM_PRIVACY.md](CLASSROOM_PRIVACY.md).
+
+- **Server** (`classroom-server/`): node:http with a small route table (`core.ts`, `app.ts`). It has:
+  - SQLite in WAL mode with its own schema (`schema.ts`);
+  - an AES-256-GCM file store (`storage.ts`) and a master key (`crypto.ts`);
+  - upload checks and optional ClamAV (`scan.ts`);
+  - text extraction (`extract.ts`: pdf.js loaded at run time, an own zip reader for DOCX/PPTX);
+  - routes by area (`routes/`);
+  - attempt timing on the server clock (`lifecycle.ts`).
+
+  A 30-second sweep submits timed-out attempts and collects AI batches; an hourly one deletes classes past retention. Built with esbuild to `dist/classroom/main.js` (pdf.js stays external).
+- **AI** (`classroom-server/ai/`): an `AiProvider` interface, with Claude as its implementation through the official SDK (streamed chat with cited documents and caching, structured-output judges, Message Batches, Files API). Prompts are in `prompts.ts`. Jobs are stored in `ai_jobs` (`queued`, `budget`, `batch`, `done`, `failed`).
+- **Wire protocol** (`src/shared/classroom/`):
+  - zod request bodies and DTOs (`protocol.ts`);
+  - teacher question format to checker `Question` (`items.ts`, reusing Student Learning's checker);
+  - overlap computation (`overlap.ts`);
+  - activity labels and honest limits (`integrity.ts`);
+  - CSV (`csv.ts`);
+  - the client transport interface (`transport.ts`).
+- **Screens** (`src/renderer/modules/classroom/`): one set of React screens for teachers, students and administrators. They run as the desktop app's Classroom section with `desktopTransport` (IPC to `src/main/classroomApi.ts`, which holds the session token in the secret store, streams server-sent events as `classroom.stream` app events, and sets the app-wide copy lock), and as the browser build `src/web` with `webTransport` (fetch, HttpOnly cookie, `x-fc-client` header as a CSRF guard). Built by Vite (`vite.web.config.ts`) to `dist/classroom-web`, served by the server with a strict CSP and a Permissions-Policy that disables camera, microphone, location and screen capture.
+
 ## Testing layers
 
 Unit and integration tests (Vitest) exercise `src/core`, `src/shared` and `server/` without Electron. End-to-end tests (Playwright) launch the built Electron app with an isolated data folder, and load the real extension into Chromium. Live tests (opt-in) hit real feeds and a real local model. See [TEST_REPORT.md](TEST_REPORT.md).

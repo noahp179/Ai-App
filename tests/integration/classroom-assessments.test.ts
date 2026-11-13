@@ -285,3 +285,22 @@ describe('partial updates', () => {
     expect((await s.teacher.get('/admin/audit?action=school.settings'))[1].detail).toBe('aiModel, prices');
   });
 });
+
+describe('hints', () => {
+  it('reach students only in practice quizzes', async () => {
+    const withHint = { points: 1, question: { type: 'true_false', prompt: 'Plant cells have chloroplasts.', answer: true, hints: ['Think about photosynthesis.'] } };
+    for (const [kind, expected] of [['quiz', []], ['practice', ['Think about photosynthesis.']]] as const) {
+      const local = await startClassroom();
+      const teacher = await local.admin();
+      const cls = await teacher.post('/classes', { name: 'Science' });
+      const code = (await teacher.post(`/classes/${cls.id}/join-code`, {})).code;
+      const ana = await local.student(code, 'Ana Lee');
+      const a = await teacher.post(`/classes/${cls.id}/assessments`, { title: 'Q', settings: { kind, aiMode: 'off' } });
+      await teacher.post(`/assessments/${a.id}/items`, withHint);
+      await teacher.post(`/assessments/${a.id}/publish`, {});
+      const t = await ana.post(`/assessments/${a.id}/attempts`, { acknowledged: true });
+      expect(t.items[0].question.hints, kind).toEqual(expected);
+      await local.close();
+    }
+  });
+});
